@@ -9,7 +9,6 @@ flask-sqlalchemy==3.1.1
 flask-wtf==1.2.1
 fuzzywuzzy==0.18.0
 gdown==5.2.0
-google-genai==1.33.0
 google-generativeai==0.8.2
 gunicorn==23.0.0
 joblib==1.4.2
@@ -20,7 +19,6 @@ numpy==2.1.1
 openai==1.42.0
 opencv-python==4.10.0.84
 pillow==10.4.0
-protobuf==4.25.6
 psutil==6.0.0
 psycopg2-binary==2.9.9
 python-dotenv==1.0.1
