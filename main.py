@@ -1,20 +1,12 @@
 from app import create_app
 import os
-import logging
-
-# Configure logging for deployment
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 
 # Create the Flask application
 app = create_app()
 
-# Ensure the app binds to 0.0.0.0:5000 explicitly for deployment
-app.config['SERVER_NAME'] = None  # Allow any host for deployment
-
+# Configure for deployment
 if __name__ == "__main__":
-    # Run the Flask application with explicit host and port binding
+    # For deployment, let gunicorn handle the server
+    # This is only for local development
     port = int(os.environ.get('PORT', 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
