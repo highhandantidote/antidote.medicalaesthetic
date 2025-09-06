@@ -1,0 +1,78 @@
+MT
+Avatar
+
+Back to Apps
+antidote-medical
+first-project
+BLR1
+Add resources
+Actions
+
+antidote.plasticsurgery@gmail.com's 
+deployment
+ failed during deploy phase at 07:46:44
+
+Go to Build Logs
+OverviewInsightsActivityRuntime LogsConsoleSettings
+Back to activity
+Deployment
+Failed
+Build Error: Non-Zero Exit
+antidote-medicalaesthetic build job failed because it returned a non-zero exit code. Review the logs for details. Attempt to correct the problem and redeploy your application.
+Summary
+Build failed creating new app
+Executed by
+antidote.plasticsurgery@gmail.com
+antidote.plasticsurgery@gmail.com
+Start time
+Today at 7:44:33 AM
+Build time
+2m 5s total • 0m 49s billable
+Need help troubleshooting? We can help detect potential issues and fixes.
+Scan logs for issues
+Beta
+Logs
+
+antidote-medicalaesthetic
+Build logs
+Deploy logs
+Search logs...
+Time
+Message
+Sep 06 02:15:58
+ │ Get:52 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-9 [19.8 kB]
+Sep 06 02:15:58
+ │ Get:53 http://deb.debian.org/debian trixie/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-9 [57.5 kB]
+Sep 06 02:15:58
+ │ Get:54 http://deb.debian.org/debian trixie/main amd64 libldap2 amd64 2.6.10+dfsg-1 [194 kB]
+Sep 06 02:15:58
+ │ Get:55 http://deb.debian.org/debian trixie/main amd64 libpq5 amd64 17.5-1 [226 kB]
+Sep 06 02:15:58
+ │ Get:56 http://deb.debian.org/debian trixie/main amd64 libssl-dev amd64 3.5.1-1 [2954 kB]
+Sep 06 02:15:58
+ │ Get:57 http://deb.debian.org/debian trixie/main amd64 libpq-dev amd64 17.5-1 [149 kB]
+Sep 06 02:15:58
+ │ Get:58 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules amd64 2.1.28+dfsg1-9 [66.7 kB]
+Sep 06 02:15:58
+ │ Get:59 http://deb.debian.org/debian trixie/main amd64 manpages-dev all 6.9.1-1 [2122 kB]
+Sep 06 02:15:58
+ │ debconf: unable to initialize frontend: Dialog
+Sep 06 02:15:58
+ │ debconf: (TERM is not set, so the dialog frontend is not usable.)
+Sep 06 02:15:58
+ │ debconf: falling back to frontend: Readline
+Sep 06 02:15:58
+ │ debconf: unable to initialize frontend: Readline
+Sep 06 02:15:58
+ │ debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 59.)
+
+Support
+Status
+Docs
+Tutorials
+Blog
+Pricing
+Careers
+Privacy
+Terms
+Refer your friends for $
