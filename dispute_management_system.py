@@ -518,8 +518,5 @@ def update_dispute(dispute_id):
         logger.error(f"Error updating dispute: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
-# Initialize dispute tables when module loads
-try:
-    DisputeService.create_dispute_tables()
-except Exception as e:
-    logger.warning(f"Could not create dispute tables during module load: {str(e)}")
+# Note: Dispute tables creation moved to app initialization  
+# Tables will be created when the application context is properly established

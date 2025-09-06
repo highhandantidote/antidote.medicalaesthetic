@@ -7974,9 +7974,17 @@ def register_routes(app):
     try:
         from admin_credit_system import admin_credit_bp
         app.register_blueprint(admin_credit_bp, url_prefix='/')
+        
+        # Initialize audit log table within application context
+        from admin_transaction_history import create_audit_log_table
+        with app.app_context():
+            create_audit_log_table()
+            
         logger.info("Admin credit management system registered successfully.")
     except ImportError:
         logger.warning("Admin credit management system not found.")
+    except Exception as e:
+        logger.error(f"Error setting up admin credit management system: {e}")
     
     # Register dynamic lead pricing system
     try:
@@ -7992,6 +8000,11 @@ def register_routes(app):
     # Register dispute management system (conditional to avoid conflicts)
     try:
         app.register_blueprint(dispute_bp, url_prefix='/')
+        
+        # Initialize dispute tables within application context
+        with app.app_context():
+            DisputeService.create_dispute_tables()
+            
         logger.info("Dispute management system registered successfully.")
     except Exception as e:
         logger.warning(f"Dispute management system registration failed: {str(e)}")

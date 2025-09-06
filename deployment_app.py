@@ -68,14 +68,19 @@ def create_app():
             "status": "running"
         })
     
-    # Try to import and register main routes safely
+    # Import and register all routes from the main application
     try:
-        import routes
-        logger.info("✅ Main routes imported successfully")
-    except ImportError as e:
-        logger.warning(f"Main routes not available: {e}")
+        from routes import register_routes
+        register_routes(app)
+        logger.info("✅ All application routes registered successfully")
         
-        # Fallback route if main routes fail
+        # Remove the basic root endpoint since routes.py will handle it
+        # The @app.route('/') defined above will be overridden by the web blueprint
+        
+    except ImportError as e:
+        logger.warning(f"Main routes registration failed: {e}")
+        
+        # Keep the basic fallback route if main routes fail
         @app.route('/api/status')
         def api_status():
             return jsonify({"status": "API available", "mode": "minimal"})

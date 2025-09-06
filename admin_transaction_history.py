@@ -402,8 +402,5 @@ def create_audit_log_table():
         logger.error(f"Error creating audit log table: {str(e)}")
         db.session.rollback()
 
-# Initialize audit log table when module loads
-try:
-    create_audit_log_table()
-except Exception as e:
-    logger.warning(f"Could not create audit log table during module load: {str(e)}")
+# Note: Audit log table creation moved to app initialization
+# Tables will be created when the application context is properly established
