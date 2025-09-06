@@ -1,0 +1,235 @@
+
+Review and configure resource settings
+Git repository details
+Change repository
+Service provider
+GitHub
+highhandantidote/antidote.medicalaesthetic
+Branch
+main
+App settings
+Resource settings
+
+antidote-medicalaesthetic
+Web Service
+antidote-medicalaesthetic
+Docker build detected
+
+Info
+Edit
+Name
+antidote-medicalaesthetic
+Resource type
+Web Service
+Size
+Edit
+Instance size
+512 MB RAM / 1 Shared vCPU / 50 GB bandwidth
+Containers
+1
+Deployment settings
+Edit
+Build strategy
+Dockerfile
+Run command
+No run command defined
+Network
+Edit
+Public HTTP port
+8080
+Internal ports
+No internal ports defined
+HTTP request routes
+1 route
+Environment variables
+Close
+This resource will have access to these variables and app-level environment variables. Get guidance on configuring variables 
+Key
+SESSION_SECRET
+Value
+wlFAS0O0ts5sj6uXH5YdV1GihW2d5POAyixUfXIhde40cHPtrgGuGhjW1CwUWNLYgLnboBwn1++ptRRuh45MaQ==
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+GOOGLE_API_KEY
+Value
+AIzaSyDzionz2a5HhKwesq-sF8qjibEXIHglqag
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+GEMINI_API_KEY
+Value
+AIzaSyBvrnevvV5ufchKEeAl_iSe0peFg2KRjEs
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+DATABASE_URL
+Value
+postgresql://postgres.fzratsdxchvololpzkir:narayanasharadaarun@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+RAZORPAY_KEY_ID
+Value
+rzp_test_9vt5OsKZRjk0DS
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+RAZORPAY_KEY_SECRET
+Value
+Zg3sJYKQ3G0pbL0RCcipGX6y
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_API_KEY
+Value
+AIzaSyApdhd6-KbfUWDKnXv90CGUBH5yx-4as5Y
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_APP_ID
+Value
+1:973203832945:web:20d3d7f326330cfe311bd0
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_MESSAGING_SENDER_ID
+Value
+973203832945
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_PROJECT_ID
+Value
+antidotepackages
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_AUTH_DOMAIN
+Value
+antidotepackages.firebaseapp.com
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FIREBASE_STORAGE_BUCKET
+Value
+antidotepackages.firebasestorage.app
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FLASK_ENV
+Value
+production
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Key
+FLASK_DEBUG
+Value
+False
+Scope
+
+RUN_AND_BUILD_TIME
+
+Run and build time
+
+Encrypt
+
+Add environment variableAdd from .env
+App-level environment variables
+All resources access these variables. A resource variable with the same key will override an app-level value. Get guidance on configuring variables 
+Edit
+No environment variables
+Region
+Pick a datacenter closest to your end users. Static components are served on our Global CDN 
+Choose a region
+
+blr
+
+Bangalore
+Finalize
+Choose a unique app name
+Names must be in lowercase. They can be between 0 and 32 characters long and may contain dashes.
+squid-app
+Select a project
+
+5823ebc1-a0ba-45ce-b7ae-04f805254d70
+
+first-project
