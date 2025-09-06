@@ -1,0 +1,96 @@
+MT
+Avatar
+
+Back to Apps
+antidote-test
+first-project
+BLR1
+Add resources
+Actions
+
+antidote.plasticsurgery@gmail.com's 
+deployment
+ failed during deploy phase at 08:00:05
+
+Go to Build Logs
+OverviewInsightsActivityRuntime LogsConsoleSettings
+Back to activity
+Deployment
+Failed
+Build Error: Non-Zero Exit
+antidote-medicalaesthetic2 build job failed because it returned a non-zero exit code. Review the logs for details. Attempt to correct the problem and redeploy your application.
+Summary
+Build failed creating new app
+Executed by
+antidote.plasticsurgery@gmail.com
+antidote.plasticsurgery@gmail.com
+Start time
+Today at 7:58:47 AM
+Build time
+1m 12s total • 0m 19s billable
+Need help troubleshooting? We can help detect potential issues and fixes.
+Scan logs for issues
+Beta
+Logs
+
+antidote-medicalaesthetic2
+Build logs
+Deploy logs
+Search logs...
+Time
+Message
+Sep 06 02:29:44
+ │    heroku/python                  v4.289.5  (Python)
+Sep 06 02:29:44
+ │    digitalocean/procfile          v0.1.0    (Procfile)
+Sep 06 02:29:44
+ │    digitalocean/custom            v0.2.0    (Custom Build Command)
+Sep 06 02:29:44
+ │ 
+Sep 06 02:29:44
+ │ For documentation on the buildpacks used to build your app, please see:
+Sep 06 02:29:44
+ │ 
+Sep 06 02:29:44
+ │    Python  v4.289.5  https://do.co/apps-buildpack-python
+Sep 06 02:29:44
+ ╰─────────────────────────────────────────────╼
+Sep 06 02:29:44
+ 
+Sep 06 02:29:44
+ ╭──────────── app build ───────────╼
+Sep 06 02:29:44
+ │ Warning: no analyzed metadata found at path '/layers/analyzed.toml'
+Sep 06 02:29:44
+ │ Timer: Builder started at 2025-09-06T02:29:44Z
+Sep 06 02:29:44
+ │ -----> No Python version was specified. Using the buildpack default: Python 3.13
+Sep 06 02:29:44
+ │ 
+Sep 06 02:29:44
+ │  !     Error: No Python version was specified.
+Sep 06 02:29:44
+ │  !     
+Sep 06 02:29:44
+ │  !     When using the package manager uv on Heroku, you must specify
+Sep 06 02:29:44
+ │  !     your app's Python version with a .python-version file.
+Sep 06 02:29:44
+ │  !     
+Sep 06 02:29:44
+ │  !     To add a .python-version file:
+Sep 06 02:29:44
+ │  !     
+Sep 06 02:29:44
+ │  !     1. Make sure you are in the root directory of your app
+
+Support
+Status
+Docs
+Tutorials
+Blog
+Pricing
+Careers
+Privacy
+Terms
+Refer your friends for $
