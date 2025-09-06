@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Banner Slide - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Edit Banner Slide</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Edit Slide: {{ slide.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('banners.edit_slide', slide_id=slide.id) }}" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ slide.title }}" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="subtitle">Subtitle (Optional)</label>
+                                    <textarea class="form-control" id="subtitle" name="subtitle" rows="3">{{ slide.subtitle }}</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="display_order">Display Order</label>
+                                    <input type="number" class="form-control" id="display_order" name="display_order" value="{{ slide.display_order }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="redirect_url">Redirect URL</label>
+                                    <input type="text" class="form-control" id="redirect_url" name="redirect_url" value="{{ slide.redirect_url }}" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Current Images</label>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Desktop Image:</small>
+                                            <img src="{{ slide.image_url }}" alt="{{ slide.title }}" style="max-width: 100%; max-height: 150px;" class="img-thumbnail">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Mobile Image:</small>
+                                            {% if slide.mobile_image_url %}
+                                                <img src="{{ slide.mobile_image_url }}" alt="{{ slide.title }} Mobile" style="max-width: 100%; max-height: 150px;" class="img-thumbnail">
+                                            {% else %}
+                                                <div class="border p-3 text-center text-muted">
+                                                    <small>Uses desktop image</small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Desktop Image Options -->
+                                <div class="card mt-3 bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Change Desktop Image</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>Option 1: Upload New Desktop Image</label>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="uploaded_image" name="uploaded_image" accept="image/*">
+                                                <label class="custom-file-label" for="uploaded_image">Choose new desktop image...</label>
+                                            </div>
+                                            <small class="form-text text-muted">Recommended size: 1200x600 pixels. Max file size: 5MB.</small>
+                                        </div>
+                                        
+                                        <div class="mt-3 text-center">
+                                            <div class="font-weight-bold">- OR -</div>
+                                        </div>
+                                        
+                                        <div class="form-group mt-3">
+                                            <label>Option 2: Desktop Image URL</label>
+                                            <input type="text" class="form-control" id="image_url" name="image_url" value="{{ slide.image_url }}" placeholder="https://example.com/desktop-image.jpg">
+                                            <small class="form-text text-muted">Enter a direct URL to desktop image.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mobile Image Options -->
+                                <div class="card mt-3 bg-warning bg-opacity-10">
+                                    <div class="card-header bg-warning">
+                                        <h6 class="mb-0">Change Mobile Image (Optional)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <small><strong>Note:</strong> If no mobile image is provided, the desktop image will be used for mobile devices.</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Option 1: Upload New Mobile Image</label>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="uploaded_mobile_image" name="uploaded_mobile_image" accept="image/*">
+                                                <label class="custom-file-label" for="uploaded_mobile_image">Choose new mobile image...</label>
+                                            </div>
+                                            <small class="form-text text-muted">Recommended size: 600x400 pixels. Max file size: 5MB.</small>
+                                        </div>
+                                        
+                                        <div class="mt-3 text-center">
+                                            <div class="font-weight-bold">- OR -</div>
+                                        </div>
+                                        
+                                        <div class="form-group mt-3">
+                                            <label>Option 2: Mobile Image URL</label>
+                                            <input type="text" class="form-control" id="mobile_image_url" name="mobile_image_url" value="{{ slide.mobile_image_url or '' }}" placeholder="https://example.com/mobile-image.jpg">
+                                            <small class="form-text text-muted">Enter a direct URL to mobile image.</small>
+                                        </div>
+                                        
+                                        {% if slide.mobile_image_url %}
+                                        <div class="form-group mt-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="remove_mobile_image" name="remove_mobile_image">
+                                                <label class="form-check-label" for="remove_mobile_image">
+                                                    Remove mobile image (use desktop image for mobile)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <small class="text-info">Note: Leave both desktop options empty to keep current desktop image.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-primary">Update Slide</button>
+                            <a href="{{ url_for('banners.admin_banners') }}" class="btn btn-secondary ml-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-0"><strong>Status:</strong> 
+                                <span class="badge {% if slide.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                                    {% if slide.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-0"><strong>Analytics:</strong> 
+                                {{ slide.click_count or 0 }} clicks / {{ slide.impression_count or 0 }} impressions 
+                                ({% if slide.impression_count and slide.impression_count > 0 and slide.click_count %}{{ (slide.click_count / slide.impression_count * 100)|round(2) }}% CTR{% else %}0% CTR{% endif %})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('banners.admin_banners') }}" class="btn btn-info">Back to Banners</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

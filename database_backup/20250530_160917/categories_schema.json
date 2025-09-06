@@ -1,0 +1,44 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('categories_id_seq'::regclass)"
+  },
+  {
+    "name": "name",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "body_part_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "description",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "image_url",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "popularity_score",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

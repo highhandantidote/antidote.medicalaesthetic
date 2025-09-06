@@ -1,0 +1,587 @@
+rolname,query,calls,total_time,prop_total_time
+authenticator,SELECT name FROM pg_timezone_names,172,22769.404289,25.7%
+postgres,"SELECT count(*) AS count_1 
+FROM (SELECT procedures.id AS procedures_id, procedures.procedure_name AS procedures_procedure_name, procedures.alternative_names AS procedures_alternative_names, procedures.short_description AS procedures_short_description, procedures.overview AS procedures_overview, procedures.procedure_details AS procedures_procedure_details, procedures.ideal_candidates AS procedures_ideal_candidates, procedures.recovery_process AS procedures_recovery_process, procedures.recovery_time AS procedures_recovery_time, procedures.procedure_duration AS procedures_procedure_duration, procedures.hospital_stay_required AS procedures_hospital_stay_required, procedures.results_duration AS procedures_results_duration, procedures.min_cost AS procedures_min_cost, procedures.max_cost AS procedures_max_cost, procedures.benefits AS procedures_benefits, procedures.benefits_detailed AS procedures_benefits_detailed, procedures.risks AS procedures_risks, procedures.procedure_types AS procedures_procedure_types, procedures.alternative_procedures AS procedures_alternative_procedures, procedures.category_id AS procedures_category_id, procedures.popularity_score AS procedures_popularity_score, procedures.avg_rating AS procedures_avg_rating, procedures.review_count AS procedures_review_count, procedures.is_featured AS procedures_is_featured, procedures.image_url AS procedures_image_url, procedures.created_at AS procedures_created_at, procedures.updated_at AS procedures_updated_at, procedures.body_part AS procedures_body_part, procedures.tags AS procedures_tags, procedures.body_area AS procedures_body_area, procedures.category_type AS procedures_category_type 
+FROM procedures 
+WHERE procedures.category_id = $1) AS anon_1",75932,13815.3452680001,15.6%
+authenticator,"WITH
+  columns AS (
+      SELECT
+          nc.nspname::name AS table_schema,
+          c.relname::name AS table_name,
+          a.attname::name AS column_name,
+          d.description AS description,
+  
+          CASE
+            WHEN t.typbasetype  != $2  THEN pg_get_expr(t.typdefaultbin, $3)
+            WHEN a.attidentity  = $4 THEN format($5, quote_literal(seqsch.nspname || $6 || seqclass.relname))
+            WHEN a.attgenerated = $7 THEN $8
+            ELSE pg_get_expr(ad.adbin, ad.adrelid)::text
+          END AS column_default,
+          not (a.attnotnull OR t.typtype = $9 AND t.typnotnull) AS is_nullable,
+          CASE
+              WHEN t.typtype = $10 THEN
+              CASE
+                  WHEN nbt.nspname = $11::name THEN format_type(t.typbasetype, $12::integer)
+                  ELSE format_type(a.atttypid, a.atttypmod)
+              END
+              ELSE
+              CASE
+                  WHEN nt.nspname = $13::name THEN format_type(a.atttypid, $14::integer)
+                  ELSE format_type(a.atttypid, a.atttypmod)
+              END
+          END::text AS data_type,
+          format_type(a.atttypid, a.atttypmod)::text AS nominal_data_type,
+          information_schema._pg_char_max_length(
+              information_schema._pg_truetypid(a.*, t.*),
+              information_schema._pg_truetypmod(a.*, t.*)
+          )::integer AS character_maximum_length,
+          COALESCE(bt.oid, t.oid) AS base_type,
+          a.attnum::integer AS position
+      FROM pg_attribute a
+          LEFT JOIN pg_description AS d
+              ON d.objoid = a.attrelid and d.objsubid = a.attnum
+          LEFT JOIN pg_attrdef ad
+              ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
+          JOIN (pg_class c JOIN pg_namespace nc ON c.relnamespace = nc.oid)
+              ON a.attrelid = c.oid
+          JOIN (pg_type t JOIN pg_namespace nt ON t.typnamespace = nt.oid)
+              ON a.atttypid = t.oid
+          LEFT JOIN (pg_type bt JOIN pg_namespace nbt ON bt.typnamespace = nbt.oid)
+              ON t.typtype = $15 AND t.typbasetype = bt.oid
+          LEFT JOIN (pg_collation co JOIN pg_namespace nco ON co.collnamespace = nco.oid)
+              ON a.attcollation = co.oid AND (nco.nspname <> $16::name OR co.collname <> $17::name)
+          LEFT JOIN pg_depend dep
+              ON dep.refobjid = a.attrelid and dep.refobjsubid = a.attnum and dep.deptype = $18
+          LEFT JOIN pg_class seqclass
+              ON seqclass.oid = dep.objid
+          LEFT JOIN pg_namespace seqsch
+              ON seqsch.oid = seqclass.relnamespace
+      WHERE
+          NOT pg_is_other_temp_schema(nc.oid)
+          AND a.attnum > $19
+          AND NOT a.attisdropped
+          AND c.relkind in ($20, $21, $22, $23, $24)
+          AND nc.nspname = ANY($1)
+  ),
+  columns_agg AS (
+    SELECT DISTINCT
+        info.table_schema AS table_schema,
+        info.table_name AS table_name,
+        array_agg(row(
+          info.column_name,
+          info.description,
+          info.is_nullable::boolean,
+          info.data_type,
+          info.nominal_data_type,
+          info.character_maximum_length,
+          info.column_default,
+          coalesce(enum_info.vals, $25)) order by info.position) as columns
+    FROM columns info
+    LEFT OUTER JOIN (
+        SELECT
+            e.enumtypid,
+            array_agg(e.enumlabel ORDER BY e.enumsortorder) AS vals
+        FROM pg_type t
+        JOIN pg_enum e ON t.oid = e.enumtypid
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        GROUP BY enumtypid
+    ) AS enum_info ON info.base_type = enum_info.enumtypid
+    WHERE info.table_schema NOT IN ($26, $27)
+    GROUP BY info.table_schema, info.table_name
+  ),
+  tbl_constraints AS (
+      SELECT
+          c.conname::name AS constraint_name,
+          nr.nspname::name AS table_schema,
+          r.relname::name AS table_name
+      FROM pg_namespace nc
+      JOIN pg_constraint c ON nc.oid = c.connamespace
+      JOIN pg_class r ON c.conrelid = r.oid
+      JOIN pg_namespace nr ON nr.oid = r.relnamespace
+      WHERE
+        r.relkind IN ($28, $29)
+        AND NOT pg_is_other_temp_schema(nr.oid)
+        AND c.contype = $30
+  ),
+  key_col_usage AS (
+      SELECT
+          ss.conname::name AS constraint_name,
+          ss.nr_nspname::name AS table_schema,
+          ss.relname::name AS table_name,
+          a.attname::name AS column_name,
+          (ss.x).n::integer AS ordinal_position,
+          CASE
+              WHEN ss.contype = $31 THEN information_schema._pg_index_position(ss.conindid, ss.confkey[(ss.x).n])
+              ELSE $32::integer
+          END::integer AS position_in_unique_constraint
+      FROM pg_attribute a
+      JOIN (
+        SELECT r.oid AS roid,
+          r.relname,
+          r.relowner,
+          nc.nspname AS nc_nspname,
+          nr.nspname AS nr_nspname,
+          c.oid AS coid,
+          c.conname,
+          c.contype,
+          c.conindid,
+          c.confkey,
+          information_schema._pg_expandarray(c.conkey) AS x
+        FROM pg_namespace nr
+        JOIN pg_class r
+          ON nr.oid = r.relnamespace
+        JOIN pg_constraint c
+          ON r.oid = c.conrelid
+        JOIN pg_namespace nc
+          ON c.connamespace = nc.oid
+        WHERE
+          c.contype in ($33, $34)
+          AND r.relkind IN ($35, $36)
+          AND NOT pg_is_other_temp_schema(nr.oid)
+      ) ss ON a.attrelid = ss.roid AND a.attnum = (ss.x).x
+      WHERE
+        NOT a.attisdropped
+  ),
+  tbl_pk_cols AS (
+    SELECT
+        key_col_usage.table_schema,
+        key_col_usage.table_name,
+        array_agg(key_col_usage.column_name) as pk_cols
+    FROM
+        tbl_constraints
+    JOIN
+        key_col_usage
+    ON
+        key_col_usage.table_name = tbl_constraints.table_name AND
+        key_col_usage.table_schema = tbl_constraints.table_schema AND
+        key_col_usage.constraint_name = tbl_constraints.constraint_name
+    WHERE
+        key_col_usage.table_schema NOT IN ($37, $38)
+    GROUP BY key_col_usage.table_schema, key_col_usage.table_name
+  )
+  SELECT
+    n.nspname AS table_schema,
+    c.relname AS table_name,
+    d.description AS table_description,
+    c.relkind IN ($39,$40) as is_view,
+    (
+      c.relkind IN ($41,$42)
+      OR (
+        c.relkind in ($43,$44)
+        -- The function `pg_relation_is_updateable` returns a bitmask where 8
+        -- corresponds to `1 << CMD_INSERT` in the PostgreSQL source code, i.e.
+        -- it's possible to insert into the relation.
+        AND (pg_relation_is_updatable(c.oid::regclass, $45) & $46) = $47
+      )
+    ) AS insertable,
+    (
+      c.relkind IN ($48,$49)
+      OR (
+        c.relkind in ($50,$51)
+        -- CMD_UPDATE
+        AND (pg_relation_is_updatable(c.oid::regclass, $52) & $53) = $54
+      )
+    ) AS updatable,
+    (
+      c.relkind IN ($55,$56)
+      OR (
+        c.relkind in ($57,$58)
+        -- CMD_DELETE
+        AND (pg_relation_is_updatable(c.oid::regclass, $59) & $60) = $61
+      )
+    ) AS deletable,
+    coalesce(tpks.pk_cols, $62) as pk_cols,
+    coalesce(cols_agg.columns, $63) as columns
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  LEFT JOIN pg_description d on d.objoid = c.oid and d.objsubid = $64
+  LEFT JOIN tbl_pk_cols tpks ON n.nspname = tpks.table_schema AND c.relname = tpks.table_name
+  LEFT JOIN columns_agg cols_agg ON n.nspname = cols_agg.table_schema AND c.relname = cols_agg.table_name
+  WHERE c.relkind IN ($65,$66,$67,$68,$69)
+  AND n.nspname NOT IN ($70, $71)  AND not c.relispartition ORDER BY table_schema, table_name",172,4942.360998,5.6%
+pgbouncer,SELECT * FROM pgbouncer.get_auth($1),55292,4904.55579500004,5.5%
+postgres,"SELECT procedures.id AS procedures_id, procedures.procedure_name AS procedures_procedure_name, procedures.alternative_names AS procedures_alternative_names, procedures.short_description AS procedures_short_description, procedures.overview AS procedures_overview, procedures.procedure_details AS procedures_procedure_details, procedures.ideal_candidates AS procedures_ideal_candidates, procedures.recovery_process AS procedures_recovery_process, procedures.recovery_time AS procedures_recovery_time, procedures.procedure_duration AS procedures_procedure_duration, procedures.hospital_stay_required AS procedures_hospital_stay_required, procedures.results_duration AS procedures_results_duration, procedures.min_cost AS procedures_min_cost, procedures.max_cost AS procedures_max_cost, procedures.benefits AS procedures_benefits, procedures.benefits_detailed AS procedures_benefits_detailed, procedures.risks AS procedures_risks, procedures.procedure_types AS procedures_procedure_types, procedures.alternative_procedures AS procedures_alternative_procedures, procedures.category_id AS procedures_category_id, procedures.popularity_score AS procedures_popularity_score, procedures.avg_rating AS procedures_avg_rating, procedures.review_count AS procedures_review_count, procedures.is_featured AS procedures_is_featured, procedures.image_url AS procedures_image_url, procedures.created_at AS procedures_created_at, procedures.updated_at AS procedures_updated_at, procedures.body_part AS procedures_body_part, procedures.tags AS procedures_tags, procedures.body_area AS procedures_body_area, procedures.category_type AS procedures_category_type 
+FROM procedures ORDER BY procedures.procedure_name",1823,4544.723415,5.1%
+authenticator,"-- Recursively get the base types of domains
+  WITH
+  base_types AS (
+    WITH RECURSIVE
+    recurse AS (
+      SELECT
+        oid,
+        typbasetype,
+        COALESCE(NULLIF(typbasetype, $3), oid) AS base
+      FROM pg_type
+      UNION
+      SELECT
+        t.oid,
+        b.typbasetype,
+        COALESCE(NULLIF(b.typbasetype, $4), b.oid) AS base
+      FROM recurse t
+      JOIN pg_type b ON t.typbasetype = b.oid
+    )
+    SELECT
+      oid,
+      base
+    FROM recurse
+    WHERE typbasetype = $5
+  ),
+  arguments AS (
+    SELECT
+      oid,
+      array_agg((
+        COALESCE(name, $6), -- name
+        type::regtype::text, -- type
+        CASE type
+          WHEN $7::regtype THEN $8
+          WHEN $9::regtype THEN $10
+          WHEN $11::regtype THEN $12
+          WHEN $13::regtype THEN $14
+          ELSE type::regtype::text
+        END, -- convert types that ignore the lenth and accept any value till maximum size
+        idx <= (pronargs - pronargdefaults), -- is_required
+        COALESCE(mode = $15, $16) -- is_variadic
+      ) ORDER BY idx) AS args,
+      CASE COUNT(*) - COUNT(name) -- number of unnamed arguments
+        WHEN $17 THEN $18
+        WHEN $19 THEN (array_agg(type))[$20] IN ($21::regtype, $22::regtype, $23::regtype, $24::regtype, $25::regtype)
+        ELSE $26
+      END AS callable
+    FROM pg_proc,
+         unnest(proargnames, proargtypes, proargmodes)
+           WITH ORDINALITY AS _ (name, type, mode, idx)
+    WHERE type IS NOT NULL -- only input arguments
+    GROUP BY oid
+  )
+  SELECT
+    pn.nspname AS proc_schema,
+    p.proname AS proc_name,
+    d.description AS proc_description,
+    COALESCE(a.args, $27) AS args,
+    tn.nspname AS schema,
+    COALESCE(comp.relname, t.typname) AS name,
+    p.proretset AS rettype_is_setof,
+    (t.typtype = $28
+     -- if any TABLE, INOUT or OUT arguments present, treat as composite
+     or COALESCE(proargmodes::text[] && $29, $30)
+    ) AS rettype_is_composite,
+    bt.oid <> bt.base as rettype_is_composite_alias,
+    p.provolatile,
+    p.provariadic > $31 as hasvariadic,
+    lower((regexp_split_to_array((regexp_split_to_array(iso_config, $32))[$33], $34))[$35]) AS transaction_isolation_level,
+    coalesce(func_settings.kvs, $36) as kvs
+  FROM pg_proc p
+  LEFT JOIN arguments a ON a.oid = p.oid
+  JOIN pg_namespace pn ON pn.oid = p.pronamespace
+  JOIN base_types bt ON bt.oid = p.prorettype
+  JOIN pg_type t ON t.oid = bt.base
+  JOIN pg_namespace tn ON tn.oid = t.typnamespace
+  LEFT JOIN pg_class comp ON comp.oid = t.typrelid
+  LEFT JOIN pg_description as d ON d.objoid = p.oid
+  LEFT JOIN LATERAL unnest(proconfig) iso_config ON iso_config LIKE $37
+  LEFT JOIN LATERAL (
+    SELECT
+      array_agg(row(
+        substr(setting, $38, strpos(setting, $39) - $40),
+        substr(setting, strpos(setting, $41) + $42)
+      )) as kvs
+    FROM unnest(proconfig) setting
+    WHERE setting ~ ANY($2)
+  ) func_settings ON $43
+  WHERE t.oid <> $44::regtype AND COALESCE(a.callable, $45)
+AND prokind = $46 AND pn.nspname = ANY($1)",172,4418.954567,5.0%
+postgres,"SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1 AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2, $3, $4, $5, $6]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7",98362,4059.28806199996,4.6%
+postgres,"-- First, get the user IDs associated with clinics that have < 50 reviews
+-- We'll need to delete the associated user accounts as well
+DELETE FROM users 
+WHERE id IN (
+    SELECT owner_user_id 
+    FROM clinics 
+    WHERE google_review_count < $1 
+    AND owner_user_id IS NOT NULL
+)",1,2073.070389,2.3%
+postgres,"SELECT categories.id AS categories_id, categories.name AS categories_name, categories.body_part_id AS categories_body_part_id, categories.description AS categories_description, categories.image_url AS categories_image_url, categories.popularity_score AS categories_popularity_score, categories.created_at AS categories_created_at 
+FROM categories 
+WHERE categories.name ILIKE $1 AND categories.image_url IS NOT NULL AND categories.image_url != $2 
+ LIMIT $3",41016,1512.43309800001,1.7%
+pgbouncer,"SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput,
+       coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY (
+  SELECT a.atttypid
+  FROM pg_attribute AS a
+  WHERE a.attrelid = t.typrelid AND a.attnum > $2 AND NOT a.attisdropped
+  ORDER BY a.attnum
+)
+
+FROM pg_type AS t
+LEFT JOIN pg_type AS d ON t.typbasetype = d.oid
+LEFT JOIN pg_range AS r ON r.rngtypid = t.oid OR r.rngmultitypid = t.oid OR (t.typbasetype <> $3 AND r.rngtypid = t.typbasetype)
+WHERE (t.typrelid = $4)
+AND (t.typelem = $5 OR NOT EXISTS (SELECT $6 FROM pg_catalog.pg_type s WHERE s.typrelid != $7 AND s.oid = t.typelem))",70,1311.088327,1.5%
+postgres,"INSERT INTO google_reviews (
+                                clinic_id, author_name, rating, text, 
+                                relative_time_description, created_at, is_active
+                            ) VALUES ($1, $2, $3, $4, $5, NOW(), $6)",7673,1030.464745,1.2%
+postgres,"UPDATE banner_slides SET updated_at=$1::timestamp, impression_count=$2 WHERE banner_slides.id = $3",8265,908.687987999995,1.0%
+authenticator,"WITH
+    pks_uniques_cols AS (
+      SELECT
+        connamespace,
+        conrelid,
+        jsonb_agg(column_info.cols) as cols
+      FROM pg_constraint
+      JOIN lateral (
+        SELECT array_agg(cols.attname order by cols.attnum) as cols
+        FROM ( select unnest(conkey) as col) _
+        JOIN pg_attribute cols on cols.attrelid = conrelid and cols.attnum = col
+      ) column_info ON $1
+      WHERE
+        contype IN ($2, $3) and
+        connamespace::regnamespace::text <> $4
+      GROUP BY connamespace, conrelid
+    )
+    SELECT
+      ns1.nspname AS table_schema,
+      tab.relname AS table_name,
+      ns2.nspname AS foreign_table_schema,
+      other.relname AS foreign_table_name,
+      (ns1.nspname, tab.relname) = (ns2.nspname, other.relname) AS is_self,
+      traint.conname  AS constraint_name,
+      column_info.cols_and_fcols,
+      (column_info.cols IN (SELECT * FROM jsonb_array_elements(pks_uqs.cols))) AS one_to_one
+    FROM pg_constraint traint
+    JOIN LATERAL (
+      SELECT
+        array_agg(row(cols.attname, refs.attname) order by ord) AS cols_and_fcols,
+        jsonb_agg(cols.attname order by cols.attnum) AS cols
+      FROM unnest(traint.conkey, traint.confkey) WITH ORDINALITY AS _(col, ref, ord)
+      JOIN pg_attribute cols ON cols.attrelid = traint.conrelid AND cols.attnum = col
+      JOIN pg_attribute refs ON refs.attrelid = traint.confrelid AND refs.attnum = ref
+    ) AS column_info ON $5
+    JOIN pg_namespace ns1 ON ns1.oid = traint.connamespace
+    JOIN pg_class tab ON tab.oid = traint.conrelid
+    JOIN pg_class other ON other.oid = traint.confrelid
+    JOIN pg_namespace ns2 ON ns2.oid = other.relnamespace
+    LEFT JOIN pks_uniques_cols pks_uqs ON pks_uqs.connamespace = traint.connamespace AND pks_uqs.conrelid = traint.conrelid
+    WHERE traint.contype = $6
+   and traint.conparentid = $7 ORDER BY traint.conrelid, traint.conname",172,882.779411,1.0%
+postgres,"SELECT procedures.id AS procedures_id, procedures.procedure_name AS procedures_procedure_name, procedures.alternative_names AS procedures_alternative_names, procedures.short_description AS procedures_short_description, procedures.overview AS procedures_overview, procedures.procedure_details AS procedures_procedure_details, procedures.ideal_candidates AS procedures_ideal_candidates, procedures.recovery_process AS procedures_recovery_process, procedures.recovery_time AS procedures_recovery_time, procedures.procedure_duration AS procedures_procedure_duration, procedures.hospital_stay_required AS procedures_hospital_stay_required, procedures.results_duration AS procedures_results_duration, procedures.min_cost AS procedures_min_cost, procedures.max_cost AS procedures_max_cost, procedures.benefits AS procedures_benefits, procedures.benefits_detailed AS procedures_benefits_detailed, procedures.risks AS procedures_risks, procedures.procedure_types AS procedures_procedure_types, procedures.alternative_procedures AS procedures_alternative_procedures, procedures.category_id AS procedures_category_id, procedures.popularity_score AS procedures_popularity_score, procedures.avg_rating AS procedures_avg_rating, procedures.review_count AS procedures_review_count, procedures.is_featured AS procedures_is_featured, procedures.image_url AS procedures_image_url, procedures.created_at AS procedures_created_at, procedures.updated_at AS procedures_updated_at, procedures.body_part AS procedures_body_part, procedures.tags AS procedures_tags, procedures.body_area AS procedures_body_area, procedures.category_type AS procedures_category_type 
+FROM procedures 
+WHERE procedures.is_featured = $1 
+ LIMIT $2",1950,680.054225,0.8%
+postgres,"CREATE TABLE IF NOT EXISTS admin_audit_log (
+                id SERIAL PRIMARY KEY,
+                admin_user_id INTEGER REFERENCES users(id),
+                action_type VARCHAR(100) NOT NULL,
+                description TEXT NOT NULL,
+                target_id INTEGER,
+                metadata JSONB,
+                created_at TIMESTAMP DEFAULT NOW(),
+                ip_address INET,
+                user_agent TEXT
+            )",841,628.264401,0.7%
+authenticator,"with recursive
+      pks_fks as (
+        -- pk + fk referencing col
+        select
+          contype::text as contype,
+          conname,
+          array_length(conkey, $3) as ncol,
+          conrelid as resorigtbl,
+          col as resorigcol,
+          ord
+        from pg_constraint
+        left join lateral unnest(conkey) with ordinality as _(col, ord) on $4
+        where contype IN ($5, $6)
+        union
+        -- fk referenced col
+        select
+          concat(contype, $7) as contype,
+          conname,
+          array_length(confkey, $8) as ncol,
+          confrelid,
+          col,
+          ord
+        from pg_constraint
+        left join lateral unnest(confkey) with ordinality as _(col, ord) on $9
+        where contype=$10
+      ),
+      views as (
+        select
+          c.oid       as view_id,
+          n.nspname   as view_schema,
+          c.relname   as view_name,
+          r.ev_action as view_definition
+        from pg_class c
+        join pg_namespace n on n.oid = c.relnamespace
+        join pg_rewrite r on r.ev_class = c.oid
+        where c.relkind in ($11, $12) and n.nspname = ANY($1 || $2)
+      ),
+      transform_json as (
+        select
+          view_id, view_schema, view_name,
+          -- the following formatting is without indentation on purpose
+          -- to allow simple diffs, with less whitespace noise
+          replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            regexp_replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+            replace(
+              view_definition::text,
+            -- This conversion to json is heavily optimized for performance.
+            -- The general idea is to use as few regexp_replace() calls as possible.
+            -- Simple replace() is a lot faster, so we jump through some hoops
+            -- to be able to use regexp_replace() only once.
+            -- This has been tested against a huge schema with 250+ different views.
+            -- The unit tests do NOT reflect all possible inputs. Be careful when changing this!
+            -- -----------------------------------------------
+            -- pattern           | replacement         | flags
+            -- -----------------------------------------------
+            -- `<>` in pg_node_tree is the same as `null` in JSON, but due to very poor performance of json_typeof
+            -- we need to make this an empty array here to prevent json_array_elements from throwing an error
+            -- when the targetList is null.
+            -- We'll need to put it first, to make the node protection below work for node lists that start with
+            -- null: `(<> ...`, too. This is the case for coldefexprs, when the first column does not have a default value.
+               $13              , $14
+            -- `,` is not part of the pg_node_tree format, but used in the regex.
+            -- This removes all `,` that might be part of column names.
+            ), $15               , $16
+            -- The same applies for `{` and `}`, although those are used a lot in pg_node_tree.
+            -- We remove the escaped ones, which might be part of column names again.
+            ), $17            , $18
+            ), $19            , $20
+            -- The fields we need are formatted as json manually to protect them from the regex.
+            ), $21   , $22
+            ), $23        , $24
+            ), $25   , $26
+            ), $27   , $28
+            -- Make the regex also match the node type, e.g. `{QUERY ...`, to remove it in one pass.
+            ), $29               , $30
+            -- Protect node lists, which start with `({` or `((` from the greedy regex.
+            -- The extra `{` is removed again later.
+            ), $31              , $32
+            ), $33              , $34
+            -- This regex removes all unused fields to avoid the need to format all of them correctly.
+            -- This leads to a smaller json result as well.
+            -- Removal stops at `,` for used fields (see above) and `}` for the end of the current node.
+            -- Nesting can't be parsed correctly with a regex, so we stop at `{` as well and
+            -- add an empty key for the followig node.
+            ), $35       , $36              , $37
+            -- For performance, the regex also added those empty keys when hitting a `,` or `}`.
+            -- Those are removed next.
+            ), $38           , $39
+            ), $40           , $41
+            -- This reverses the ""node list protection"" from above.
+            ), $42              , $43
+            -- Every key above has been added with a `,` so far. The first key in an object doesn't need it.
+            ), $44              , $45
+            -- pg_node_tree has `()` around lists, but JSON uses `[]`
+            ), $46               , $47
+            ), $48               , $49
+            -- pg_node_tree has ` ` between list items, but JSON uses `,`
+            ), $50             , $51
+          )::json as view_definition
+        from views
+      ),
+      target_entries as(
+        select
+          view_id, view_schema, view_name,
+          json_array_elements(view_definition->$52->$53) as entry
+        from transform_json
+      ),
+      results as(
+        select
+          view_id, view_schema, view_name,
+          (entry->>$54)::int as view_column,
+          (entry->>$55)::oid as resorigtbl,
+          (entry->>$56)::int as resorigcol
+        from target_entries
+      ),
+      -- CYCLE detection according to PG docs: https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-CYCLE
+      -- Can be replaced with CYCLE clause once PG v13 is EOL.
+      recursion(view_id, view_schema, view_name, view_column, resorigtbl, resorigcol, is_cycle, path) as(
+        select
+          r.*,
+          $57,
+          ARRAY[resorigtbl]
+        from results r
+        where view_schema = ANY ($1)
+        union all
+        select
+          view.view_id,
+          view.view_schema,
+          view.view_name,
+          view.view_column,
+          tab.resorigtbl,
+          tab.resorigcol,
+          tab.resorigtbl = ANY(path),
+          path || tab.resorigtbl
+        from recursion view
+        join results tab on view.resorigtbl=tab.view_id and view.resorigcol=tab.view_column
+        where not is_cycle
+      ),
+      repeated_references as(
+        select
+          view_id,
+          view_schema,
+          view_name,
+          resorigtbl,
+          resorigcol,
+          array_agg(attname) as view_columns
+        from recursion
+        join pg_attribute vcol on vcol.attrelid = view_id and vcol.attnum = view_column
+        group by
+          view_id,
+          view_schema,
+          view_name,
+          resorigtbl,
+          resorigcol
+      )
+      select
+        sch.nspname as table_schema,
+        tbl.relname as table_name,
+        rep.view_schema,
+        rep.view_name,
+        pks_fks.conname as constraint_name,
+        pks_fks.contype as constraint_type,
+        array_agg(row(col.attname, view_columns) order by pks_fks.ord) as column_dependencies
+      from repeated_references rep
+      join pks_fks using (resorigtbl, resorigcol)
+      join pg_class tbl on tbl.oid = rep.resorigtbl
+      join pg_attribute col on col.attrelid = tbl.oid and col.attnum = rep.resorigcol
+      join pg_namespace sch on sch.oid = tbl.relnamespace
+      group by sch.nspname, tbl.relname,  rep.view_schema, rep.view_name, pks_fks.conname, pks_fks.contype, pks_fks.ncol
+      -- make sure we only return key for which all columns are referenced in the view - no partial PKs or FKs
+      having ncol = array_length(array_agg(row(col.attname, view_columns) order by pks_fks.ord), $58)",172,563.739067,0.6%
+postgres,"INSERT INTO users (name, email, password_hash, is_verified, role, created_at)
+                                VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id",3186,533.201693,0.6%
+postgres,ANALYZE clinics,2,464.255535,0.5%
+postgres,"SELECT
+  e.name,
+  n.nspname AS schema,
+  e.default_version,
+  x.extversion AS installed_version,
+  e.comment
+FROM
+  pg_available_extensions() e(name, default_version, comment)
+  LEFT JOIN pg_extension x ON e.name = x.extname
+  LEFT JOIN pg_namespace n ON x.extnamespace = n.oid",5,460.560502,0.5%
+postgres,"SELECT banner_slides.id AS banner_slides_id, banner_slides.banner_id AS banner_slides_banner_id, banner_slides.title AS banner_slides_title, banner_slides.subtitle AS banner_slides_subtitle, banner_slides.image_url AS banner_slides_image_url, banner_slides.redirect_url AS banner_slides_redirect_url, banner_slides.display_order AS banner_slides_display_order, banner_slides.is_active AS banner_slides_is_active, banner_slides.created_at AS banner_slides_created_at, banner_slides.updated_at AS banner_slides_updated_at, banner_slides.click_count AS banner_slides_click_count, banner_slides.impression_count AS banner_slides_impression_count 
+FROM banner_slides 
+WHERE $1 = banner_slides.banner_id",16546,404.262023000001,0.5%

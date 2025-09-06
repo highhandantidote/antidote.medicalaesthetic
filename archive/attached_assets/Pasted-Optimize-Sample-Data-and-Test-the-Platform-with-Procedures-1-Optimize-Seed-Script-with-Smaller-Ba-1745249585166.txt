@@ -1,0 +1,135 @@
+Optimize Sample Data and Test the Platform with Procedures:
+
+1. Optimize Seed Script with Smaller Batch and Add Procedures:
+   - Update `test_verify_doctors.py` to create a smaller dataset:
+     - 20 doctor records with varied data:
+       - `medical_license_number`: Random MCI-XXXXX-YYYY (e.g., MCI-12345-2025).
+       - `qualification`: Mix of "MBBS", "MS", "MD" with random years.
+       - `practice_location`: Indian cities (e.g., Delhi, Mumbai).
+       - `verification_status`: 50% "pending", 30% "approved", 20% "rejected".
+       - `credentials_url`: Mock paths (e.g., "static/doctor_credentials/doc1.pdf").
+       - `aadhaar_number`: 50% with random XXXX-XXXX-XXXX, 50% null.
+       - `name`: Random names (e.g., "Dr. Anil Sharma").
+       - `specialty`: Varied (e.g., "Plastic Surgery").
+       - `experience`: Random 5-20.
+     - 50 community thread records:
+       - `title`: Random titles (e.g., "Rhinoplasty Tips").
+       - `content`: Random text (50-200 chars).
+       - `category_id`: Random from existing categories.
+       - `author_id`: Link to random user IDs.
+       - `photo_url`: 30% with mock paths (e.g., "static/media/thread1.jpg").
+     - 50 procedure records in a new `procedures` table:
+       - `name`: Varied (e.g., "Rhinoplasty", "Botox", "Lip Fillers").
+       - `body_area`: "Face", "Body", "Skin".
+       - `category`: "Surgical", "Non-Surgical".
+       - `surgical_non_surgical`: True/False.
+       - `description`: Random text (100-300 chars).
+       - `doctor_id`: Link to random doctor IDs.
+   - Update the script:
+     ```python
+     from app import db
+     from models import Doctor, Community, User, Procedure  # Add Procedure model
+     import random
+     import string
+
+     def generate_user(username, role, is_verified=False):
+         return User(username=username, email=f"{username}@example.com", role=role, is_verified=is_verified)
+
+     def generate_doctor():
+         return Doctor(
+             user_id=random.randint(1, 20),
+             medical_license_number=f"MCI-{random.randint(10000, 99999)}-{random.randint(2020, 2025)}",
+             qualification=random.choice(["MBBS", "MS", "MD"]) + " " + str(random.randint(2000, 2020)),
+             practice_location=random.choice(["Delhi", "Mumbai", "Bangalore", "Chennai"]),
+             verification_status=random.choices(["pending", "approved", "rejected"], weights=[50, 30, 20], k=1)[0],
+             credentials_url=f"static/doctor_credentials/doc{random.randint(1, 20)}.pdf" if random.random() > 0.2 else None,
+             aadhaar_number=f"{random.randint(1000, 9999)}-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}" if random.random() > 0.5 else None,
+             name=f"Dr. {random.choice(['Anil', 'Priya', 'Rahul', 'Sneha'])} {random.choice(['Sharma', 'Patel', 'Singh', 'Reddy'])}",
+             specialty=random.choice(["Plastic Surgery", "Dermatology", "Cosmetic Surgery"]),
+             experience=random.randint(5, 20)
+         )
+
+     def generate_thread():
+         return Community(
+             title=f"{random.choice(['Rhinoplasty', 'Laser', 'Filler'])} {random.choice(['Tips', 'Query', 'Review'])}",
+             content=''.join(random.choices(string.ascii_letters + ' ', k=random.randint(50, 200))),
+             category_id=random.randint(1, 5),  # Assume 5 categories
+             author_id=random.randint(1, 20),
+             photo_url=f"static/media/thread{random.randint(1, 50)}.jpg" if random.random() > 0.7 else None
+         )
+
+     def generate_procedure():
+         return Procedure(
+             name=random.choice(["Rhinoplasty", "Botox", "Lip Fillers", "Facelift", "Laser Hair Removal"]),
+             body_area=random.choice(["Face", "Body", "Skin"]),
+             category=random.choice(["Surgical", "Non-Surgical"]),
+             surgical_non_surgical=random.choice([True, False]),
+             description=''.join(random.choices(string.ascii_letters + ' ', k=random.randint(100, 300))),
+             doctor_id=random.randint(1, 20)
+         )
+
+     if __name__ == "__main__":
+         # Clear existing test data (optional, comment out if not needed)
+         # db.session.query(Doctor).delete()
+         # db.session.query(Community).delete()
+         # db.session.query(Procedure).delete()  # Add for procedures
+         # db.session.commit()
+
+         # Add users
+         db.session.add(generate_user("admin_test", "admin", True))
+         db.session.add(generate_user("doctor_test", "doctor", True))
+         for i in range(1, 19):  # 18 additional users
+             db.session.add(generate_user(f"user_{i}", "user"))
+
+         # Add doctors
+         for _ in range(20):
+             db.session.add(generate_doctor())
+
+         # Add procedures
+         for _ in range(50):
+             db.session.add(generate_procedure())
+
+         # Add threads
+         for _ in range(50):
+             db.session.add(generate_thread())
+
+         db.session.commit()
+Define the Procedure model in models.py (add if missing):
+python
+
+Copy
+class Procedure(db.Model):
+    __tablename__ = 'procedures'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    body_area = db.Column(db.String(50), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    surgical_non_surgical = db.Column(db.Boolean, nullable=False)
+    description = db.Column(db.Text)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    doctor = db.relationship('Doctor', backref='procedures')
+Run the script: python test_verify_doctors.py.
+Test Across the Platform:
+Doctor Verification Workflow:
+Test Case 1: Valid Submission - Log in as "doctor_test", submit MCI-12345-2025, "MBBS", "Delhi, India", a test PDF. Expected: Status "pending."
+Test Case 2: Invalid License - Submit MCI-123. Expected: Alert triggers.
+Test Case 3: Admin Approval - Log in as "admin_test", approve a pending doctor. Expected: Status "approved."
+Test Case 4: Credential View - View the PDF. Expected: File displays.
+Test Case 5: Reject Action - Reject a doctor. Expected: Status "rejected."
+Community Section:
+Test Case 6: Thread Listing - Navigate to /community, verify 50 threads load. Expected: All threads visible.
+Test Case 7: Thread Details - View a thread with a photo. Expected: Image displays.
+Procedure Section:
+Test Case 8: Procedure Listing - Navigate to a procedure page (e.g., /procedures), verify 50 procedures load. Expected: All procedures visible with doctor links.
+Test Case 9: Doctor-Procedure Match - Check a doctor’s profile for linked procedures. Expected: Procedures match the doctor_id.
+Performance Testing:
+Measure page load time for /dashboard/doctor/verify with 20 doctors.
+Measure API response time for /api/doctor/<doctor_id>/approve.
+Note memory usage and error rates in logs.
+Test and Validate:
+Restart the application.
+Run all test cases, noting results (pass/fail) in a summary.
+Take screenshots of doctor submission, admin approval, community listing, thread details, procedure listing, doctor-procedure match, and performance metrics (e.g., browser dev tools).
+Generate logs (e.g., DEBUG:routes:Doctor verification submitted, INFO:db:COMMIT, performance stats).
+Provide Output:
+Share updated models.py, routes.py, test_verify_doctors.py, doctor_verification.html, admin_doctor_verifications.html, community.html, procedure.html (create if needed), logs, console output, and screenshots.

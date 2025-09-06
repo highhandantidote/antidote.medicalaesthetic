@@ -1,0 +1,635 @@
+Current State (Based on Your Feedback and Screenshots):
+
+The "View" button registers a click in the browser console, but there’s no navigation to the detailed view.
+The "Contact" and "Update Status" buttons are not responding at all.
+Other sections (e.g., My Procedures: "Details," "Remove"; Community: "Answer as Doctor") also have non-functional buttons.
+Root Causes of Persistent Issues:
+
+JavaScript Event Binding Issues:
+While Replit added event listeners in leads.js, the binding might still fail due to:
+Incorrect selectors (e.g., .lead-action-btn not matching the button classes in the template).
+JavaScript errors halting execution (e.g., undefined variables like csrf_token).
+The script might not be loading correctly due to a path issue (e.g., static/js/leads.js not found).
+Navigation vs. AJAX Confusion:
+The "View" and "Contact" buttons are intended to navigate to new pages (/lead/<lead_id>/view, /lead/<lead_id>/contact), but the JavaScript might be treating them as AJAX calls, causing the navigation to fail.
+CSRF Token Handling:
+The CSRF token is added as a meta tag, but the JavaScript might not be retrieving it correctly, leading to failed form submissions (e.g., for "Update Status").
+Server-Side Route Issues:
+The routes in routes.py might not be handling requests properly, or there could be authentication/session errors (e.g., "'None' has no attribute 'id'").
+Lack of Comprehensive Debugging:
+Replit’s debugging focused on console logs but didn’t fully address network requests, server logs, or end-to-end testing, missing critical errors.
+Systematic Fix for Doctor Dashboard Buttons
+Let’s fix the issues starting with the Patient Leads section, then extend the solution to other sections like My Procedures and Community.
+
+1. Fix Patient Leads Buttons ("View," "Contact," "Update Status")
+Step 1: Update static/js/leads.js Ensure robust event binding and separate navigation from AJAX:
+text
+
+Copy
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('leads.js loaded successfully');
+
+    // Handle View and Contact buttons (navigation)
+    document.querySelectorAll('.lead-action-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const leadId = this.dataset.leadId;
+            const action = this.dataset.action;
+            console.log(`Button clicked: ${action}, leadId: ${leadId}`);
+            if (action === 'view') {
+                window.location.href = `/lead/${leadId}/view`;
+            } else if (action === 'contact') {
+                window.location.href = `/lead/${leadId}/contact`;
+            }
+        });
+    });
+
+    // Handle Update Status form (AJAX)
+    document.querySelectorAll('.update-lead-status-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const leadId = this.dataset.leadId;
+            const formData = new FormData(this);
+            console.log(`Updating status for lead ${leadId}`);
+            fetch(`/lead/${leadId}/update_status`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    alert('Lead status updated successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('An error occurred while updating the lead status.');
+            });
+        });
+    });
+});
+Step 2: Update templates/doctor_leads.html Ensure correct classes, data attributes, and CSRF token:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Patient Leads - {{ doctor.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>New Patient Leads</h3>
+                {% if leads %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Contact</th>
+                                <th>Procedure</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in leads %}
+                                <tr>
+                                    <td>{{ lead.patient_name }}</td>
+                                    <td>{{ lead.mobile }}<br>{{ lead.user.email if lead.user else 'N/A' }}</td>
+                                    <td>{{ lead.procedure_name }}</td>
+                                    <td>{{ lead.date }}</td>
+                                    <td>{{ lead.status }}</td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm lead-action-btn" data-lead-id="{{ lead.id }}" data-action="view">View</button>
+                                        <button class="btn btn-outline-primary btn-sm lead-action-btn" data-lead-id="{{ lead.id }}" data-action="contact">Contact</button>
+                                        <form class="update-lead-status-form" data-lead-id="{{ lead.id }}" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <select name="status" class="form-control" onchange="this.form.submit()">
+                                                <option value="pending" {% if lead.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                <option value="contacted" {% if lead.status == 'contacted' %}selected{% endif %}>Contacted</option>
+                                                <option value="scheduled" {% if lead.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                                <option value="completed" {% if lead.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="rejected" {% if lead.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No patient leads available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/leads.js') }}"></script>
+</body>
+</html>
+Step 3: Verify Routes in routes.py Ensure routes handle requests correctly and authentication works:
+text
+
+Copy
+@web.route('/lead/<int:lead_id>/view')
+@login_required
+def view_lead(lead_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    lead = Lead.query.get_or_404(lead_id)
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    return render_template('view_lead.html', lead=lead, doctor=doctor)
+
+@web.route('/lead/<int:lead_id>/contact', methods=['GET', 'POST'])
+@login_required
+def contact_lead(lead_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    lead = Lead.query.get_or_404(lead_id)
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    if request.method == 'POST':
+        flash('Contact email sent successfully (placeholder).', 'success')
+        return redirect(url_for('web.doctor_leads', doctor_id=doctor.id))
+    return render_template('contact_lead.html', lead=lead, doctor=doctor)
+
+@web.route('/lead/<int:lead_id>/update_status', methods=['POST'])
+@login_required
+def update_lead_status(lead_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    lead = Lead.query.get_or_404(lead_id)
+    if lead.doctor_id != doctor.id:
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        status = request.form.get('status')
+        if status in ['pending', 'contacted', 'scheduled', 'completed', 'rejected']:
+            lead.status = status
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Status updated'})
+        return jsonify({'success': False, 'message': 'Invalid status'})
+    return redirect(url_for('web.doctor_leads', doctor_id=doctor.id))
+Step 4: Test Patient Leads
+Log in as testdoctor@antidote.com (password: Doctor1234).
+Navigate to /dashboard/doctor/1/leads.
+Click "View" on a lead (e.g., lead ID 13). Check if it navigates to /lead/13/view.
+Click "Contact" and verify the form loads.
+Change the status using the dropdown and confirm the update via AJAX.
+Open browser console (F12) and check for errors. Share any errors or logs.
+2. Fix My Procedures Buttons ("Details," "Remove," "Add Procedure")
+Step 1: Create static/js/procedures.js
+text
+
+Copy
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('procedures.js loaded successfully');
+
+    // Handle Details and Remove buttons
+    document.querySelectorAll('.procedure-action-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const procedureId = this.dataset.procedureId;
+            const action = this.dataset.action;
+            console.log(`Procedure button clicked: ${action}, procedureId: ${procedureId}`);
+            if (action === 'details') {
+                window.location.href = `/procedure/${procedureId}/details`;
+            } else if (action === 'remove') {
+                if (confirm('Are you sure you want to remove this procedure?')) {
+                    fetch(`/procedure/${procedureId}/remove`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Procedure removed successfully!');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+                }
+            }
+        });
+    });
+
+    // Handle Add Procedure button
+    document.querySelector('#add-procedure-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Add Procedure button clicked');
+        window.location.href = '/procedure/add';
+    });
+});
+Step 2: Update templates/doctor_procedures.html
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>My Procedures - {{ doctor.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>My Procedures</h3>
+                <button id="add-procedure-btn" class="btn btn-primary mb-3">Add Procedure</button>
+                {% if procedures %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Procedure</th>
+                                <th>Category</th>
+                                <th>Price Range</th>
+                                <th>Rating</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for procedure in procedures %}
+                                <tr>
+                                    <td>{{ procedure.name }}</td>
+                                    <td>{{ procedure.category }}</td>
+                                    <td>${{ procedure.price_min }} - ${{ procedure.price_max }}</td>
+                                    <td>★ {{ procedure.rating }} ({{ procedure.review_count }})</td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm procedure-action-btn" data-procedure-id="{{ procedure.id }}" data-action="details">Details</button>
+                                        <button class="btn btn-danger btn-sm procedure-action-btn" data-procedure-id="{{ procedure.id }}" data-action="remove">Remove</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No procedures added yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/procedures.js') }}"></script>
+</body>
+</html>
+Step 3: Add Routes in routes.py
+text
+
+Copy
+@web.route('/procedure/add', methods=['GET', 'POST'])
+@login_required
+def add_procedure():
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    if request.method == 'POST':
+        name = request.form.get('name')
+        category = request.form.get('category')
+        price_min = request.form.get('price_min')
+        price_max = request.form.get('price_max')
+        procedure = Procedure(
+            name=name,
+            category=category,
+            price_min=float(price_min),
+            price_max=float(price_max),
+            doctor_id=doctor.id
+        )
+        db.session.add(procedure)
+        db.session.commit()
+        flash('Procedure added successfully!', 'success')
+        return redirect(url_for('web.doctor_procedures', doctor_id=doctor.id))
+    return render_template('add_procedure.html', doctor=doctor)
+
+@web.route('/procedure/<int:procedure_id>/details')
+@login_required
+def procedure_details(procedure_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    procedure = Procedure.query.get_or_404(procedure_id)
+    if procedure.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    return render_template('procedure_details.html', procedure=procedure, doctor=doctor)
+
+@web.route('/procedure/<int:procedure_id>/remove', methods=['POST'])
+@login_required
+def remove_procedure(procedure_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    procedure = Procedure.query.get_or_404(procedure_id)
+    if procedure.doctor_id != doctor.id:
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    db.session.delete(procedure)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Procedure removed'})
+Step 4: Create Templates
+templates/add_procedure.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Add Procedure - {{ doctor.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Add Procedure</h2>
+        <form method="POST" action="{{ url_for('web.add_procedure') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Procedure Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <input type="text" name="category" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="price_min" class="form-label">Price Min</label>
+                <input type="number" name="price_min" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="price_max" class="form-label">Price Max</label>
+                <input type="number" name="price_max" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Procedure</button>
+        </form>
+    </div>
+</body>
+</html>
+templates/procedure_details.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Procedure Details - {{ procedure.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Procedure Details</h2>
+        <p><strong>Name:</strong> {{ procedure.name }}</p>
+        <p><strong>Category:</strong> {{ procedure.category }}</p>
+        <p><strong>Price Range:</strong> ${{ procedure.price_min }} - ${{ procedure.price_max }}</p>
+        <p><strong>Rating:</strong> ★ {{ procedure.rating }} ({{ procedure.review_count }} reviews)</p>
+        <a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="btn btn-primary">Back to Procedures</a>
+    </div>
+</body>
+</html>
+Step 5: Test My Procedures
+Navigate to /dashboard/doctor/1/procedures.
+Click "Add Procedure" to add a new procedure.
+Click "Details" and "Remove" on existing procedures (e.g., Rhinoplasty).
+Check browser console for errors.
+3. Fix Community "Answer as Doctor" Button
+Step 1: Create static/js/community.js
+text
+
+Copy
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('community.js loaded successfully');
+
+    document.querySelectorAll('.answer-as-doctor-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const threadId = this.dataset.threadId;
+            console.log(`Answer as Doctor clicked for thread ${threadId}`);
+            // Open the modal manually if needed
+            const modal = new bootstrap.Modal(document.getElementById(`answerModal-${threadId}`));
+            modal.show();
+        });
+    });
+
+    document.querySelectorAll('.answer-thread-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const threadId = this.dataset.threadId;
+            const formData = new FormData(this);
+            console.log(`Submitting answer for thread ${threadId}`);
+            fetch(`/thread/${threadId}/answer`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Answer submitted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Fetch error:', error));
+        });
+    });
+});
+Step 2: Update templates/doctor_community.html
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Community - {{ doctor.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Community Engagement</h3>
+                <div class="alert alert-info">
+                    <strong>Engaging with the community as a doctor helps build trust and establish you as an authority in your field.</strong>
+                </div>
+                <a href="#" class="btn btn-outline-primary mb-3">View All Threads</a>
+                <h4>Recent Threads in Your Specialties</h4>
+                {% if threads %}
+                    {% for thread in threads %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ thread.title }}</h5>
+                                <p class="card-text"><small class="text-muted">{{ thread.created_at.strftime('%b %d, %Y') }}</small></p>
+                                <p class="card-text"><span class="badge bg-primary">{{ thread.category }}</span></p>
+                                <p class="card-text">{{ thread.views }} views | {{ thread.replies_count }} replies</p>
+                                <button class="btn btn-primary answer-as-doctor-btn" data-thread-id="{{ thread.id }}">Answer as Doctor</button>
+                                <div class="modal fade" id="answerModal-{{ thread.id }}" tabindex="-1" aria-labelledby="answerModalLabel-{{ thread.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="answerModalLabel-{{ thread.id }}">Answer Thread</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form class="answer-thread-form" data-thread-id="{{ thread.id }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <div class="mb-3">
+                                                        <label for="answer" class="form-label">Your Answer</label>
+                                                        <textarea name="answer" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">Submit Answer</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No threads available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/community.js') }}"></script>
+</body>
+</html>
+Step 3: Add Route in routes.py
+text
+
+Copy
+@web.route('/thread/<int:thread_id>/answer', methods=['POST'])
+@login_required
+def answer_thread(thread_id):
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    thread = CommunityThread.query.get_or_404(thread_id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        answer_text = request.form.get('answer')
+        if answer_text:
+            reply = CommunityReply(
+                thread_id=thread.id,
+                doctor_id=doctor.id,
+                reply_text=answer_text
+            )
+            db.session.add(reply)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Answer submitted'})
+        return jsonify({'success': False, 'message': 'Answer cannot be empty'})
+    return redirect(url_for('web.doctor_community', doctor_id=doctor.id))
+Step 4: Test Community
+Navigate to /dashboard/doctor/1/community.
+Click "Answer as Doctor" on the "hair is great" thread.
+Submit an answer and verify it appears.
+4. Debug and Test
+Restart Application:
+Restarted Start application
+Deploy:
+Update requirements.txt with pip freeze > requirements.txt.
+Deploy on Replit and note the new live URL.
+Test All Features:
+Log in as testdoctor@antidote.com (password: Doctor1234).
+Test Patient Leads buttons ("View," "Contact," "Update Status").
+Test My Procedures buttons ("Add Procedure," "Details," "Remove").
+Test Community "Answer as Doctor" button.
+Open browser console (F12) and check for errors. Share any errors, network requests, or Flask logs.
+Why This Should Resolve the Issue
+JavaScript: Added extensive logging to confirm event binding and script loading.
+CSRF: Ensured tokens are included and retrieved correctly.
+Routes: Verified authentication and proper responses for both navigation and AJAX.
+Testing: Focused on end-to-end testing with real-time debugging.

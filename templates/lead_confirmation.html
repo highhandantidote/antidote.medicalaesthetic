@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation Request Confirmed | Antidote{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card bg-dark text-white border-success mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Consultation Request Confirmed
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-1 text-success mb-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2>Thank You for Your Request</h2>
+                        <p class="lead">Your consultation request has been successfully submitted.</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5>What happens next?</h5>
+                        <p>A medical professional will review your request and contact you within 24-48 hours on your provided mobile number: <strong>{{ lead.mobile_number }}</strong></p>
+                    </div>
+                    
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Request Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Patient Name:</div>
+                                <div class="col-md-8">{{ lead.patient_name }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Procedure:</div>
+                                <div class="col-md-8">{{ lead.procedure_name }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">City:</div>
+                                <div class="col-md-8">{{ lead.city }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Preferred Date:</div>
+                                <div class="col-md-8">{{ lead.preferred_date.strftime('%d %B, %Y') }}</div>
+                            </div>
+                            {% if doctor %}
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Doctor:</div>
+                                <div class="col-md-8">Dr. {{ doctor.name }}</div>
+                            </div>
+                            {% endif %}
+                            {% if lead.message %}
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Your Message:</div>
+                                <div class="col-md-8">{{ lead.message }}</div>
+                            </div>
+                            {% endif %}
+                            {% if lead.source %}
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Request Source:</div>
+                                <div class="col-md-8">{{ lead.source }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if not is_logged_in %}
+                    <div class="card bg-dark border-primary mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Create an Account for Better Experience</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Creating an account allows you to:</p>
+                            <ul>
+                                <li>Track all your consultation requests</li>
+                                <li>Receive personalized procedure recommendations</li>
+                                <li>Join our community of patients and doctors</li>
+                                <li>Get access to exclusive content and webinars</li>
+                            </ul>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-3">
+                                <a href="{{ url_for('web.register') }}" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </a>
+                                <a href="{{ url_for('web.login') }}" class="btn btn-outline-light">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center">
+                        <p>Reference ID: <span class="badge bg-secondary">{{ lead.id }}</span></p>
+                        <p class="small text-muted">Please save this reference ID for future communication.</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <a href="{{ url_for('web.index') }}" class="btn btn-outline-light">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                        <a href="{{ url_for('web.procedures') }}" class="btn btn-success">
+                            <i class="fas fa-search me-2"></i>Explore More Procedures
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Track lead conversion event
+        if (typeof gtag === 'function') {
+            gtag('event', 'lead_conversion', {
+                'event_category': 'leads',
+                'event_label': '{{ lead.procedure_name }}',
+                'value': 1
+            });
+        }
+    });
+</script>
+{% endblock %}

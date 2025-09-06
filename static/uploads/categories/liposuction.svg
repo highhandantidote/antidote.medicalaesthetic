@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f4d1ae;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8c4a0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="medicalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8ed8d2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5baba3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#medicalGradient)" opacity="0.1"/>
+  
+  <!-- Body silhouette -->
+  <path d="M75 60 Q100 55 125 60 L130 90 Q132 120 125 150 L75 150 Q68 120 70 90 Z" 
+        fill="url(#skinGradient)" stroke="#d4b08a" stroke-width="2"/>
+  
+  <!-- Treatment areas -->
+  <ellipse cx="85" cy="85" rx="8" ry="12" fill="none" stroke="#8ed8d2" stroke-width="2" stroke-dasharray="4,2" opacity="0.8"/>
+  <ellipse cx="115" cy="85" rx="8" ry="12" fill="none" stroke="#8ed8d2" stroke-width="2" stroke-dasharray="4,2" opacity="0.8"/>
+  <ellipse cx="100" cy="120" rx="15" ry="10" fill="none" stroke="#8ed8d2" stroke-width="2" stroke-dasharray="4,2" opacity="0.8"/>
+  
+  <!-- Medical instrument -->
+  <g transform="translate(140, 90) rotate(15)">
+    <rect x="0" y="-1" width="25" height="2" fill="url(#medicalGradient)"/>
+    <circle cx="25" r="3" fill="white" stroke="#5baba3" stroke-width="1"/>
+    <rect x="-3" y="-0.5" width="3" height="1" fill="#8ed8d2"/>
+  </g>
+  
+  <!-- Medical cross -->
+  <g transform="translate(100, 160)">
+    <circle r="12" fill="white" opacity="0.9"/>
+    <rect x="-6" y="-1" width="12" height="2" fill="url(#medicalGradient)"/>
+    <rect x="-1" y="-6" width="2" height="12" fill="url(#medicalGradient)"/>
+  </g>
+</svg>

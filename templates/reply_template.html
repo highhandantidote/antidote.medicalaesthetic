@@ -1,0 +1,81 @@
+{% macro render_reply(reply, media_api_url) %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i data-feather="user" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div class="ms-3">
+                    {% if reply.is_anonymous %}
+                        <h6 class="mb-0">Anonymous</h6>
+                    {% else %}
+                        <h6 class="mb-0">{{ reply.user.username if reply.user else 'Unknown User' }}</h6>
+                    {% endif %}
+                    <small class="text-muted">{{ reply.created_at.strftime('%b %d, %Y at %I:%M %p') }}</small>
+                </div>
+            </div>
+            <div>
+                {% if reply.is_doctor_response %}
+                    <span class="badge bg-success">Doctor Response</span>
+                {% endif %}
+                {% if reply.is_expert_advice %}
+                    <span class="badge bg-info">Expert Advice</span>
+                {% endif %}
+                {% if reply.is_ai_response %}
+                    <span class="badge bg-secondary">AI Response</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card-text mb-3">
+            {{ reply.content|safe }}
+            
+            {% if reply.photo_url %}
+            <div class="mt-3">
+                <a href="#" class="media-preview-trigger" data-media-type="photo" data-media-url="{{ media_api_url }}/{{ reply.photo_url }}">
+                    <img src="{{ media_api_url }}/{{ reply.photo_url }}" class="img-fluid rounded" alt="User uploaded image" style="max-height: 300px;">
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if reply.video_url %}
+            <div class="mt-3">
+                <a href="#" class="media-preview-trigger" data-media-type="video" data-media-url="{{ reply.video_url }}">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="{{ reply.video_url }}" allowfullscreen></iframe>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-2 upvote-reply" data-reply-id="{{ reply.id }}">
+                    <i data-feather="thumbs-up" class="feather-sm me-1"></i> Helpful ({{ reply.upvotes }})
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-2 reply-to-comment" 
+                        data-thread-id="{{ reply.thread_id }}" 
+                        data-parent-id="{{ reply.id }}">
+                    <i data-feather="message-square" class="feather-sm me-1"></i> Reply
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary">
+                    <i data-feather="flag" class="feather-sm me-1"></i> Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Recursively render child replies -->
+        {% if reply.children and reply.children|length > 0 %}
+            <div class="mt-3 ms-4 border-start ps-3">
+                {% for child in reply.children %}
+                    {{ render_reply(child, media_api_url) }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}

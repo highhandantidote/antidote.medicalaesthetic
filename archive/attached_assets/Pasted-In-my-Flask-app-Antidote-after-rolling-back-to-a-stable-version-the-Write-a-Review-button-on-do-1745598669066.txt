@@ -1,0 +1,72 @@
+In my Flask app Antidote, after rolling back to a stable version, the "Write a Review" button on /doctors/detail/3 shows a form, but after submission, I’m redirected to the homepage, and the review isn’t visible. Fix this issue:
+
+1. Verify database submission:
+   SELECT * FROM reviews WHERE doctor_id = 3;
+   - Take a screenshot of the query result.
+
+2. Update reviews.js:
+   - Open static/js/reviews.js
+   - Find the form submission fetch call, ensure it uses:
+     fetch('/submit_review', {
+         method: 'POST',
+         body: formData,
+         headers: { 'X-Requested-With': 'XMLHttpRequest' }
+     })
+     .then(response => response.json())
+     .then(data => {
+         if (data.success) {
+             alert('Review submitted successfully!');
+             location.reload(); // Ensure this line reloads the current page
+         } else {
+             alert(data.message || 'Error submitting review.');
+         }
+     });
+   - Save the file.
+
+3. Check and fix the server route:
+   - Open routes/web.py (or the file handling /submit_review)
+   - Ensure the route is:
+     @app.route('/submit_review', methods=['POST'])
+     def submit_review():
+         if request.method == 'POST':
+             form_data = request.form
+             # Example: Save to database
+             db.execute("INSERT INTO reviews (doctor_id, user_id, rating, content) VALUES (%s, %s, %s, %s)",
+                       (3, 1, form_data['rating'], form_data['comment']))
+             db.commit()
+             return jsonify({'success': True, 'message': 'Review submitted!'})
+         return redirect(url_for('index'))  # Fallback for non-POST
+   - Save the file.
+
+4. Update doctors/detail.html to display reviews:
+   - Open templates/doctors/detail.html
+   - Add or update the reviews section:
+     <div class="reviews">
+         <h4>Reviews</h4>
+         {% for review in doctor.reviews %}
+             <div class="review">
+                 <p>{{ review.content }} - Rating: {{ review.rating }}</p>
+             </div>
+         {% endfor %}
+     </div>
+   - Ensure the backend query populates doctor.reviews (e.g., in the route for /doctors/detail/<id>).
+
+5. Test the fix:
+   - Restart the application:
+     Restarted Start application
+   - Log in as `testuser@antidote.com` with password "password123".
+   - Go to /doctors/detail/3, click "Write a Review", submit a review (rating 4, comment "Excellent service").
+   - Confirm the modal closes, the review appears on the page, and no redirect occurs.
+   - Take a screenshot of /doctors/detail/3 post-submission.
+
+6. Check for errors:
+   - F12 > Console and Network tabs on /doctors/detail/3 (screenshot if errors).
+   - Run: tail -n 50 /tmp/replit-nix-errors.log and report issues.
+
+7. Provide a summary:
+   - Confirm if the review appears and no redirect happens.
+   - Include screenshots from steps 1 and 5.
+   - Note any errors from step 6.
+   - Suggest next steps (e.g., test "Save" functionality, address other pages).
+
+Run this prompt and share the summary with screenshots. We’ll get this sorted out!

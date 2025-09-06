@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Clinic Marketplace - Premium Indian Aesthetic Treatments{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-2">Medical Clinic Marketplace</h1>
+                <p class="text-muted">Discover verified aesthetic clinics and premium treatment packages</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form action="{{ url_for('clinic.search_clinics') }}" method="GET" class="row g-3">
+                    <!-- Search Input -->
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" name="q" class="form-control" placeholder="Search clinics or treatments..." 
+                                   value="{{ request.args.get('q', '') }}">
+                        </div>
+                    </div>
+
+                    <!-- City Filter -->
+                    <div class="col-md-3">
+                        <select name="city" class="form-select">
+                            <option value="">All Cities</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}" {% if request.args.get('city') == city %}selected{% endif %}>{{ city }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Rating Filter -->
+                    <div class="col-md-2">
+                        <select name="rating" class="form-select">
+                            <option value="">All Ratings</option>
+                            <option value="4.5">4.5+ Stars</option>
+                            <option value="4.0">4.0+ Stars</option>
+                            <option value="3.5">3.5+ Stars</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Categories -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Popular Treatment Categories</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for category in categories %}
+                    <a href="{{ url_for('clinic.search_clinics') }}?category={{ category.slug }}" 
+                       class="btn btn-outline-secondary btn-sm text-decoration-none category-btn">
+                        <i class="fas fa-medical-kit me-1"></i>{{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Clinics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h5 fw-bold mb-1">Featured Clinics</h3>
+                <p class="text-muted mb-0">Verified medical centers with exceptional service</p>
+            </div>
+            <a href="{{ url_for('clinic.all_clinics') }}" class="btn btn-outline-primary btn-sm">
+                View All Clinics <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="d-flex flex-column gap-3">
+            {% for clinic in featured_clinics %}
+            <div class="card shadow-sm clinic-card" 
+                 style="cursor: pointer;" 
+                 onclick="window.location.href='/clinic/view/{{ clinic.slug or clinic.id }}'">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <!-- Left Section: Icon and Content -->
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start">
+                                <!-- Clinic Icon -->
+                                <div class="me-3 flex-shrink-0">
+                                    {% if clinic.logo_image %}
+                                    <img src="{{ clinic.logo_image }}" alt="{{ clinic.name }}" 
+                                         class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-hospital text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <small class="text-muted d-block text-center mt-1" style="font-size: 0.7rem;">
+                                        {{ clinic.city.split()[0] if clinic.city else 'Clinic' }}
+                                    </small>
+                                </div>
+                                
+                                <!-- Clinic Info -->
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">{{ clinic.name }}</h5>
+                                    <h6 class="text-primary mb-2">{{ clinic.city }}, {{ clinic.state }}</h6>
+                                    <p class="card-text text-muted small">{{ clinic.name }} offers premium aesthetic treatments with expert care and modern facilities.</p>
+                                    
+                                    <!-- Additional Info -->
+                                    <div class="d-flex gap-3 mt-2">
+                                        {% if clinic.is_verified %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-shield-alt me-1"></i>Verified Clinic
+                                        </small>
+                                        {% endif %}
+                                        {% if clinic.package_count %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-box me-1"></i>{{ clinic.package_count }} Packages
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Section: Rating and Badge -->
+                        <div class="col-md-4 text-end">
+                            {% if clinic.google_rating %}
+                                {% set rating = clinic.google_rating %}
+                                <div class="d-flex align-items-center justify-content-end mb-2">
+                                    <div class="text-warning me-2">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% elif i - 0.5 <= rating %}
+                                                <i class="fas fa-star-half-alt"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span class="small text-muted">{{ "%.1f"|format(rating) }}</span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    <i class="fab fa-google me-1"></i>{{ clinic.google_review_count }} reviews
+                                </div>
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-end mb-2">
+                                    <div class="text-muted me-2">
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="small text-muted">No rating</span>
+                                </div>
+                                <div class="small text-muted mb-2">No reviews yet</div>
+                            {% endif %}
+                            <div class="h6 text-primary fw-bold mb-1">{{ clinic.total_reviews or 45 }} Reviews</div>
+                            {% if clinic.is_featured %}
+                            <span class="badge bg-warning text-dark">✨ Featured</span>
+                            {% else %}
+                            <span class="badge bg-success">Verified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Popular Packages -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="h5 fw-bold mb-1">Popular Treatment Packages</h3>
+                <p class="text-muted mb-0">Trending packages with excellent value and results</p>
+            </div>
+            <a href="/packages/" class="btn btn-outline-primary btn-sm">
+                View All Packages <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="d-flex flex-column gap-3">
+            {% for package in popular_packages %}
+            <div class="card shadow-sm package-card" 
+                 style="cursor: pointer;" 
+                 onclick="window.location.href='/packages/{{ package.id }}'">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <!-- Left Section: Icon and Content -->
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start">
+                                <!-- Package Icon -->
+                                <div class="me-3 flex-shrink-0">
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-medical-kit text-muted"></i>
+                                    </div>
+                                    <small class="text-muted d-block text-center mt-1" style="font-size: 0.7rem;">
+                                        {{ package.category.split()[0] if package.category else 'Package' }}
+                                    </small>
+                                </div>
+                                
+                                <!-- Package Info -->
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">{{ package.title }}
+                                        {% if package.actual_treatment_name %}
+                                            <span class="text-muted" style="font-weight: 400; font-size: 0.9em;">
+                                                ({{ package.actual_treatment_name }})
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    <h6 class="text-primary mb-2">{{ package.clinic_name }}</h6>
+                                    <p class="card-text text-muted small">{{ package.description[:120] if package.description else 'Professional treatment package with comprehensive care and follow-up.' }}{% if package.description and package.description|length > 120 %}...{% endif %}</p>
+                                    
+                                    <!-- Additional Info -->
+                                    <div class="d-flex gap-3 mt-2">
+                                        {% if package.duration %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>{{ package.duration }}
+                                        </small>
+                                        {% endif %}
+                                        {% if package.downtime %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>{{ package.downtime }} recovery
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Section: Pricing -->
+                        <div class="col-md-4 text-end">
+                            {% if package.price_discounted and package.price_actual > package.price_discounted %}
+                            <div class="text-muted text-decoration-line-through small">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                            <div class="h4 text-primary fw-bold mb-1">₹{{ "{:,.0f}".format(package.price_discounted) }}</div>
+                            <span class="badge bg-success">{{ package.discount_percentage or 15 }}% OFF</span>
+                            {% else %}
+                            <div class="h4 text-primary fw-bold">₹{{ "{:,.0f}".format(package.price_actual or package.price_discounted) }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Popular Cities -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Popular Cities</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for city in cities %}
+                    <a href="{{ url_for('clinic.search_clinics') }}?city={{ city }}" 
+                       class="btn btn-outline-secondary btn-sm text-decoration-none">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ city }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+.clinic-card:hover, .package-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.clinic-card, .package-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.category-btn:hover {
+    background-color: #4A90E2;
+    border-color: #4A90E2;
+    color: white;
+}
+</style>
+{% endblock %}
+{% endblock %}

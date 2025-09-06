@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}Banner Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Banner Management</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Create New Banner Form -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Create New Banner</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('banners.create_banner') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="name">Banner Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="position">Position</label>
+                                    <select class="form-control" id="position" name="position" required>
+                                        <option value="">Select Position</option>
+                                        {% for position in banner_positions %}
+                                            <option value="{{ position }}">{{ position|replace('_', ' ')|title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary mt-4">Create Banner</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Existing Banners -->
+            <h2 class="mb-3">Existing Banners</h2>
+            
+            {% if banners %}
+                {% for banner in banners %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ banner.name }} <span class="badge {% if banner.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                                {% if banner.is_active %}Active{% else %}Inactive{% endif %}
+                            </span></h5>
+                            <div>
+                                <form action="{{ url_for('banners.toggle_banner', banner_id=banner.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm {% if banner.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                        {% if banner.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('banners.delete_banner', banner_id=banner.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this banner? This will delete all slides too.')">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Position:</strong> {{ banner.position|replace('_', ' ')|title }}</p>
+                            <p><strong>Created:</strong> {{ banner.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                            
+                            <!-- Slides Table -->
+                            <h6 class="mt-4 mb-3">Banner Slides</h6>
+                            
+                            {% if banner.slides %}
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Subtitle</th>
+                                                <th>Desktop Image</th>
+                                                <th>Mobile Image</th>
+                                                <th>Redirect URL</th>
+                                                <th>Order</th>
+                                                <th>Status</th>
+                                                <th>Click/Impressions</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for slide in banner.slides|sort(attribute='display_order') %}
+                                                <tr>
+                                                    <td>{{ slide.title }}</td>
+                                                    <td>{{ slide.subtitle }}</td>
+                                                    <td>
+                                                        <a href="{{ slide.image_url }}" target="_blank">
+                                                            <img src="{{ slide.image_url }}" alt="{{ slide.title }}" style="max-height: 50px; max-width: 100px;">
+                                                        </a>
+                                                        <br><small class="text-muted">Desktop</small>
+                                                    </td>
+                                                    <td>
+                                                        {% if slide.mobile_image_url %}
+                                                            <a href="{{ slide.mobile_image_url }}" target="_blank">
+                                                                <img src="{{ slide.mobile_image_url }}" alt="{{ slide.title }} Mobile" style="max-height: 50px; max-width: 100px;">
+                                                            </a>
+                                                            <br><small class="text-muted">Mobile</small>
+                                                        {% else %}
+                                                            <span class="text-muted">Uses desktop image</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><a href="{{ slide.redirect_url }}" target="_blank">{{ slide.redirect_url }}</a></td>
+                                                    <td>{{ slide.display_order }}</td>
+                                                    <td>
+                                                        <span class="badge {% if slide.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                                                            {% if slide.is_active %}Active{% else %}Inactive{% endif %}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ slide.click_count or 0 }}/{{ slide.impression_count or 0 }} 
+                                                        ({% if slide.impression_count and slide.impression_count > 0 and slide.click_count %}{{ (slide.click_count / slide.impression_count * 100)|round(2) }}%{% else %}0%{% endif %})</td>
+                                                    <td>
+                                                        <form action="{{ url_for('banners.toggle_slide', slide_id=slide.id) }}" method="POST" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-sm {% if slide.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                                                {% if slide.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                            </button>
+                                                        </form>
+                                                        <a href="{{ url_for('banners.edit_slide', slide_id=slide.id) }}" class="btn btn-sm btn-info">Edit</a>
+                                                        <form action="{{ url_for('banners.delete_slide', slide_id=slide.id) }}" method="POST" class="d-inline">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this slide?')">Delete</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">No slides have been created for this banner yet.</div>
+                            {% endif %}
+                            
+                            <!-- Add Slide Form -->
+                            <div class="card mt-3">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">Add New Slide</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form action="{{ url_for('banners.create_slide', banner_id=banner.id) }}" method="POST" enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="title{{ banner.id }}">Title</label>
+                                                    <input type="text" class="form-control" id="title{{ banner.id }}" name="title" required>
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="subtitle{{ banner.id }}">Subtitle (Optional)</label>
+                                                    <textarea class="form-control" id="subtitle{{ banner.id }}" name="subtitle" rows="2"></textarea>
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="redirect_url{{ banner.id }}">Redirect URL</label>
+                                                    <input type="text" class="form-control" id="redirect_url{{ banner.id }}" name="redirect_url" required>
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="display_order{{ banner.id }}">Display Order</label>
+                                                    <input type="number" class="form-control" id="display_order{{ banner.id }}" name="display_order" value="10">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <!-- Desktop Image Options -->
+                                                <div class="card mb-3 bg-light">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Desktop Image (Required)</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="form-group">
+                                                            <label>Option 1: Upload Desktop Image</label>
+                                                            <div class="custom-file">
+                                                                <input type="file" class="custom-file-input" id="uploaded_image{{ banner.id }}" name="uploaded_image" accept="image/*">
+                                                                <label class="custom-file-label" for="uploaded_image{{ banner.id }}">Choose desktop image...</label>
+                                                            </div>
+                                                            <small class="form-text text-muted">Recommended size: 1200x600 pixels. Max file size: 5MB.</small>
+                                                        </div>
+                                                        
+                                                        <div class="mt-3 text-center">
+                                                            <div class="font-weight-bold">- OR -</div>
+                                                        </div>
+                                                        
+                                                        <div class="form-group mt-3">
+                                                            <label>Option 2: Desktop Image URL</label>
+                                                            <input type="text" class="form-control" id="image_url{{ banner.id }}" name="image_url" placeholder="https://example.com/desktop-image.jpg">
+                                                            <small class="form-text text-muted">Enter a direct URL to desktop image.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Mobile Image Options (Optional) -->
+                                                <div class="card mb-3 bg-warning bg-opacity-10">
+                                                    <div class="card-header bg-warning">
+                                                        <h6 class="mb-0">Mobile Image (Optional)</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="alert alert-info">
+                                                            <small><strong>Note:</strong> If no mobile image is provided, the desktop image will be used for mobile devices.</small>
+                                                        </div>
+                                                        
+                                                        <div class="form-group">
+                                                            <label>Option 1: Upload Mobile Image</label>
+                                                            <div class="custom-file">
+                                                                <input type="file" class="custom-file-input" id="uploaded_mobile_image{{ banner.id }}" name="uploaded_mobile_image" accept="image/*">
+                                                                <label class="custom-file-label" for="uploaded_mobile_image{{ banner.id }}">Choose mobile image...</label>
+                                                            </div>
+                                                            <small class="form-text text-muted">Recommended size: 600x400 pixels. Max file size: 5MB.</small>
+                                                        </div>
+                                                        
+                                                        <div class="mt-3 text-center">
+                                                            <div class="font-weight-bold">- OR -</div>
+                                                        </div>
+                                                        
+                                                        <div class="form-group mt-3">
+                                                            <label>Option 2: Mobile Image URL</label>
+                                                            <input type="text" class="form-control" id="mobile_image_url{{ banner.id }}" name="mobile_image_url" placeholder="https://example.com/mobile-image.jpg">
+                                                            <small class="form-text text-muted">Enter a direct URL to mobile image.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <small class="text-info">Note: You must provide a desktop image (upload or URL). Mobile image is optional.</small>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success mt-3">Add Slide</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">No banners have been created yet. Use the form above to create your first banner.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+/* Recommendation history styles */
+.rating-stars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rating-stars input {
+    display: none;
+}
+
+.rating-stars label {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0 0.1rem;
+    color: #ddd;
+}
+
+.rating-stars label .fas {
+    display: none;
+}
+
+.rating-stars input:checked ~ label .fas {
+    display: inline-block;
+}
+
+.rating-stars input:checked ~ label .far {
+    display: none;
+}
+
+.rating-stars input:checked ~ label {
+    color: #ffc107;
+}
+
+.rating-stars label:hover {
+    transform: scale(1.1);
+}
+
+.rating-stars label .far:hover,
+.rating-stars label:hover .far {
+    color: #ffc107;
+}
+
+.rating .fas.fa-star.text-warning {
+    color: #ffc107 !important;
+}
+
+.rating .fas.fa-star.text-muted {
+    color: #ddd !important;
+}
+
+/* Badge styles */
+.badge-pill {
+    padding: 0.4rem 0.7rem;
+    border-radius: 50rem;
+}
+
+/* Card styles for recommendation history */
+.accordion .card-header {
+    cursor: pointer;
+    padding: 1rem;
+}
+
+.accordion .card-header button.btn-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.accordion .card-header button.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Feedback form */
+.rating-form {
+    text-align: center;
+}
+
+/* Enhanced card styling */
+.recommendation-history .card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.recommendation-history .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .recommendation-history .card {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}

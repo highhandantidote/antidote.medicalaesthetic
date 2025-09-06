@@ -1,0 +1,50 @@
+Homepage Styling Overview
+Section Layout
+Section Cards: White background, 15px border radius, 25px padding, subtle shadow (0 4px 20px rgba(0,0,0,0.08))
+Margin: 15px bottom spacing between sections
+Card Types & Dimensions
+1. Clinic Cards (Verified Clinics)
+Size: 280px width (min/max)
+Style: Left-aligned, light gray background (#f8f9fa)
+Padding: 25px
+Border: 1px solid #dee2e6, 12px border radius
+Hover: Lift effect (-3px translateY), enhanced shadow, blue border
+2. Procedure Cards
+Size: 320px width, 180px min height
+Style: White background, vertical flex layout
+Padding: 20px
+Border: 1px solid #dee2e6, 12px border radius
+Typography: Word-wrap enabled, 2-line clamp for descriptions
+3. Doctor Cards
+Size: 220px width (min/max)
+Style: Center-aligned, white background
+Padding: 25px horizontal, 20px vertical
+Avatar: 80px circular, 3px border
+Font Sizes: Name (0.95rem, 600 weight), Qualification (0.8rem)
+4. Package Cards
+Style: White background with left blue border (4px #4A90E2)
+Layout: Flex container for title/price positioning
+Hover: Enhanced shadow, slight lift effect
+Price Display: Right-aligned, hierarchical typography
+Typography System
+Section Titles: h2, bold weight, with gradient text effects
+Card Titles: h5/h6, 600 font weight
+Descriptions: Small text, muted colors, line clamping
+Prices: h5 size, bold, primary color (#4A90E2)
+Color Palette
+Primary: #4A90E2 (blue)
+Secondary: #357ABD (darker blue)
+Background: #f8f9fa (light gray)
+Cards: White (#ffffff)
+Text: #333 (dark), #666 (muted)
+Borders: #dee2e6
+Interactive Elements
+Hover Effects: 3px upward translation, enhanced shadows
+Transitions: 0.3s ease for all interactions
+Scrollbars: Custom styled (6px height, blue thumb)
+Buttons: Primary blue with hover states
+Grid System
+Horizontal Scrolling: Flex layout with 20px gaps
+Responsive: Touch-friendly scrolling on mobile
+Card Spacing: Consistent 20px gaps between items
+The styling follows a clean, medical-grade aesthetic with premium Korean marketplace influences, emphasizing cards, subtle shadows, and smooth interactions.

@@ -1,0 +1,588 @@
+{% extends "base_optimized_complete.html" %}
+
+{% block title %}Access Your Account - Antidote{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Header -->
+        <div class="auth-header text-center mb-4">
+            <h2 class="auth-title">🔐 Access Your Account</h2>
+            <p class="auth-subtitle text-muted">Enter your phone number to continue</p>
+        </div>
+
+        <!-- Step 1: Phone Number Entry -->
+        <div id="phone-step" class="auth-step active">
+            <form id="phone-form" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="form-group mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text">+91</span>
+                        <input type="tel" 
+                               id="phone" 
+                               name="phone" 
+                               class="form-control form-control-lg" 
+                               placeholder="Enter your phone number"
+                               pattern="[6-9][0-9]{9}"
+                               maxlength="10"
+                               required>
+                    </div>
+                    <small class="text-muted">We'll send a 6-digit verification code</small>
+                </div>
+                
+                <button type="submit" id="send-otp-btn" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Continue with OTP
+                </button>
+            </form>
+        </div>
+
+        <!-- Step 2: OTP Verification -->
+        <div id="otp-step" class="auth-step" style="display: none;">
+            <div class="text-center mb-4">
+                <div class="otp-icon mb-3">📱</div>
+                <h4>Enter Verification Code</h4>
+                <p class="text-muted">
+                    We sent a 6-digit code to<br>
+                    <strong id="masked-phone"></strong>
+                </p>
+            </div>
+
+            <form id="otp-form" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="otp-inputs mb-4">
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" required>
+                </div>
+                
+                <button type="submit" id="verify-otp-btn" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-check me-2"></i>
+                    Verify Code
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                <button id="resend-otp" class="btn btn-link" disabled>
+                    Resend code in <span id="countdown">30</span>s
+                </button>
+            </div>
+
+            <div class="text-center mt-2">
+                <button id="change-number" class="btn btn-link btn-sm">
+                    <i class="fas fa-edit me-1"></i>
+                    Change phone number
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-step" class="auth-step text-center" style="display: none;">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4>Verifying...</h4>
+            <p class="text-muted">Please wait while we verify your code</p>
+        </div>
+
+        <!-- Error Messages -->
+        <div id="error-message" class="alert alert-danger mt-3" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="error-text"></span>
+        </div>
+    </div>
+
+    <!-- Support -->
+    <div class="text-center mt-4">
+        <small class="text-muted">
+            Having trouble? 
+            <a href="/contact" class="text-decoration-none">Contact Support</a>
+        </small>
+    </div>
+</div>
+
+<!-- Firebase App and Auth -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<style>
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 160, 176, 0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid rgba(0, 160, 176, 0.1);
+}
+
+.auth-title {
+    color: #00A0B0;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.form-control-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+
+.form-control-lg:focus {
+    border-color: #00A0B0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 176, 0.15);
+}
+
+.input-group-text {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00A0B0, #0084a0);
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0084a0, #006c7a);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0, 160, 176, 0.3);
+}
+
+.otp-inputs {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.otp-input {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.otp-input:focus {
+    border-color: #00A0B0;
+    background: white;
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 176, 0.15);
+    outline: none;
+}
+
+.otp-input.filled {
+    background: #e8f4f5;
+    border-color: #00A0B0;
+    color: #00A0B0;
+}
+
+.otp-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.btn-link {
+    color: #00A0B0;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-link:hover {
+    color: #0084a0;
+    text-decoration: underline;
+}
+
+.btn-link:disabled {
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .otp-input {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .otp-inputs {
+        gap: 0.3rem;
+    }
+}
+
+/* Loading animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Step transitions */
+.auth-step {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.auth-step:not(.active) {
+    opacity: 0;
+    transform: translateX(20px);
+    pointer-events: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    const phoneForm = document.getElementById('phone-form');
+    const otpForm = document.getElementById('otp-form');
+    const phoneStep = document.getElementById('phone-step');
+    const otpStep = document.getElementById('otp-step');
+    const loadingStep = document.getElementById('loading-step');
+    const errorMessage = document.getElementById('error-message');
+    const maskedPhone = document.getElementById('masked-phone');
+    const otpInputs = document.querySelectorAll('.otp-input');
+    
+    let recaptchaVerifier = null;
+    let confirmationResult = null;
+
+    // Initialize Firebase with config
+    const firebaseConfig = {{ firebase_config | tojson }};
+    if (firebase.apps.length === 0) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    // Initialize reCAPTCHA
+    function initializeRecaptcha() {
+        if (!recaptchaVerifier) {
+            recaptchaVerifier = new firebase.auth.RecaptchaVerifier('send-otp-btn', {
+                'size': 'invisible',
+                'callback': function(response) {
+                    console.log('reCAPTCHA verified');
+                },
+                'expired-callback': function() {
+                    console.log('reCAPTCHA expired');
+                    showError('reCAPTCHA expired. Please try again.');
+                }
+            });
+        }
+    }
+
+    // Phone form submission
+    phoneForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const phoneInput = document.getElementById('phone');
+        const phone = phoneInput.value.trim();
+        
+        if (!validatePhone(phone)) {
+            showError('Please enter a valid 10-digit phone number');
+            return;
+        }
+
+        const fullPhone = '+91' + phone;
+        
+        try {
+            showLoading();
+            initializeRecaptcha();
+            
+            // Send OTP via Firebase
+            confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhone, recaptchaVerifier);
+            
+            // Update UI
+            maskedPhone.textContent = fullPhone.substring(0, 6) + 'XXXXX';
+            showOtpStep();
+            startCountdown();
+            
+        } catch (error) {
+            console.error('Error sending OTP:', error);
+            
+            // Check if it's a domain authorization issue
+            if (error.code === 'auth/captcha-check-failed' && error.message && error.message.includes('Hostname match not found')) {
+                console.log('🔧 Firebase domain not authorized, switching to development mode');
+                
+                // Use backend fallback for development
+                try {
+                    const response = await fetch('/auth/send-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+                        },
+                        body: JSON.stringify({ phone: fullPhone })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        maskedPhone.textContent = data.masked_phone;
+                        showOtpStep();
+                        startCountdown();
+                        showError('Development mode: OTP system ready for testing (check console for OTP code)');
+                        
+                        // Set a flag to use backend verification
+                        window.useBackendOTP = true;
+                    } else {
+                        showError(data.message || 'Failed to send OTP');
+                        showPhoneStep();
+                    }
+                } catch (backendError) {
+                    console.error('Backend OTP error:', backendError);
+                    showError('Failed to send OTP via backend');
+                    showPhoneStep();
+                }
+            } else {
+                showError(getFirebaseErrorMessage(error));
+                showPhoneStep();
+            }
+        }
+    });
+
+    // OTP form submission
+    otpForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const otp = Array.from(otpInputs).map(input => input.value).join('');
+        
+        if (otp.length !== 6) {
+            showError('Please enter the complete 6-digit code');
+            return;
+        }
+
+        try {
+            showLoading();
+            
+            // Check if we're using backend OTP (development mode)
+            if (window.useBackendOTP) {
+                // Direct backend verification
+                const response = await fetch('/auth/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+                    },
+                    body: JSON.stringify({ otp: otp })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Success! Redirect
+                    if (data.is_new_user && data.redirect_url.includes('complete-profile')) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.href = data.redirect_url || '/';
+                    }
+                } else {
+                    showError(data.message || 'Verification failed. Please try again.');
+                    showOtpStep();
+                }
+            } else {
+                // Firebase verification
+                const result = await confirmationResult.confirm(otp);
+                
+                // Send verification to backend
+                const response = await fetch('/auth/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+                    },
+                    body: JSON.stringify({ otp: otp })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Success! Redirect
+                    if (data.is_new_user && data.redirect_url.includes('complete-profile')) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.href = data.redirect_url || '/';
+                    }
+                } else {
+                    showError(data.message || 'Verification failed. Please try again.');
+                    showOtpStep();
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error verifying OTP:', error);
+            showError('Invalid verification code. Please try again.');
+            showOtpStep();
+        }
+    });
+
+    // OTP input handling
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            if (this.value.length === 1) {
+                this.classList.add('filled');
+                if (index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            } else {
+                this.classList.remove('filled');
+            }
+            
+            // Auto-submit when all fields are filled
+            const allFilled = Array.from(otpInputs).every(input => input.value.length === 1);
+            if (allFilled) {
+                setTimeout(() => otpForm.dispatchEvent(new Event('submit')), 500);
+            }
+        });
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+        
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 6);
+            const digits = pastedData.match(/\d/g) || [];
+            
+            digits.forEach((digit, i) => {
+                if (i < otpInputs.length) {
+                    otpInputs[i].value = digit;
+                    otpInputs[i].classList.add('filled');
+                }
+            });
+            
+            if (digits.length === 6) {
+                setTimeout(() => otpForm.dispatchEvent(new Event('submit')), 500);
+            }
+        });
+    });
+
+    // Resend OTP
+    document.getElementById('resend-otp').addEventListener('click', function() {
+        phoneForm.dispatchEvent(new Event('submit'));
+    });
+
+    // Change number
+    document.getElementById('change-number').addEventListener('click', function() {
+        showPhoneStep();
+        clearOtpInputs();
+    });
+
+    // Utility functions
+    function validatePhone(phone) {
+        return /^[6-9]\d{9}$/.test(phone);
+    }
+
+    function showError(message) {
+        errorMessage.style.display = 'block';
+        document.getElementById('error-text').textContent = message;
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    function showLoading() {
+        phoneStep.style.display = 'none';
+        otpStep.style.display = 'none';
+        loadingStep.style.display = 'block';
+        errorMessage.style.display = 'none';
+    }
+
+    function showPhoneStep() {
+        phoneStep.style.display = 'block';
+        otpStep.style.display = 'none';
+        loadingStep.style.display = 'none';
+        errorMessage.style.display = 'none';
+    }
+
+    function showOtpStep() {
+        phoneStep.style.display = 'none';
+        otpStep.style.display = 'block';
+        loadingStep.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        // Focus first OTP input
+        setTimeout(() => otpInputs[0].focus(), 100);
+    }
+
+    function clearOtpInputs() {
+        otpInputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('filled');
+        });
+    }
+
+    function startCountdown() {
+        const resendBtn = document.getElementById('resend-otp');
+        const countdown = document.getElementById('countdown');
+        let seconds = 30;
+        
+        resendBtn.disabled = true;
+        
+        const timer = setInterval(() => {
+            seconds--;
+            countdown.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(timer);
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i>Resend Code';
+            }
+        }, 1000);
+    }
+
+    function getFirebaseErrorMessage(error) {
+        switch (error.code) {
+            case 'auth/invalid-phone-number':
+                return 'Invalid phone number format';
+            case 'auth/too-many-requests':
+                return 'Too many requests. Please try again later';
+            case 'auth/captcha-check-failed':
+                if (error.message && error.message.includes('Hostname match not found')) {
+                    return 'Domain authorization needed. Using development mode - OTP will be sent to backend for testing.';
+                }
+                return 'reCAPTCHA verification failed. Please refresh and try again';
+            default:
+                return 'Something went wrong. Please try again';
+        }
+    }
+
+    // Initialize on page load
+    initializeRecaptcha();
+});
+</script>
+{% endblock %}

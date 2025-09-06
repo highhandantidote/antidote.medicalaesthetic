@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_data.title }}{% endblock %}
+{% block meta_description %}{{ seo_data.description }}{% endblock %}
+{% block meta_keywords %}{{ seo_data.keywords }}{% endblock %}
+{% block canonical_url %}{{ url_for('content.antidote_medical_marketplace', _external=True) }}{% endblock %}
+
+{% block og_title %}{{ seo_data.title }}{% endblock %}
+{% block og_description %}{{ seo_data.description }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section bg-gradient-primary text-white py-5 mb-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">Antidote Medical Marketplace</h1>
+                    <p class="lead mb-4">India's premier platform connecting patients with verified plastic surgeons and cosmetic specialists. Experience transparent pricing, verified reviews, and seamless booking.</p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('web.procedures') }}" class="btn btn-light btn-lg">Browse Procedures</a>
+                        <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn btn-outline-light btn-lg">AI Recommendations</a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}" alt="Antidote Medical Marketplace" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-user-md text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Verified Specialists</h4>
+                        <p class="text-muted">Connect with board-certified plastic surgeons and cosmetic specialists across India.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-rupee-sign text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Transparent Pricing</h4>
+                        <p class="text-muted">Compare treatment costs and packages with no hidden fees. Get detailed price breakdowns.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-calendar-check text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Easy Booking</h4>
+                        <p class="text-muted">Schedule consultations and treatments online with instant confirmation and reminders.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Procedures -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Popular Medical Procedures</h2>
+        <div class="row">
+            {% for procedure in featured_procedures %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    {% if procedure.image_url %}
+                    <img src="{{ procedure.image_url }}" class="card-img-top" alt="{{ procedure.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ procedure.name }}</h5>
+                        <p class="card-text text-muted">{{ procedure.description[:100] }}...</p>
+                        <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Doctors -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Leading Medical Specialists</h2>
+        <div class="row">
+            {% for doctor in top_doctors %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        {% if doctor.profile_image %}
+                        <img src="{{ doctor.profile_image }}" class="rounded-circle mb-3" alt="Dr. {{ doctor.name }}" width="80" height="80" style="object-fit: cover;">
+                        {% endif %}
+                        <h5 class="card-title">Dr. {{ doctor.name }}</h5>
+                        <p class="text-muted">{{ doctor.specialization }}</p>
+                        <p class="small">{{ doctor.location }}</p>
+                        <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Verified Clinics -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Verified Medical Centers</h2>
+        <div class="row">
+            {% for clinic in verified_clinics %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    {% if clinic.image_url %}
+                    <img src="{{ clinic.image_url }}" class="card-img-top" alt="{{ clinic.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ clinic.name }}</h5>
+                        <p class="text-muted"><i class="fas fa-map-marker-alt me-2"></i>{{ clinic.location }}</p>
+                        <a href="{{ url_for('clinic.clinic_profile', clinic_id=clinic.id) }}" class="btn btn-primary">View Clinic</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Why Choose Antidote -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="mb-4">Why Choose Antidote Medical Marketplace?</h2>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-3"></i>Largest network of verified medical professionals in India</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-3"></i>AI-powered treatment recommendations for personalized care</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-3"></i>Comprehensive before/after galleries and patient reviews</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-3"></i>Secure payment processing and consultation booking</li>
+                        <li class="mb-3"><i class="fas fa-check-circle text-success me-3"></i>24/7 customer support for all your medical needs</li>
+                    </ul>
+                    <a href="{{ url_for('web.register') }}" class="btn btn-primary btn-lg">Get Started Today</a>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row">
+                        <div class="col-6 text-center mb-4">
+                            <h3 class="text-primary fw-bold">500+</h3>
+                            <p class="text-muted">Verified Doctors</p>
+                        </div>
+                        <div class="col-6 text-center mb-4">
+                            <h3 class="text-primary fw-bold">100+</h3>
+                            <p class="text-muted">Medical Centers</p>
+                        </div>
+                        <div class="col-6 text-center mb-4">
+                            <h3 class="text-primary fw-bold">50+</h3>
+                            <p class="text-muted">Procedures Available</p>
+                        </div>
+                        <div class="col-6 text-center mb-4">
+                            <h3 class="text-primary fw-bold">10,000+</h3>
+                            <p class="text-muted">Happy Patients</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Structured Data for This Page -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "name": "Antidote Medical Marketplace",
+    "description": "India's premier medical aesthetic marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures",
+    "url": "{{ url_for('content.antidote_medical_marketplace', _external=True) }}",
+    "medicalSpecialty": [
+        "Plastic Surgery",
+        "Cosmetic Surgery",
+        "Aesthetic Medicine",
+        "Dermatology"
+    ],
+    "areaServed": {
+        "@type": "Country",
+        "name": "India"
+    },
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Medical Procedures and Services",
+        "itemListElement": [
+            {% for procedure in featured_procedures %}
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "MedicalProcedure",
+                    "name": "{{ procedure.name }}",
+                    "description": "{{ procedure.description[:100] }}"
+                }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+}
+</script>
+{% endblock %}

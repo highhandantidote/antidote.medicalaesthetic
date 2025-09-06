@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Payment - Antidote{% endblock %}
+
+{% block head %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+.payment-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.payment-card {
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.payment-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.payment-body {
+    padding: 2rem;
+}
+
+.amount-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin: 1rem 0;
+}
+
+.payment-methods {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.payment-method {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.payment-method:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.payment-method.selected {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+}
+
+.payment-icon {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.razorpay-icon {
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzUyOEZGRiIvPgo8cGF0aCBkPSJNMTAuNSAxNS41SDE5LjVMMTQuNSAyNS41SDI5LjVWMTQuNUgxMC41VjE1LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K');
+}
+
+.secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    margin-top: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .payment-container {
+        padding: 1rem;
+    }
+    
+    .payment-header, .payment-body {
+        padding: 1.5rem;
+    }
+    
+    .amount-display {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <h3 class="mb-0">Complete Your Payment</h3>
+            <p class="mb-0 opacity-75">Secure credit top-up for {{ clinic.name }}</p>
+        </div>
+        
+        <div class="payment-body">
+            <!-- Payment Details -->
+            <div class="text-center mb-4">
+                <div class="amount-display">₹{{ "{:,.0f}".format(amount) }}</div>
+                <p class="text-muted">{{ credits }} credits will be added to your account</p>
+            </div>
+            
+            <!-- Order Info -->
+            <div class="card bg-light mb-4">
+                <div class="card-body py-3">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Order ID</small>
+                            <div class="fw-bold">{{ order_id }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Credits</small>
+                            <div class="fw-bold">{{ credits }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Methods -->
+            <div class="payment-methods">
+                <div class="payment-method selected" data-method="unified">
+                    <div class="razorpay-icon payment-icon"></div>
+                    <div>
+                        <div class="fw-bold">Card, UPI, Net Banking & More</div>
+                        <small class="text-muted">All payment methods via Razorpay</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Buttons -->
+            <div class="d-grid gap-2">
+                <button id="pay-now-btn" class="btn btn-primary btn-lg">
+                    <i class="fas fa-credit-card me-2"></i>Pay Now
+                </button>
+                <button id="pay-manual-btn" class="btn btn-outline-secondary">
+                    <i class="fas fa-external-link-alt me-2"></i>Open in New Tab
+                </button>
+            </div>
+            
+            <!-- Secure Badge -->
+            <div class="secure-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>256-bit SSL Encrypted Payment</span>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="payment-status" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Data -->
+<script>
+window.paymentData = {
+    key: "{{ razorpay_key_id }}",
+    amount: {{ razorpay_amount }},
+    currency: "INR",
+    name: "Antidote",
+    description: "Credit Top-up",
+    order_id: "{{ order_id }}",
+    prefill: {
+        name: "{{ current_user.name if current_user.name else clinic.name }}",
+        email: "{{ current_user.email }}",
+        contact: "{{ current_user.phone_number if current_user.phone_number else '9999999999' }}"
+    },
+    callback_url: "{{ url_for('simple_billing.verify_payment') }}",
+    cancel_url: "{{ url_for('simple_billing.simple_credit_topup') }}"
+};
+
+console.log('Payment data initialized:', window.paymentData);
+</script>
+
+<script>
+$(document).ready(function() {
+    console.log('Payment checkout page loaded');
+    
+    // Pay Now button
+    $('#pay-now-btn').click(function() {
+        initiateRazorpayPayment();
+    });
+    
+    // Manual payment button
+    $('#pay-manual-btn').click(function() {
+        openManualPayment();
+    });
+    
+    function initiateRazorpayPayment() {
+        console.log('Initiating Razorpay payment');
+        
+        $('#pay-now-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        
+        try {
+            // Check if Razorpay is loaded
+            if (typeof Razorpay === 'undefined') {
+                throw new Error('Razorpay not loaded');
+            }
+            
+            var options = {
+                key: window.paymentData.key,
+                amount: window.paymentData.amount,
+                currency: window.paymentData.currency,
+                name: window.paymentData.name,
+                description: window.paymentData.description,
+                order_id: window.paymentData.order_id,
+                handler: function(response) {
+                    console.log('Payment successful:', response);
+                    handlePaymentSuccess(response);
+                },
+                prefill: window.paymentData.prefill,
+                theme: {
+                    color: '#007bff'
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log('Payment modal dismissed');
+                        resetPaymentButton();
+                    }
+                }
+            };
+            
+            console.log('Creating Razorpay instance with options:', options);
+            
+            var rzp = new Razorpay(options);
+            
+            rzp.on('payment.failed', function(response) {
+                console.error('Payment failed:', response);
+                handlePaymentFailure(response);
+            });
+            
+            rzp.open();
+            
+        } catch (error) {
+            console.error('Razorpay error:', error);
+            showStatus('error', 'Payment system unavailable. Please try manual payment.');
+            resetPaymentButton();
+        }
+    }
+    
+    function openManualPayment() {
+        console.log('Opening manual payment');
+        
+        var params = new URLSearchParams({
+            'key_id': window.paymentData.key,
+            'amount': window.paymentData.amount,
+            'currency': window.paymentData.currency,
+            'order_id': window.paymentData.order_id,
+            'name': window.paymentData.name,
+            'description': window.paymentData.description,
+            'prefill[name]': window.paymentData.prefill.name,
+            'prefill[email]': window.paymentData.prefill.email,
+            'prefill[contact]': window.paymentData.prefill.contact,
+            'theme[color]': '#007bff',
+            'callback_url': window.paymentData.callback_url,
+            'cancel_url': window.paymentData.cancel_url
+        });
+        
+        var paymentUrl = 'https://checkout.razorpay.com/v1/checkout.html?' + params.toString();
+        
+        // Try opening in new tab
+        var newWindow = window.open(paymentUrl, '_blank');
+        
+        if (!newWindow) {
+            // Fallback if popup blocked
+            showStatus('warning', 'Popup blocked. Redirecting to payment page...');
+            setTimeout(function() {
+                window.location.href = paymentUrl;
+            }, 2000);
+        } else {
+            showStatus('info', 'Payment opened in new tab. Complete payment and return here.');
+        }
+    }
+    
+    function handlePaymentSuccess(response) {
+        showStatus('success', 'Payment successful! Verifying...');
+        
+        // Submit payment data to verification
+        var form = $('<form method="post" action="' + window.paymentData.callback_url + '">');
+        form.append('<input type="hidden" name="razorpay_payment_id" value="' + response.razorpay_payment_id + '">');
+        form.append('<input type="hidden" name="razorpay_order_id" value="' + response.razorpay_order_id + '">');
+        form.append('<input type="hidden" name="razorpay_signature" value="' + response.razorpay_signature + '">');
+        form.append('<input type="hidden" name="csrf_token" value="' + $('meta[name=csrf-token]').attr('content') + '">');
+        
+        $('body').append(form);
+        form.submit();
+    }
+    
+    function handlePaymentFailure(response) {
+        var errorMsg = 'Payment failed';
+        if (response.error && response.error.description) {
+            errorMsg = response.error.description;
+        }
+        showStatus('error', errorMsg);
+        resetPaymentButton();
+    }
+    
+    function resetPaymentButton() {
+        $('#pay-now-btn').prop('disabled', false).html('<i class="fas fa-credit-card me-2"></i>Pay Now');
+    }
+    
+    function showStatus(type, message) {
+        var alertClass = 'alert-' + (type === 'error' ? 'danger' : type);
+        var icon = type === 'success' ? 'check-circle' : 
+                  type === 'error' ? 'exclamation-circle' : 
+                  type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+        
+        $('#payment-status').html(`
+            <div class="alert ${alertClass}">
+                <i class="fas fa-${icon} me-2"></i>${message}
+            </div>
+        `);
+    }
+});
+</script>
+
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}

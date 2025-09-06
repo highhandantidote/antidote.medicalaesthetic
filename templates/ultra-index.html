@@ -1,0 +1,551 @@
+{% extends "ultra-base.html" %}
+
+{% block title %}Premier Medical Marketplace for Plastic Surgery & Cosmetic Procedures{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Floating Elements and 3D Effect -->
+<section class="ultra-hero py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 ultra-hero-content">
+                <h1 class="ultra-hero-title" data-aos="fade-right">Discover Expert Cosmetic Procedures In India</h1>
+                <p class="ultra-hero-subtitle" data-aos="fade-right" data-aos-delay="100">Connect with verified specialists for premium plastic surgery and transformative treatments.</p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-5" data-aos="fade-right" data-aos-delay="200">
+                    <a href="{{ url_for('web.procedures') }}" class="btn-ultra-primary">Explore Procedures</a>
+                    <a href="{{ url_for('web.doctors') }}" class="btn-ultra-outline">Find Doctors</a>
+                </div>
+                
+                <!-- Facts Counter -->
+                <div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="col-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i data-feather="users" class="feather-icon text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="fs-4 fw-bold mb-0 counter" data-target="10000">0</h3>
+                                <p class="mb-0 small">Patients</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i data-feather="user-plus" class="feather-icon text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="fs-4 fw-bold mb-0 counter" data-target="500">0</h3>
+                                <p class="mb-0 small">Specialists</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i data-feather="award" class="feather-icon text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="fs-4 fw-bold mb-0 counter" data-target="98">0</h3>
+                                <p class="mb-0 small">% Satisfaction</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 position-relative" data-aos="fade-left" data-aos-delay="200">
+                <!-- 3D Floating Hero Image -->
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='images/hero-doctor.webp') }}" alt="Healthcare Professional" class="img-fluid rounded-4 shadow depth-effect">
+                    
+                    <!-- Floating Elements -->
+                    <div class="position-absolute top-0 start-0 translate-middle-y floating" style="animation-delay: 0.5s">
+                        <div class="glass-card py-2 px-3 rounded-pill d-flex align-items-center">
+                            <div class="rounded-circle bg-primary p-1 me-2"><i data-feather="check" class="feather-icon text-white" style="width: 14px; height: 14px"></i></div>
+                            <span class="small fw-semibold">Verified Doctors</span>
+                        </div>
+                    </div>
+                    
+                    <div class="position-absolute bottom-0 end-0 translate-middle-y floating" style="animation-delay: 0.8s">
+                        <div class="glass-card py-2 px-3 rounded-pill d-flex align-items-center">
+                            <div class="rounded-circle bg-primary p-1 me-2"><i data-feather="shield" class="feather-icon text-white" style="width: 14px; height: 14px"></i></div>
+                            <span class="small fw-semibold">Secure Consultations</span>
+                        </div>
+                    </div>
+                    
+                    <div class="position-absolute bottom-0 start-50 translate-middle floating" style="animation-delay: 1.1s">
+                        <div class="glass-card py-2 px-3 rounded-pill d-flex align-items-center">
+                            <div class="rounded-circle bg-primary p-1 me-2"><i data-feather="star" class="feather-icon text-white" style="width: 14px; height: 14px"></i></div>
+                            <span class="small fw-semibold">Premium Experience</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Tools Section -->
+<section class="py-5 bg-gradient-primary-soft">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-up">AI-POWERED SOLUTIONS</h6>
+            <h2 class="fw-bold mb-3" data-aos="fade-up" data-aos-delay="100">Advanced Tools for Better Decisions</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 650px;" data-aos="fade-up" data-aos-delay="200">
+                Our proprietary AI technologies help you discover the perfect procedures and specialists for your unique needs.
+            </p>
+        </div>
+        
+        <div class="row g-4 fade-in-stagger">
+            <!-- AI Recommendations Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i data-feather="zap" class="feather-icon"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">Unsure about your aesthetic goals?</h3>
+                    <p class="text-muted mb-4">
+                        Share your concerns, and we'll recommend the best cosmetic treatments for you!
+                    </p>
+                    <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn-ultra-primary d-block">Discover Your Treatments</a>
+                </div>
+            </div>
+            
+            <!-- AI Face Scan Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i data-feather="camera" class="feather-icon"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">AI Face Scan Analysis</h3>
+                    <p class="text-muted mb-4">
+                        Upload your facial image for a detailed analysis and personalized recommendations for facial enhancement.
+                    </p>
+                    <a href="{{ url_for('face_scan.index') }}" class="btn-ultra-primary d-block">Scan Your Face</a>
+                </div>
+            </div>
+            
+            <!-- Cost Calculator Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">Procedure Cost Calculator</h3>
+                    <p class="text-muted mb-4">
+                        Estimate the costs of various procedures with our intelligent calculator that factors in location, procedure complexity, and more.
+                    </p>
+                    <a href="{{ url_for('cost_calculator.cost_calculator') }}" class="btn-ultra-primary d-block">Calculate Costs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Procedures Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-right">Featured Procedures</h6>
+                <h2 class="fw-bold mb-0" data-aos="fade-right" data-aos-delay="100">Popular Transformations</h2>
+            </div>
+            <div data-aos="fade-left" data-aos-delay="100">
+                <a href="{{ url_for('web.procedures') }}" class="btn-ultra-outline">View All Procedures</a>
+            </div>
+        </div>
+        
+        <div class="row g-4 fade-in-stagger">
+            {% for procedure in procedures[:6] %}
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-procedure-card h-100">
+                    <div class="position-relative">
+                        {% if procedure.thumbnail %}
+                            <img src="{{ procedure.thumbnail }}" alt="{{ procedure.procedure_name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; border-radius: var(--radius-medium) var(--radius-medium) 0 0;">
+                        {% else %}
+                            <div class="placeholder-image bg-light d-flex align-items-center justify-content-center" style="height: 200px; border-radius: var(--radius-medium) var(--radius-medium) 0 0;">
+                                <i data-feather="image" class="feather-icon text-secondary" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Body part badge removed as requested -->
+                    </div>
+                    
+                    <div class="p-4">
+                        <h3 class="h5 fw-bold mb-2">{{ procedure.procedure_name }}</h3>
+                        <p class="text-muted small mb-3">{{ procedure.short_description[:100] }}{% if procedure.short_description|length > 100 %}...{% endif %}</p>
+                        
+                        <div class="mb-4">
+                            <!-- Cost Range Row -->
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-rupee-sign text-success me-2"></i>
+                                <strong class="me-2">Cost Range:</strong>
+                                <span class="fw-bold text-primary">₹{{ procedure.min_cost|default(20000, true)|int }} - ₹{{ procedure.max_cost|default(150000, true)|int }}</span>
+                            </div>
+                            <!-- Recovery Row -->
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong class="me-2">Recovery:</strong>
+                                <span class="fw-bold">{{ procedure.recovery_time|default('2-4 weeks', true) }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn-ultra-primary py-2">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Doctor Spotlight Section -->
+<section class="py-5 bg-gradient-primary-soft">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-right">Doctor Spotlight</h6>
+                <h2 class="fw-bold mb-0" data-aos="fade-right" data-aos-delay="100">Meet Our Specialists</h2>
+            </div>
+            <div data-aos="fade-left" data-aos-delay="100">
+                <a href="{{ url_for('web.doctors') }}" class="btn-ultra-outline">View All Doctors</a>
+            </div>
+        </div>
+        
+        <div class="row g-4 fade-in-stagger">
+            {% for doctor in doctors %}
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-doctor-card h-100 bg-white">
+                    <div class="p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="me-3">
+                                {% if doctor.profile_image %}
+                                    <img src="{{ doctor.profile_image }}" alt="Dr. {{ doctor.name }}" class="ultra-doctor-photo">
+                                {% else %}
+                                    <div class="ultra-doctor-photo d-flex align-items-center justify-content-center bg-primary-soft">
+                                        <i data-feather="user" class="feather-icon text-primary"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h3 class="h5 fw-bold mb-1">Dr. {{ doctor.name }}</h3>
+                                <p class="text-primary mb-0">{{ doctor.specialty }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i data-feather="award" class="feather-icon text-primary me-2" style="width: 16px; height: 16px;"></i>
+                                <span class="small">{{ doctor.qualification }}</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i data-feather="clock" class="feather-icon text-primary me-2" style="width: 16px; height: 16px;"></i>
+                                <span class="small">{{ doctor.experience|default(5, true) }} Years Experience</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i data-feather="map-pin" class="feather-icon text-primary me-2" style="width: 16px; height: 16px;"></i>
+                                <span class="small">{{ doctor.clinic_address|default('Mumbai, India', true) }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2">
+                                        {% for i in range(5) %}
+                                            {% if i < (doctor.avg_rating|default(4.5, true)|int) %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% elif (doctor.avg_rating|default(4.5, true) - i)|round(1) >= 0.5 %}
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span class="fw-semibold">{{ doctor.avg_rating|default(4.5, true) }}</span>
+                                </div>
+                            </div>
+                            <!-- Available badge removed -->
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn-ultra-primary flex-grow-1 py-2">View Profile</a>
+                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}?action=book" class="btn-ultra-outline flex-grow-1 py-2">Book Consult</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Community Highlights Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-right">Community Highlights</h6>
+                <h2 class="fw-bold mb-0" data-aos="fade-right" data-aos-delay="100">Join The Conversation</h2>
+            </div>
+            <div data-aos="fade-left" data-aos-delay="100">
+                <a href="{{ url_for('web.community') }}" class="btn-ultra-outline">Explore Community</a>
+            </div>
+        </div>
+        
+        <div class="row g-4 fade-in-stagger">
+            {% for thread in threads %}
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-thread-card h-100">
+                    <h3 class="ultra-thread-title">
+                        <a href="{{ url_for('web.community_thread', thread_id=thread.id) }}" class="text-decoration-none text-reset">{{ thread.title }}</a>
+                    </h3>
+                    <p class="ultra-thread-content">{{ thread.content[:150] }}{% if thread.content|length > 150 %}...{% endif %}</p>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="d-flex gap-2">
+                            {% if thread.tags %}
+                                {% for tag in thread.tags[:2] %}
+                                    <span class="ultra-badge ultra-badge-primary">{{ tag }}</span>
+                                {% endfor %}
+                                {% if thread.tags|length > 2 %}
+                                    <span class="ultra-badge ultra-badge-secondary">+{{ thread.tags|length - 2 }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="ultra-badge ultra-badge-secondary">
+                                <i data-feather="eye" class="feather-icon" style="width: 14px; height: 14px;"></i> 
+                                {{ thread.view_count|default(0, true) }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="ultra-thread-meta">
+                        <div>
+                            <i data-feather="calendar" class="feather-icon" style="width: 14px; height: 14px;"></i> 
+                            {{ thread.created_at.strftime('%b %d, %Y') }}
+                        </div>
+                        <div>
+                            <i data-feather="message-circle" class="feather-icon" style="width: 14px; height: 14px;"></i> 
+                            {{ thread.replies|default([])|length }} replies
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-gradient-primary-soft">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-up">Testimonials</h6>
+            <h2 class="fw-bold mb-3" data-aos="fade-up" data-aos-delay="100">Success Stories</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 650px;" data-aos="fade-up" data-aos-delay="200">
+                Hear from patients who found their perfect procedure and specialist through Antidote.
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6" data-aos="fade-up">
+                <div class="ultra-card bg-white h-100">
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="d-flex">
+                            {% for i in range(5) %}
+                                <i class="fas fa-star text-warning me-1"></i>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <i data-feather="quote" class="feather-icon text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4">"Antidote made my search for the right rhinoplasty surgeon so easy. The AI recommendations were spot on, and I found a doctor who truly understood my aesthetic goals."</p>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">AP</span>
+                        </div>
+                        <div>
+                            <h5 class="fw-semibold mb-0">Anjali P.</h5>
+                            <p class="small text-muted mb-0">Rhinoplasty Patient</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="ultra-card bg-white h-100">
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="d-flex">
+                            {% for i in range(5) %}
+                                <i class="fas fa-star text-warning me-1"></i>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <i data-feather="quote" class="feather-icon text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4">"The community support on Antidote was incredible during my hair transplant journey. I got honest advice from people who had been through it, and it helped me make the right decision."</p>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">RK</span>
+                        </div>
+                        <div>
+                            <h5 class="fw-semibold mb-0">Rajesh K.</h5>
+                            <p class="small text-muted mb-0">Hair Transplant Patient</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="ultra-card bg-white h-100">
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="d-flex">
+                            {% for i in range(5) %}
+                                <i class="fas fa-star text-warning me-1"></i>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <i data-feather="quote" class="feather-icon text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4">"I was nervous about finding the right specialist for my liposuction, but Antidote's verification system gave me confidence. My procedure was a complete success!"</p>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">SM</span>
+                        </div>
+                        <div>
+                            <h5 class="fw-semibold mb-0">Sunita M.</h5>
+                            <p class="small text-muted mb-0">Liposuction Patient</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="glass-card p-5 text-center position-relative overflow-hidden" data-aos="fade-up">
+                    <!-- Decorative elements -->
+                    <div class="position-absolute" style="top: -50px; right: -50px; width: 200px; height: 200px; background: linear-gradient(45deg, rgba(58, 54, 224, 0.3), rgba(99, 102, 241, 0.1)); border-radius: 50%; filter: blur(50px);"></div>
+                    <div class="position-absolute" style="bottom: -100px; left: -100px; width: 300px; height: 300px; background: linear-gradient(45deg, rgba(99, 102, 241, 0.2), rgba(58, 54, 224, 0.1)); border-radius: 50%; filter: blur(80px);"></div>
+                    
+                    <h2 class="fw-bold mb-3">Ready to Begin Your Transformation?</h2>
+                    <p class="lead text-muted mb-4">Take the first step towards a more confident you with personalized recommendations.</p>
+                    
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('web.procedures') }}" class="btn-ultra-primary">Explore Procedures</a>
+                        <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn-ultra-secondary">Get AI Recommendations</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Learning Resources Section -->
+<section class="py-5 bg-gradient-primary-soft">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h6 class="text-uppercase fw-bold text-primary" data-aos="fade-right">Educational Resources</h6>
+                <h2 class="fw-bold mb-0" data-aos="fade-right" data-aos-delay="100">Learn Before You Decide</h2>
+            </div>
+            <div data-aos="fade-left" data-aos-delay="100">
+                <a href="{{ url_for('education.learn_home') }}" class="btn-ultra-outline">View All Resources</a>
+            </div>
+        </div>
+        
+        <div class="row g-4 fade-in-stagger">
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i data-feather="book-open" class="feather-icon"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">Procedure Guides</h3>
+                    <p class="text-muted mb-4">
+                        Detailed guides explaining what to expect before, during, and after popular cosmetic procedures.
+                    </p>
+                    <a href="{{ url_for('education.learn_home') }}" class="btn-ultra-primary d-block">Browse Guides</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i data-feather="help-circle" class="feather-icon"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">FAQ Library</h3>
+                    <p class="text-muted mb-4">
+                        Comprehensive answers to the most common questions about plastic surgery and cosmetic procedures.
+                    </p>
+                    <a href="{{ url_for('education.learn_home') }}" class="btn-ultra-primary d-block">Read FAQs</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="ultra-card h-100 bg-white">
+                    <div class="ultra-procedure-icon mb-4 mx-auto">
+                        <i data-feather="award" class="feather-icon"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-center">Recovery Tips</h3>
+                    <p class="text-muted mb-4">
+                        Expert advice and proven strategies for optimal healing and recovery after cosmetic procedures.
+                    </p>
+                    <a href="{{ url_for('education.learn_home') }}" class="btn-ultra-primary d-block">Explore Tips</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Counter Animation
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = Math.ceil(target / 50);
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                if (current > target) current = target;
+                counter.innerText = current.toLocaleString();
+                setTimeout(updateCounter, 30);
+            }
+        };
+        
+        // Initialize counter when element is in viewport
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    updateCounter();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        observer.observe(counter);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1016 @@
+{% extends "base.html" %}
+
+{% block title %}Add Credits - {{ clinic.name }}{% endblock %}
+
+{% block head %}
+<!-- Razorpay JavaScript SDK with async loading -->
+<script>
+// Force load Razorpay with proper error handling
+window.razorpayLoaded = false;
+function loadRazorpay() {
+    var script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = function() {
+        window.razorpayLoaded = true;
+        console.log('Razorpay SDK loaded successfully');
+    };
+    script.onerror = function() {
+        console.error('Failed to load Razorpay SDK');
+    };
+    document.head.appendChild(script);
+}
+loadRazorpay();
+
+// Global function to fix Razorpay elements as they appear
+window.fixRazorpayElement = function(element) {
+    if (!element || !element.style) return;
+    
+    var criticalStyles = {
+        'position': 'fixed',
+        'z-index': '2147483647',
+        'pointer-events': 'auto',
+        'visibility': 'visible',
+        'opacity': '1',
+        'display': 'block'
+    };
+    
+    Object.keys(criticalStyles).forEach(function(prop) {
+        element.style.setProperty(prop, criticalStyles[prop], 'important');
+    });
+    
+    if (element.classList.contains('razorpay-backdrop') || element.className.includes('backdrop')) {
+        element.style.setProperty('top', '0', 'important');
+        element.style.setProperty('left', '0', 'important');
+        element.style.setProperty('width', '100%', 'important');
+        element.style.setProperty('height', '100%', 'important');
+        element.style.setProperty('background-color', 'rgba(0,0,0,0.6)', 'important');
+    }
+    
+    if (element.classList.contains('razorpay-container') || element.className.includes('container')) {
+        element.style.setProperty('top', '50%', 'important');
+        element.style.setProperty('left', '50%', 'important');
+        element.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+    }
+};
+
+// Set up mutation observer to catch Razorpay elements as they're created
+var razorpayObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) { // Element node
+                if (node.className && node.className.includes && node.className.includes('razorpay')) {
+                    console.log('Detected new Razorpay element:', node.className);
+                    window.fixRazorpayElement(node);
+                }
+                
+                // Check children too
+                var razorpayElements = node.querySelectorAll && node.querySelectorAll('[class*="razorpay"], iframe[src*="checkout"]');
+                if (razorpayElements) {
+                    razorpayElements.forEach(window.fixRazorpayElement);
+                }
+            }
+        });
+    });
+});
+
+// Start observing when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    razorpayObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+});
+</script>
+
+<!-- Complete CSS reset for Razorpay modal -->
+<style>
+/* Ensure proper stacking context for Razorpay */
+html, body {
+    position: relative !important;
+}
+
+/* Force maximum z-index and proper positioning for Razorpay elements */
+.razorpay-container,
+.razorpay-backdrop,
+.razorpay-checkout-frame,
+iframe[src*="checkout.razorpay.com"],
+iframe[src*="api.razorpay.com"],
+div[class*="razorpay"] {
+    position: fixed !important;
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    backdrop-filter: none !important;
+    filter: none !important;
+}
+
+.razorpay-backdrop {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    z-index: 2147483646 !important;
+}
+
+.razorpay-container {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: auto !important;
+    height: auto !important;
+    z-index: 2147483647 !important;
+}
+
+iframe[src*="checkout.razorpay.com"] {
+    width: 400px !important;
+    height: 600px !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    z-index: 2147483647 !important;
+    border-radius: 8px !important;
+}
+
+/* Remove ALL potential blocking elements and conflicts */
+body.razorpay-modal-open {
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Hide ALL other modals and overlays when Razorpay is open */
+body.razorpay-modal-open .modal,
+body.razorpay-modal-open .modal-backdrop,
+body.razorpay-modal-open .fade:not([class*="razorpay"]),
+body.razorpay-modal-open .overlay:not([class*="razorpay"]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Ensure no Bootstrap or other framework conflicts */
+.razorpay-container * {
+    box-sizing: border-box !important;
+}
+
+/* Critical: Ensure click events work */
+.razorpay-container,
+.razorpay-backdrop,
+iframe[src*="checkout.razorpay.com"] {
+    cursor: auto !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+    -moz-user-select: auto !important;
+}
+
+/* Override ALL potential blocking styles */
+* {
+    -webkit-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    user-select: auto !important;
+}
+
+/* Remove ALL iframe restrictions */
+iframe {
+    border: none !important;
+    overflow: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* Force remove any overlay blocking */
+.overlay,
+.modal-backdrop:not([class*="razorpay"]),
+.blocking-overlay {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Ensure page doesn't freeze */
+html, body {
+    overflow: auto !important;
+    scroll-behavior: smooth !important;
+    position: relative !important;
+}
+
+body.razorpay-modal-open {
+    overflow: auto !important;
+    position: relative !important;
+}
+
+/* Remove any transform restrictions */
+.razorpay-container *,
+.razorpay-backdrop *,
+iframe[src*="checkout"] * {
+    transform: none !important;
+    -webkit-transform: none !important;
+    -moz-transform: none !important;
+    -ms-transform: none !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Add Credits</h2>
+                    <p class="text-muted">{{ clinic.name }} - Top up your account balance</p>
+                </div>
+                <div>
+                    <a href="/clinic/billing-dashboard" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Billing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Balance Card -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">₹{{ "{:,.0f}".format(clinic.credit_balance) }}</h3>
+                            <p class="card-text">Current Credit Balance</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small class="text-light">Available for lead purchases and services</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Top-up Amounts</h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary btn-sm quick-amount" data-amount="1000">₹1,000</button>
+                        <button class="btn btn-outline-primary btn-sm quick-amount" data-amount="5000">₹5,000</button>
+                        <button class="btn btn-outline-primary btn-sm quick-amount" data-amount="10000">₹10,000</button>
+                        <button class="btn btn-outline-primary btn-sm quick-amount" data-amount="25000">₹25,000</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Credits Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Add Credits to Your Account</h5>
+                </div>
+                <div class="card-body">
+                    <form id="credit-topup-form">
+                        {{ csrf_token() }}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">Amount (₹) *</label>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       min="100" max="100000" step="1" placeholder="Enter amount" required>
+                                <div class="form-text">Minimum: ₹100, Maximum: ₹1,00,000</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="promo_code" class="form-label">Promo Code (Optional)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="promo_code" name="promo_code" 
+                                           placeholder="Enter promo code">
+                                    <button type="button" class="btn btn-outline-secondary" id="apply-promo">
+                                        Apply
+                                    </button>
+                                </div>
+                                <div id="promo-feedback" class="form-text"></div>
+                            </div>
+                        </div>
+
+                        <!-- Amount Summary -->
+                        <div class="alert alert-light border" id="amount-summary" style="display: none;">
+                            <h6 class="mb-2">Payment Summary</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>Base Amount:</span>
+                                <span id="base-amount">₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-success" id="discount-row" style="display: none;">
+                                <span>Discount:</span>
+                                <span id="discount-amount">-₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-success" id="bonus-row" style="display: none;">
+                                <span>Bonus Credits:</span>
+                                <span id="bonus-amount">+₹0</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total to Pay:</span>
+                                <span id="final-amount">₹0</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-primary">
+                                <span>Credits You'll Get:</span>
+                                <span id="total-credits">₹0</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="add-credits-btn">
+                                <i class="fas fa-credit-card me-2"></i>Add Credits
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Active Promotions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-tags me-2"></i>Active Promotions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="active-promotions">
+                        <!-- Promotions will be loaded here -->
+                        <div class="text-center py-3">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p class="mb-0 mt-2">Loading promotions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div id="payment-status" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CSRF token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+$(document).ready(function() {
+    console.log('Simple credit top-up loaded');
+    
+    let appliedPromo = null;
+    let promoDiscount = 0;
+    let promoBonus = 0;
+    
+    // Load active promotions
+    loadActivePromotions();
+    
+    // Quick amount buttons
+    $('.quick-amount').click(function() {
+        const amount = $(this).data('amount');
+        $('#amount').val(amount);
+        updateAmountSummary();
+    });
+    
+    // Amount input change
+    $('#amount').on('input', function() {
+        appliedPromo = null;
+        promoDiscount = 0;
+        promoBonus = 0;
+        $('#promo_code').val('');
+        $('#promo-feedback').text('');
+        updateAmountSummary();
+    });
+    
+    // Apply promo code
+    $('#apply-promo').click(function() {
+        const promoCode = $('#promo_code').val().trim();
+        const amount = parseFloat($('#amount').val()) || 0;
+        
+        if (!promoCode) {
+            showPromoFeedback('Please enter a promo code', 'danger');
+            return;
+        }
+        
+        if (amount < 100) {
+            showPromoFeedback('Please enter an amount first', 'warning');
+            return;
+        }
+        
+        applyPromoCode(promoCode, amount);
+    });
+    
+    // Form submission
+    $('#credit-topup-form').submit(function(e) {
+        e.preventDefault();
+        
+        const amount = parseFloat($('#amount').val()) || 0;
+        
+        if (amount < 100) {
+            alert('Minimum amount is ₹100');
+            return;
+        }
+        
+        if (amount > 100000) {
+            alert('Maximum amount is ₹1,00,000');
+            return;
+        }
+        
+        initiatePayment(amount);
+    });
+    
+    function loadActivePromotions() {
+        $.get('/clinic/simple-promotions')
+        .done(function(response) {
+            if (response.success && response.promotions.length > 0) {
+                displayPromotions(response.promotions);
+            } else {
+                $('#active-promotions').html(`
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-gift"></i>
+                        <p class="mb-0 mt-2">No active promotions</p>
+                    </div>
+                `);
+            }
+        })
+        .fail(function() {
+            $('#active-promotions').html(`
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p class="mb-0 mt-2">Unable to load promotions</p>
+                </div>
+            `);
+        });
+    }
+    
+    function displayPromotions(promotions) {
+        let html = '';
+        promotions.forEach(function(promo) {
+            html += `
+                <div class="border rounded p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong class="text-primary">${promo.code}</strong>
+                            <p class="mb-1 small">${promo.description}</p>
+                            <small class="text-muted">Min: ₹${promo.min_amount.toLocaleString()}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary copy-promo" data-code="${promo.code}">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        $('#active-promotions').html(html);
+        
+        // Copy promo code functionality
+        $('.copy-promo').click(function() {
+            const code = $(this).data('code');
+            $('#promo_code').val(code);
+            $(this).text('Copied!').removeClass('btn-outline-primary').addClass('btn-success');
+            setTimeout(() => {
+                $(this).text('Copy').removeClass('btn-success').addClass('btn-outline-primary');
+            }, 2000);
+        });
+    }
+    
+    function applyPromoCode(code, amount) {
+        $('#apply-promo').prop('disabled', true).text('Checking...');
+        
+        $.post('/clinic/apply-promo', {
+            promo_code: code,
+            amount: amount,
+            csrf_token: $('meta[name=csrf-token]').attr('content')
+        })
+        .done(function(response) {
+            if (response.success) {
+                appliedPromo = response.promo;
+                promoDiscount = response.discount || 0;
+                promoBonus = response.bonus || 0;
+                showPromoFeedback(response.message, 'success');
+                updateAmountSummary();
+            } else {
+                showPromoFeedback(response.error, 'danger');
+                resetPromo();
+            }
+        })
+        .fail(function() {
+            showPromoFeedback('Error applying promo code', 'danger');
+            resetPromo();
+        })
+        .always(function() {
+            $('#apply-promo').prop('disabled', false).text('Apply');
+        });
+    }
+    
+    function showPromoFeedback(message, type) {
+        $('#promo-feedback').removeClass('text-success text-danger text-warning')
+                           .addClass(`text-${type}`)
+                           .text(message);
+    }
+    
+    function resetPromo() {
+        appliedPromo = null;
+        promoDiscount = 0;
+        promoBonus = 0;
+        updateAmountSummary();
+    }
+    
+    function updateAmountSummary() {
+        const amount = parseFloat($('#amount').val()) || 0;
+        
+        if (amount >= 100) {
+            const finalAmount = amount - promoDiscount;
+            const totalCredits = amount + promoBonus;
+            
+            $('#base-amount').text(`₹${amount.toLocaleString()}`);
+            $('#final-amount').text(`₹${finalAmount.toLocaleString()}`);
+            $('#total-credits').text(`₹${totalCredits.toLocaleString()}`);
+            
+            if (promoDiscount > 0) {
+                $('#discount-amount').text(`-₹${promoDiscount.toLocaleString()}`);
+                $('#discount-row').show();
+            } else {
+                $('#discount-row').hide();
+            }
+            
+            if (promoBonus > 0) {
+                $('#bonus-amount').text(`+₹${promoBonus.toLocaleString()}`);
+                $('#bonus-row').show();
+            } else {
+                $('#bonus-row').hide();
+            }
+            
+            $('#amount-summary').show();
+        } else {
+            $('#amount-summary').hide();
+        }
+    }
+    
+    function initiatePayment(amount) {
+        const finalAmount = amount - promoDiscount;
+        
+        $('#add-credits-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+        
+        $('#payment-status').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin me-2"></i>Preparing payment...
+            </div>
+        `);
+        
+        $.post('/clinic/simple-purchase-credits', {
+            amount: amount,
+            promo_code: appliedPromo ? appliedPromo.code : '',
+            csrf_token: $('meta[name=csrf-token]').attr('content')
+        })
+        .done(function(response) {
+            console.log('Payment order response:', response);
+            if (response.success) {
+                if (response.redirect_url) {
+                    // Redirect to dedicated payment page
+                    window.location.href = response.redirect_url;
+                } else {
+                    // Fallback to old method
+                    openRazorpayCheckout(response);
+                }
+            } else {
+                showPaymentError(response.error || 'Failed to create payment order');
+            }
+        })
+        .fail(function() {
+            showPaymentError('Network error. Please try again.');
+        });
+    }
+    
+    function openRazorpayCheckout(orderData) {
+        console.log('Opening Razorpay checkout with data:', orderData);
+        
+        // Due to Replit environment restrictions, skip modal and go directly to hosted checkout
+        console.log('Environment restrictions detected, using direct hosted checkout');
+        openHostedCheckout(orderData);
+    }
+    
+    function openHostedCheckout(orderData) {
+        console.log('Opening Razorpay hosted checkout');
+        
+        // Create hosted checkout URL with all required parameters
+        var baseUrl = 'https://checkout.razorpay.com/v1/checkout.html';
+        var params = new URLSearchParams({
+            'key_id': orderData.key,
+            'amount': orderData.razorpay_amount,
+            'currency': 'INR',
+            'order_id': orderData.order_id,
+            'name': 'Antidote',
+            'description': 'Credit Top-up - ₹' + orderData.credits,
+            'prefill[name]': orderData.prefill.name,
+            'prefill[email]': orderData.prefill.email,
+            'prefill[contact]': orderData.prefill.contact,
+            'theme[color]': '#007bff',
+            'callback_url': window.location.origin + '/clinic/verify-payment',
+            'cancel_url': window.location.href
+        });
+        
+        var paymentUrl = baseUrl + '?' + params.toString();
+        console.log('Opening payment URL:', paymentUrl);
+        
+        // Show user that we're redirecting to payment
+        $('#payment-status').html(`
+            <div class="alert alert-info">
+                <h6><i class="fas fa-credit-card me-2"></i>Redirecting to Payment</h6>
+                <p>You'll be redirected to the secure payment page. After completing payment, you'll be brought back here.</p>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="${paymentUrl}" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>Continue to Payment
+                    </a>
+                    <button onclick="window.open('${paymentUrl}', '_blank')" class="btn btn-outline-primary">
+                        <i class="fas fa-window-restore me-2"></i>Open in New Tab
+                    </button>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-shield-alt me-1"></i>Secure payment powered by Razorpay
+                </small>
+            </div>
+        `);
+        
+        // Auto-redirect after 2 seconds
+        setTimeout(function() {
+            window.location.href = paymentUrl;
+        }, 2000);
+    }
+    
+    function verifyPayment(paymentResponse, orderData) {
+        $('#payment-status').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin me-2"></i>Verifying payment...
+            </div>
+        `);
+        
+        $.post('/clinic/verify-payment', {
+            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+            razorpay_order_id: paymentResponse.razorpay_order_id,
+            razorpay_signature: paymentResponse.razorpay_signature,
+            csrf_token: $('meta[name=csrf-token]').attr('content')
+        })
+        .done(function(response) {
+            if (response.success) {
+                showPaymentSuccess(orderData.credits, response.new_balance);
+            } else {
+                showPaymentError(response.error || 'Payment verification failed');
+            }
+        })
+        .fail(function() {
+            showPaymentError('Verification failed. Please contact support.');
+        });
+    }
+    
+    function showPaymentSuccess(credits, newBalance) {
+        $('#payment-status').html(`
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Payment Successful!</strong><br>
+                ₹${credits.toLocaleString()} credits added to your account.<br>
+                New balance: ₹${newBalance.toLocaleString()}
+            </div>
+        `);
+        
+        // Update current balance display
+        $('.card-title').first().text(`₹${newBalance.toLocaleString()}`);
+        
+        // Reset form
+        $('#credit-topup-form')[0].reset();
+        resetPromo();
+        $('#amount-summary').hide();
+        resetPaymentButton();
+        
+        // Redirect after 3 seconds
+        setTimeout(() => {
+            window.location.href = '/clinic/billing-dashboard';
+        }, 3000);
+    }
+    
+    function showPaymentError(message) {
+        $('#payment-status').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Payment Failed</strong><br>
+                ${message}
+            </div>
+        `);
+        resetPaymentButton();
+    }
+    
+    function resetPaymentButton() {
+        $('#add-credits-btn').prop('disabled', false).html('<i class="fas fa-credit-card me-2"></i>Add Credits');
+    }
+    
+    function createAdvancedPaymentFallback(orderData) {
+        console.log('Creating advanced payment fallback interface');
+        
+        // Create a comprehensive payment interface
+        $('#payment-status').html(`
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Complete Your Payment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>Amount:</strong></div>
+                        <div class="col-sm-6">₹${orderData.credits.toLocaleString()}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>Credits:</strong></div>
+                        <div class="col-sm-6">${orderData.credits.toLocaleString()}</div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-sm-6"><strong>Order ID:</strong></div>
+                        <div class="col-sm-6"><small class="text-muted">${orderData.order_id}</small></div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <h6><i class="fas fa-info-circle me-2"></i>Payment Options</h6>
+                        <p class="mb-2">Choose your preferred payment method:</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button onclick="window.openDirectRazorpay('${orderData.order_id}', '${orderData.key}', ${orderData.razorpay_amount})" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i>Pay with Card/UPI/Wallet
+                        </button>
+                        <button onclick="window.openRazorpayNewWindow('${orderData.order_id}', '${orderData.key}', ${orderData.razorpay_amount})" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open in New Window
+                        </button>
+                        <button onclick="retryPaymentModal()" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-2"></i>Retry Modal
+                        </button>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-lock me-1"></i>Secure payment powered by Razorpay
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // Store order data for retry
+        window.currentOrderData = orderData;
+    }
+    
+    // Make payment functions globally accessible
+    window.openDirectRazorpay = function(orderId, key, amount) {
+        console.log('Opening direct Razorpay payment');
+        
+        if (!window.currentOrderData) {
+            alert('Order data not found. Please try again.');
+            return;
+        }
+        
+        // Skip modal approach due to environment restrictions, go directly to hosted checkout
+        console.log('Environment restrictions detected, using hosted checkout');
+        window.openRazorpayNewWindow(orderId, key, amount);
+    };
+    
+    window.openRazorpayNewWindow = function(orderId, key, amount) {
+        console.log('Opening Razorpay hosted checkout');
+        
+        if (!window.currentOrderData) {
+            alert('Order data not found. Please try again.');
+            return;
+        }
+        
+        // Use Razorpay's direct hosted checkout to bypass browser restrictions
+        var baseUrl = 'https://checkout.razorpay.com/v1/checkout.html';
+        var params = new URLSearchParams({
+            'key_id': key,
+            'amount': amount,
+            'currency': 'INR',
+            'order_id': orderId,
+            'name': 'Antidote',
+            'description': 'Credit Top-up',
+            'prefill[name]': window.currentOrderData.prefill.name,
+            'prefill[email]': window.currentOrderData.prefill.email,
+            'prefill[contact]': window.currentOrderData.prefill.contact,
+            'theme[color]': '#007bff',
+            'callback_url': window.location.origin + '/clinic/verify-payment',
+            'cancel_url': window.location.href
+        });
+        
+        var paymentUrl = baseUrl + '?' + params.toString();
+        console.log('Opening payment URL:', paymentUrl);
+        
+        // Try to open in new window first
+        var newWindow = window.open(paymentUrl, 'razorpay_payment', 'width=900,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no');
+        
+        if (!newWindow) {
+            // Popup blocked - provide alternative methods
+            $('#payment-status').html(`
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Popup Blocked</h6>
+                    <p>Your browser blocked the payment popup. Choose an alternative:</p>
+                    <div class="d-grid gap-2">
+                        <a href="${paymentUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open Payment Page
+                        </a>
+                        <button onclick="window.location.href='${paymentUrl}'" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-2"></i>Go to Payment Page
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">After payment, you'll be redirected back to complete the transaction.</small>
+                </div>
+            `);
+        } else {
+            // Show success message and monitor window
+            $('#payment-status').html(`
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>Payment Window Opened</h6>
+                    <p>Complete your payment in the new window. You'll be redirected back after successful payment.</p>
+                    <button onclick="newWindow.focus()" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i>Focus Payment Window
+                    </button>
+                </div>
+            `);
+            
+            // Monitor the new window
+            var checkClosed = setInterval(function() {
+                if (newWindow.closed) {
+                    clearInterval(checkClosed);
+                    console.log('Payment window closed');
+                    resetPaymentButton();
+                    
+                    // Check if we should reload to see payment status
+                    $('#payment-status').html(`
+                        <div class="alert alert-info">
+                            <i class="fas fa-spinner fa-spin me-2"></i>Checking payment status...
+                        </div>
+                    `);
+                    
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                }
+            }, 1000);
+        }
+    };
+    
+    function createManualPaymentForm(orderData) {
+        // Redirect to advanced fallback
+        createAdvancedPaymentFallback(orderData);
+    }
+    
+    // Make retryPaymentModal globally accessible
+    window.retryPaymentModal = function() {
+        if (window.currentOrderData) {
+            openRazorpayCheckout(window.currentOrderData);
+        } else {
+            alert('No payment data available. Please try adding credits again.');
+        }
+    };
+    
+    function forcePageInteraction() {
+        console.log('Forcing page interaction enabled');
+        
+        // Remove all potential blocking styles and elements
+        var blockingSelectors = [
+            '.modal-backdrop',
+            '.overlay',
+            '.blocking-overlay',
+            '[style*="pointer-events: none"]',
+            '[style*="overflow: hidden"]'
+        ];
+        
+        blockingSelectors.forEach(function(selector) {
+            var elements = document.querySelectorAll(selector);
+            elements.forEach(function(el) {
+                if (!el.className.includes('razorpay')) {
+                    el.remove();
+                }
+            });
+        });
+        
+        // Force enable interactions on html, body
+        var interactiveStyles = {
+            'overflow': 'auto',
+            'pointer-events': 'auto',
+            'user-select': 'auto',
+            'position': 'relative'
+        };
+        
+        Object.keys(interactiveStyles).forEach(function(prop) {
+            document.documentElement.style.setProperty(prop, interactiveStyles[prop], 'important');
+            document.body.style.setProperty(prop, interactiveStyles[prop], 'important');
+        });
+        
+        // Set up continuous monitoring to prevent page freeze
+        window.pageInteractionMonitor = setInterval(function() {
+            if (document.body.style.overflow === 'hidden' || document.body.style.pointerEvents === 'none') {
+                console.log('Page interaction blocked, restoring...');
+                Object.keys(interactiveStyles).forEach(function(prop) {
+                    document.documentElement.style.setProperty(prop, interactiveStyles[prop], 'important');
+                    document.body.style.setProperty(prop, interactiveStyles[prop], 'important');
+                });
+            }
+        }, 500);
+        
+        // Clear monitor after 30 seconds
+        setTimeout(function() {
+            if (window.pageInteractionMonitor) {
+                clearInterval(window.pageInteractionMonitor);
+                console.log('Page interaction monitor cleared');
+            }
+        }, 30000);
+    }
+    
+    // Emergency page reset function
+    window.emergencyPageReset = function() {
+        console.log('Emergency page reset triggered');
+        
+        // Clear any intervals
+        if (window.pageInteractionMonitor) {
+            clearInterval(window.pageInteractionMonitor);
+        }
+        
+        // Remove all Razorpay elements
+        var razorpayElements = document.querySelectorAll('[class*="razorpay"], iframe[src*="checkout"]');
+        razorpayElements.forEach(function(el) {
+            if (el.remove) el.remove();
+        });
+        
+        // Reset body styles
+        document.body.className = document.body.className.replace(/razorpay-[^\s]*/g, '');
+        document.body.style.overflow = 'auto';
+        document.body.style.pointerEvents = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        document.documentElement.style.pointerEvents = 'auto';
+        
+        // Reset payment button
+        resetPaymentButton();
+        
+        // Show fallback if order data exists
+        if (window.currentOrderData) {
+            createAdvancedPaymentFallback(window.currentOrderData);
+        }
+        
+        console.log('Emergency reset complete');
+    };
+    
+    // Auto-trigger emergency reset if page becomes unresponsive
+    setTimeout(function() {
+        if (document.querySelectorAll('[class*="razorpay"]').length > 0) {
+            var testElement = document.createElement('div');
+            testElement.style.position = 'fixed';
+            testElement.style.top = '0';
+            testElement.style.left = '0';
+            testElement.style.width = '1px';
+            testElement.style.height = '1px';
+            testElement.style.pointerEvents = 'auto';
+            document.body.appendChild(testElement);
+            
+            setTimeout(function() {
+                if (testElement.parentNode) {
+                    testElement.remove();
+                    // If we can still manipulate DOM but modal seems stuck, trigger reset
+                    var modalIframes = document.querySelectorAll('iframe[src*="checkout"]');
+                    var hasWorkingModal = false;
+                    modalIframes.forEach(function(iframe) {
+                        if (iframe.offsetWidth > 100 && iframe.offsetHeight > 100) {
+                            hasWorkingModal = true;
+                        }
+                    });
+                    
+                    if (!hasWorkingModal && document.querySelectorAll('[class*="razorpay"]').length > 0) {
+                        console.log('Modal stuck without content, triggering emergency reset');
+                        window.emergencyPageReset();
+                    }
+                }
+            }, 100);
+        }
+    }, 5000);
+});
+
+// Global accessibility function
+window.fixPageInteraction = function() {
+    document.body.style.overflow = 'auto';
+    document.body.style.pointerEvents = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    document.documentElement.style.pointerEvents = 'auto';
+};
+</script>
+{% endblock %}

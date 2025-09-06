@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Demo Payment - Antidote{% endblock %}
+
+{% block head %}
+<style>
+.demo-payment-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.demo-payment-card {
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    background: white;
+}
+
+.demo-header {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.demo-badge {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.demo-body {
+    padding: 2rem;
+}
+
+.amount-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+
+.demo-amount {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #28a745;
+    margin: 0.5rem 0;
+}
+
+.payment-flow {
+    margin: 2rem 0;
+}
+
+.flow-step {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #28a745;
+}
+
+.step-number {
+    background: #28a745;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.demo-controls {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.payment-option {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.payment-option:hover {
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+
+.payment-option.selected {
+    border-color: #28a745;
+    background-color: #e8f5e8;
+}
+
+.demo-timer {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.success-animation {
+    text-align: center;
+    padding: 2rem;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #28a745;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    80% { transform: translateY(-10px); }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="demo-payment-container">
+    <div class="demo-payment-card">
+        <div class="demo-header">
+            <div class="demo-badge">
+                <i class="fas fa-flask"></i> DEMO MODE
+            </div>
+            <h3 class="mb-0">Payment Simulation</h3>
+            <p class="mb-0 opacity-75">Testing credit top-up for {{ clinic.name }}</p>
+        </div>
+        
+        <div class="demo-body">
+            <!-- Amount Display -->
+            <div class="amount-section">
+                <div class="demo-amount">₹{{ "{:,.0f}".format(amount) }}</div>
+                <p class="text-muted mb-0">{{ credits }} credits will be added</p>
+                <small class="text-success">Order ID: {{ order_id }}</small>
+            </div>
+            
+            <!-- Payment Flow Steps -->
+            <div class="payment-flow" id="payment-flow">
+                <div class="flow-step" id="step-1">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>Payment Initiated</strong><br>
+                        <small class="text-muted">Processing payment request...</small>
+                    </div>
+                </div>
+                <div class="flow-step" id="step-2" style="opacity: 0.5;">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>Gateway Processing</strong><br>
+                        <small class="text-muted">Connecting to payment gateway...</small>
+                    </div>
+                </div>
+                <div class="flow-step" id="step-3" style="opacity: 0.5;">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>Payment Verification</strong><br>
+                        <small class="text-muted">Verifying transaction...</small>
+                    </div>
+                </div>
+                <div class="flow-step" id="step-4" style="opacity: 0.5;">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>Credits Added</strong><br>
+                        <small class="text-muted">Updating account balance...</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            
+            <!-- Demo Controls -->
+            <div class="demo-controls">
+                <div class="payment-option selected" data-result="success">
+                    <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                    <div><strong>Simulate Successful Payment</strong></div>
+                    <small class="text-muted">Complete payment and add credits</small>
+                </div>
+                
+                <div class="payment-option" data-result="failure">
+                    <i class="fas fa-times-circle text-danger fa-2x mb-2"></i>
+                    <div><strong>Simulate Payment Failure</strong></div>
+                    <small class="text-muted">Test error handling</small>
+                </div>
+            </div>
+            
+            <!-- Timer -->
+            <div class="demo-timer">
+                <i class="fas fa-clock"></i>
+                <strong>Simulation will start in <span id="countdown">3</span> seconds</strong>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                <button id="start-demo-btn" class="btn btn-success btn-lg">
+                    <i class="fas fa-play me-2"></i>Start Payment Simulation
+                </button>
+                <a href="{{ url_for('simple_billing.simple_credit_topup') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Credit Top-up
+                </a>
+            </div>
+            
+            <!-- Status Display -->
+            <div id="demo-status" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    console.log('Demo payment page loaded');
+    
+    let selectedResult = 'success';
+    let simulationActive = false;
+    
+    // Payment option selection
+    $('.payment-option').click(function() {
+        if (simulationActive) return;
+        
+        $('.payment-option').removeClass('selected');
+        $(this).addClass('selected');
+        selectedResult = $(this).data('result');
+        
+        console.log('Selected simulation result:', selectedResult);
+    });
+    
+    // Start demo button
+    $('#start-demo-btn').click(function() {
+        if (simulationActive) return;
+        startPaymentSimulation();
+    });
+    
+    function startPaymentSimulation() {
+        simulationActive = true;
+        console.log('Starting payment simulation with result:', selectedResult);
+        
+        $('#start-demo-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Simulating...');
+        $('.payment-option').css('pointer-events', 'none').css('opacity', '0.6');
+        
+        // Start countdown
+        let countdown = 3;
+        const countdownInterval = setInterval(function() {
+            $('#countdown').text(countdown);
+            countdown--;
+            
+            if (countdown < 0) {
+                clearInterval(countdownInterval);
+                $('.demo-timer').html('<i class="fas fa-cog fa-spin"></i> <strong>Processing payment...</strong>');
+                executeSimulation();
+            }
+        }, 1000);
+    }
+    
+    function executeSimulation() {
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        const stepInterval = setInterval(function() {
+            // Highlight current step
+            $(`#step-${currentStep}`).css('opacity', '1').css('background-color', '#e8f5e8');
+            
+            // Update progress bar
+            const progress = (currentStep / totalSteps) * 100;
+            $('#progress-fill').css('width', progress + '%');
+            
+            currentStep++;
+            
+            if (currentStep > totalSteps) {
+                clearInterval(stepInterval);
+                setTimeout(function() {
+                    completeSimulation();
+                }, 1000);
+            }
+        }, 1500);
+    }
+    
+    function completeSimulation() {
+        console.log('Completing simulation with result:', selectedResult);
+        
+        if (selectedResult === 'success') {
+            simulateSuccessfulPayment();
+        } else {
+            simulateFailedPayment();
+        }
+    }
+    
+    function simulateSuccessfulPayment() {
+        $('#demo-status').html(`
+            <div class="success-animation">
+                <div class="checkmark">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h4 class="text-success">Payment Successful!</h4>
+                <p class="text-muted">₹{{ amount }} credits have been added to your account.</p>
+                <div class="alert alert-success mt-3">
+                    <strong>Demo Complete:</strong> In a real payment, your credits would now be available.
+                </div>
+            </div>
+        `);
+        
+        // Simulate the actual payment verification
+        setTimeout(function() {
+            $.post('{{ url_for("simple_billing.demo_payment_complete") }}', {
+                order_id: '{{ order_id }}',
+                result: 'success',
+                csrf_token: $('meta[name=csrf-token]').attr('content')
+            })
+            .done(function(response) {
+                if (response.success) {
+                    $('#demo-status').append(`
+                        <div class="alert alert-info mt-2">
+                            <i class="fas fa-info-circle me-2"></i>Credits successfully added to your account!
+                            <br><small>New balance: ₹${response.new_balance.toLocaleString()}</small>
+                        </div>
+                    `);
+                    
+                    setTimeout(function() {
+                        window.location.href = '{{ url_for("simple_billing.simple_credit_topup") }}';
+                    }, 3000);
+                }
+            });
+        }, 2000);
+    }
+    
+    function simulateFailedPayment() {
+        $('#demo-status').html(`
+            <div class="text-center">
+                <div class="text-danger mb-3">
+                    <i class="fas fa-times-circle fa-4x"></i>
+                </div>
+                <h4 class="text-danger">Payment Failed</h4>
+                <p class="text-muted">Simulated payment failure for testing purposes.</p>
+                <div class="alert alert-warning mt-3">
+                    <strong>Demo Complete:</strong> This demonstrates how payment failures are handled.
+                </div>
+                <button onclick="location.reload()" class="btn btn-primary mt-2">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </button>
+            </div>
+        `);
+    }
+});
+</script>
+
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}

@@ -1,0 +1,334 @@
+/* Banner Container Styles */
+.banner-container {
+    margin: 30px 0;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Mobile: Full width banner without margins */
+@media (max-width: 768px) {
+    .banner-container {
+        margin: 20px 0; /* Remove horizontal margins for full width */
+        border-radius: 0; /* Remove border radius for full edge-to-edge display */
+        box-shadow: none; /* Remove shadow for cleaner mobile look */
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Override any container padding on mobile */
+    .container .banner-container,
+    .container-fluid .banner-container {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+/* Banner Slider Base Styles */
+.banner-slider {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    background-color: transparent;
+}
+
+.banner-slider .slides {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease;
+}
+
+.banner-slider .slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.banner-slider .slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+.banner-slider .slide-content {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+/* Navigation Buttons */
+.banner-slider .slide-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(139, 216, 210, 0.8);
+    color: white;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.banner-slider .slide-nav:hover {
+    background-color: rgba(91, 171, 163, 0.9);
+}
+
+.banner-slider .slide-nav.prev {
+    left: 15px;
+}
+
+.banner-slider .slide-nav.next {
+    right: 15px;
+}
+
+/* Slide Dots */
+.banner-slider .slide-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.banner-slider .slide-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.banner-slider .slide-dot.active {
+    background-color: #5baba3;
+    transform: scale(1.2);
+}
+
+/* Banner Link */
+.banner-slider .banner-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: white;
+    text-decoration: none;
+}
+
+/* Banner Loader */
+.banner-loader {
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .banner-slider {
+        height: 280px; /* Increased height for better mobile view */
+        border-radius: 0; /* Remove border radius for full edge-to-edge display */
+        width: 100%; /* Use full container width instead of viewport width */
+        margin-left: 0; /* Remove negative margins that cause horizontal scroll */
+        margin-right: 0; /* Remove negative margins that cause horizontal scroll */
+        max-width: 100%; /* Ensure it never exceeds container width */
+        overflow: hidden; /* Prevent content from extending beyond container */
+    }
+    
+    .banner-slider .slide-nav {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .banner-slider .slide-content {
+        background-size: cover; /* Changed to cover for better mobile display */
+    }
+}
+
+@media (max-width: 576px) {
+    .banner-slider {
+        height: 280px; /* Set to 280px for consistent mobile height */
+        border-radius: 0; /* Remove border radius for full edge-to-edge display */
+        width: 100%; /* Use full container width instead of viewport width */
+        margin-left: 0; /* Remove negative margins that cause horizontal scroll */
+        margin-right: 0; /* Remove negative margins that cause horizontal scroll */
+        max-width: 100%; /* Ensure it never exceeds container width */
+        overflow: hidden; /* Prevent content from extending beyond container */
+    }
+    
+    .banner-slider .slide-nav {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .banner-slider .slide-content {
+        background-size: cover; /* Use cover instead of 120% to prevent cropping */
+    }
+}
+
+/* Hero Banner Specific Styles */
+.hero-banner-container {
+    /* Remove background and padding to match page background */
+    background: transparent !important;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    margin-bottom: 20px;
+    margin-top: 0px !important;
+}
+
+.hero-banner-container .banner-slider {
+    height: 300px !important;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+    width: 100vw;
+    background: transparent !important;
+    /* Use negative margins to make banner overlap container */
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+}
+
+/* Ensure hero banner slide content fills the entire container */
+.hero-banner-container .banner-slider .slide-content {
+    width: 100%;
+    height: 300px !important;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+    .hero-banner-container {
+        /* Keep transparent background on mobile */
+        margin: 20px 0;
+        margin-top: 0px !important;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .hero-banner-container .banner-slider {
+        height: 280px !important;
+        border-radius: 0;
+        width: 100%;
+        /* Remove negative margins that cause horizontal scroll */
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        overflow: hidden;
+        box-shadow: none;
+    }
+    
+    /* Ensure hero banner slide content fills full width on mobile */
+    .hero-banner-container .banner-slider .slide-content {
+        width: 100%;
+        height: 280px !important;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-banner-container {
+        /* Keep transparent background on small mobile */
+        margin: 15px 0;
+        margin-top: 0px !important;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .hero-banner-container .banner-slider {
+        height: 280px !important;
+        border-radius: 0;
+        width: 100%;
+        /* Remove negative margins that cause horizontal scroll */
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        overflow: hidden;
+        box-shadow: none;
+    }
+    
+    /* Ensure hero banner slide content fills full width on small mobile */
+    .hero-banner-container .banner-slider .slide-content {
+        width: 100%;
+        height: 280px !important;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
+/* Hero search section positioning for all devices */
+.hero-search-section {
+    margin-top: -120px !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    margin-left: 15% !important;
+    margin-right: 15% !important;
+}
+
+@media (max-width: 768px) {
+    .hero-search-section {
+        margin-top: -150px !important;
+        margin-bottom: 0 !important;
+        position: relative !important;
+        z-index: 10 !important;
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+        padding: 0px !important;
+        border-radius: 5px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-search-section {
+        margin-top: -150px !important;
+        position: relative !important;
+        z-index: 10 !important;
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+        padding: 0px !important;
+        border-radius: 5px !important;
+    }
+    
+    /* Ensure hero banner slide content fills full width on small mobile */
+    .hero-banner-container .banner-slider .slide-content {
+        width: 100%;
+        height: 280px !important;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}

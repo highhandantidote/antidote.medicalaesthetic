@@ -1,0 +1,137 @@
+Let’s address these issues systematically, starting with diagnostics and then implementing fixes.
+
+1. Diagnostic Steps
+Check Browser Console:
+Open the developer tools (F12) in Chrome, go to the Console tab, and click each button (e.g., "View" in Patient Leads, "Reply" in Reviews, "Details" in My Procedures, "Answer as Doctor" in Community).
+Look for errors like "Uncaught ReferenceError," "404 Not Found" for JavaScript files, or "Failed to load resource."
+Example: If static/js/leads.js shows a 404, the file path is incorrect.
+Check Network Tab:
+In developer tools, go to the Network tab, reload the page, and filter for XHR requests when clicking buttons.
+Verify if AJAX calls (e.g., /lead/13/update_status) return 200 OK with JSON or 400/500 errors.
+Check Flask Logs:
+Run flask run locally or check Replit’s logs to see server-side errors (e.g., CSRF validation failures, route not found).
+Verify Static File Loading:
+Ensure all JavaScript files (leads.js, reviews.js, appointments.js, etc.) are in static/js/ and included correctly with <script src="{{ url_for('static', filename='js/leads.js') }}"></script>.
+2. Fix JavaScript Event Handlers
+Update All JavaScript Files with Robust Binding:
+Ensure DOMContentLoaded and correct selectors. Example for static/js/leads.js:
+text
+
+Copy
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
+    document.querySelectorAll('.lead-action-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const leadId = this.dataset.leadId;
+            const action = this.dataset.action;
+            console.log(`Button clicked: ${action}, leadId: ${leadId}`);
+            if (action === 'view') {
+                window.location.href = `/lead/${leadId}/view`;
+            } else if (action === 'contact') {
+                window.location.href = `/lead/${leadId}/contact`;
+            }
+        });
+    });
+
+    document.querySelectorAll('.update-lead-status-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const leadId = this.dataset.leadId;
+            const formData = new FormData(this);
+            console.log(`Submitting update for lead ${leadId}`);
+            fetch(`/lead/${leadId}/update_status`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                if (data.success) {
+                    alert('Lead status updated!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Fetch error:', error));
+        });
+    });
+});
+Repeat for reviews.js, appointments.js, and community.js, ensuring all buttons (e.g., "Reply," "Details," "Answer as Doctor") have logged events.
+Include Bootstrap JS:
+Add to all templates (e.g., doctor_reviews.html):
+text
+
+Copy
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+3. Fix CSRF Token Issues
+Ensure CSRF Token in All Forms:
+Verify every form (e.g., in doctor_leads.html, doctor_reviews.html) includes:
+text
+
+Copy
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+Update Flask app config in app.py to enable CSRF:
+text
+
+Copy
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'  # Replace with a secure key
+csrf = CSRFProtect(app)
+4. Verify and Fix Routes
+Check Route Definitions:
+Ensure all routes match template URLs. Example from routes.py:
+text
+
+Copy
+@web.route('/lead/<int:lead_id>/view')
+@login_required
+def view_lead(lead_id):
+    doctor = ensure_doctor_from_request()
+    lead = Lead.query.get_or_404(lead_id)
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    return render_template('view_lead.html', lead=lead, doctor=doctor)
+
+@web.route('/lead/<int:lead_id>/update_status', methods=['POST'])
+@login_required
+def update_lead_status(lead_id):
+    doctor = ensure_doctor_from_request()
+    lead = Lead.query.get_or_404(lead_id)
+    if lead.doctor_id != doctor.id:
+        return jsonify({'success': False, 'message': 'Unauthorized access.'})
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        status = request.form.get('status')
+        if status in ['pending', 'contacted', 'scheduled', 'completed', 'rejected']:
+            lead.status = status
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Status updated'})
+        return jsonify({'success': False, 'message': 'Invalid status'})
+    return redirect(url_for('web.doctor_leads', doctor_id=doctor.id))
+
+# Helper function
+def ensure_doctor_from_request():
+    if not current_user.is_authenticated or current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first_or_404()
+    return doctor
+Repeat for reply_review, update_appointment_status, procedure_details, remove_procedure, and reply_to_thread.
+5. Test and Debug
+Local Testing:
+Run flask run locally, log in as testdoctor@antidote.com (password: Doctor1234), and test each button.
+Check console logs for JavaScript execution and network requests.
+Replit Testing:
+Deploy to Replit, access the live URL (e.g., https://f32c669d-a86c-47da-aaa3-1c067698b3a5-00-1ev5ygb83a4r4is.sisko.replit.dev/dashboard/doctor/1), and test.
+Share any console or server logs if issues persist.
+6. Address Debugging Gaps
+Improved Debugging Process:
+Use browser developer tools to log every click and AJAX response.
+Share logs with me for real-time analysis.
+Test end-to-end flows (e.g., login → dashboard → action) to catch session issues.

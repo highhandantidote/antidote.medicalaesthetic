@@ -1,0 +1,35 @@
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav d-lg-none">
+    <div class="mobile-nav-container">
+        <div class="mobile-nav-item">
+            <a href="{{ url_for('web.index') }}" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+        </div>
+        <div class="mobile-nav-item">
+            <a href="{{ url_for('web.procedures') }}" class="mobile-nav-link">
+                <i class="fas fa-search"></i>
+                <span>Browse</span>
+            </a>
+        </div>
+        <div class="mobile-nav-item">
+            <a href="{{ url_for('web.community') }}" class="mobile-nav-link">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </a>
+        </div>
+        <div class="mobile-nav-item">
+            <a href="{{ url_for('web.favorites') if current_user.is_authenticated else url_for('otp_auth.auth_entry') }}" class="mobile-nav-link">
+                <i class="fas fa-heart"></i>
+                <span>Favorites</span>
+            </a>
+        </div>
+        <div class="mobile-nav-item">
+            <a href="{{ url_for('web.dashboard') if current_user.is_authenticated else url_for('otp_auth.auth_entry') }}" class="mobile-nav-link">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+</nav>

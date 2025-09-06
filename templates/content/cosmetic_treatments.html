@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_data.title }}{% endblock %}
+{% block meta_description %}{{ seo_data.description }}{% endblock %}
+{% block meta_keywords %}{{ seo_data.keywords }}{% endblock %}
+{% block canonical_url %}{{ url_for('content.antidote_cosmetic_treatments', _external=True) }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section bg-gradient-primary text-white py-5 mb-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Antidote Cosmetic Treatments</h1>
+            <p class="lead mb-4">Discover advanced aesthetic procedures and cosmetic treatments. From non-surgical options to comprehensive surgical solutions.</p>
+            <a href="{{ url_for('enhanced_package.package_directory') }}" class="btn btn-light btn-lg">Browse Packages</a>
+        </div>
+    </div>
+
+    <!-- Treatment Categories -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Popular Cosmetic Procedures</h2>
+        <div class="row">
+            {% for procedure in procedures %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if procedure.image_url %}
+                    <img src="{{ procedure.image_url }}" class="card-img-top" alt="{{ procedure.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ procedure.name }}</h5>
+                        <p class="card-text">{{ procedure.description[:100] }}...</p>
+                        <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Treatment Packages -->
+    {% if packages %}
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Treatment Packages</h2>
+        <div class="row">
+            {% for package in packages %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ package.name }}</h5>
+                        <p class="card-text">{{ package.description[:100] }}...</p>
+                        {% if package.price %}
+                        <p class="text-primary fw-bold">₹{{ package.price }}</p>
+                        {% endif %}
+                        <a href="{{ url_for('enhanced_package.package_detail', slug=package.slug) }}" class="btn btn-outline-primary">View Package</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

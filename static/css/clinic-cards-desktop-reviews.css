@@ -1,0 +1,23 @@
+/* Desktop Clinic Cards - Custom Google Reviews Color */
+
+/* Override Bootstrap text-primary color for Google Reviews in desktop clinic cards */
+.clinic-card .h6.text-primary.fw-bold {
+    color: #0B713B !important;
+    font-weight: normal !important;
+}
+
+.clinic-card .h6.text-primary.fw-bold i {
+    color: #0B713B !important;
+}
+
+/* Ensure specificity for desktop clinic cards */
+@media (min-width: 769px) {
+    .clinic-card .text-primary {
+        color: #0B713B !important;
+        font-weight: normal !important;
+    }
+    
+    .clinic-card .text-primary i {
+        color: #0B713B !important;
+    }
+}

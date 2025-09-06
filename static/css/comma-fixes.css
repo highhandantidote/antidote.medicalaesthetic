@@ -1,0 +1,34 @@
+/* Comma fixes for better text formatting */
+.comma-separated-list {
+    display: inline;
+}
+
+.comma-separated-list li {
+    display: inline;
+}
+
+.comma-separated-list li:not(:last-child)::after {
+    content: ', ';
+    color: #6b7280;
+}
+
+/* Tag comma fixes */
+.tag-comma::after {
+    content: ', ';
+    color: #9ca3af;
+}
+
+.tag-comma:last-child::after {
+    content: '';
+}
+
+/* Procedure comma fixes */
+.procedure-comma::after {
+    content: ', ';
+    color: #6b7280;
+    font-weight: normal;
+}
+
+.procedure-comma:last-child::after {
+    content: '';
+}

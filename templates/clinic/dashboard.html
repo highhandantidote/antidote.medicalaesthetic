@@ -1,0 +1,1618 @@
+{% extends "base.html" %}
+
+{% block title %}Clinic Dashboard - {{ clinic.name }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="clinic-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="dashboard-title">{{ clinic.name }}</h1>
+                    <p class="dashboard-subtitle">{{ clinic.city }} • {{ clinic.contact_number }}</p>
+                    <div class="clinic-badges">
+                        {% if clinic.is_verified %}
+                        <span class="badge bg-success">✓ Verified</span>
+                        {% else %}
+                        <span class="badge bg-warning">⏳ Pending Verification</span>
+                        {% endif %}
+                        {% if clinic.is_approved %}
+                        <span class="badge bg-primary">Active</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="credit-balance">
+                        <div class="credit-amount">{{ "{:,}".format(clinic.credit_balance or 0) }} Credits</div>
+                        <div class="credit-label">Available Balance</div>
+                        {% if clinic.credit_balance < 500 %}
+                        <div class="alert alert-warning mt-2 mb-2 p-2">
+                            <small><i class="fas fa-exclamation-triangle"></i> Low credit balance</small>
+                        </div>
+                        {% endif %}
+                        <a href="{{ url_for('enhanced_lead.lead_dashboard') }}" class="btn btn-success btn-sm mt-2">
+                            <i class="fas fa-chart-line"></i> Lead Management
+                        </a>
+                        <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-outline-light btn-sm mt-1">
+                            <i class="fas fa-coins"></i> Request Credits
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_leads }}</div>
+                        <div class="stat-label">Total Leads</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ pending_leads }}</div>
+                        <div class="stat-label">Pending Leads</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ this_month_leads }}</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-info">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ active_packages }}</div>
+                        <div class="stat-label">Active Packages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credit Balance Alert -->
+        {% if clinic.credit_balance < 500 %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert {% if clinic.credit_balance < 0 %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                    <div class="flex-grow-1">
+                        {% if clinic.credit_balance < 0 %}
+                        <strong>Negative Balance Alert!</strong><br>
+                        Your account is overdrawn by ₹{{ "{:,.0f}".format(clinic.credit_balance|abs) }}. New leads will continue to be charged.
+                        {% else %}
+                        <strong>Low Credit Balance!</strong><br>
+                        You have ₹{{ "{:,.0f}".format(clinic.credit_balance) }} remaining. Consider topping up to avoid service interruption.
+                        {% endif %}
+                    </div>
+                    <a href="/clinic/credits/topup" class="btn {% if clinic.credit_balance < 0 %}btn-light{% else %}btn-warning{% endif %} btn-sm">
+                        Top Up Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Navigation Tabs -->
+        <div class="dashboard-tabs">
+            <ul class="nav nav-pills mb-4" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="leads-tab" data-bs-toggle="pill" data-bs-target="#leads" type="button" role="tab">
+                        <i class="fas fa-users"></i> Leads Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="billing-tab" data-bs-toggle="pill" data-bs-target="#billing" type="button" role="tab">
+                        <i class="fas fa-credit-card"></i> Credit Billing
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="packages-tab" data-bs-toggle="pill" data-bs-target="#packages" type="button" role="tab">
+                        <i class="fas fa-box"></i> Package Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="credits-tab" data-bs-toggle="pill" data-bs-target="#credits" type="button" role="tab">
+                        <i class="fas fa-credit-card"></i> Credit Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="profile-tab" data-bs-toggle="pill" data-bs-target="#profile" type="button" role="tab">
+                        <i class="fas fa-cog"></i> Profile Settings
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a href="/clinic/notifications" class="nav-link">
+                        <i class="fas fa-bell"></i> Notifications
+                        <span id="notificationBadge" class="badge bg-danger" style="display: none;"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabsContent">
+            <!-- Leads Management Tab -->
+            <div class="tab-pane fade show active" id="leads" role="tabpanel">
+                <div class="section-header">
+                    <h3>Lead Management</h3>
+                    <div class="section-actions">
+                        <button class="btn btn-outline-primary" onclick="exportLeads()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshLeads()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lead Filters -->
+                <div class="filter-section mb-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-select" id="leadStatusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="leadTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="chat">WhatsApp</option>
+                                <option value="call">Phone Call</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear Filters</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leads Table -->
+                <div class="leads-table-container">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient Name</th>
+                                    <th>Contact</th>
+                                    <th>Procedure</th>
+                                    <th>Status</th>
+                                    <th>Credit Cost</th>
+                                    <th>Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recent_leads %}
+                                {% for lead in recent_leads %}
+                                <tr>
+                                    <td>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') if lead.created_at else 'N/A' }}</td>
+                                    <td>{{ lead.patient_name or 'N/A' }}</td>
+                                    <td>{{ lead.mobile_number or 'N/A' }}</td>
+                                    <td>{{ lead.procedure_name or 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge {% if lead.status == 'new' %}bg-warning{% elif lead.status == 'contacted' %}bg-info{% elif lead.status == 'completed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ lead.status.title() if lead.status else 'Unknown' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-danger">-{{ lead.credit_cost or 0 }} Credits</span>
+                                    </td>
+                                    <td>{{ lead.source_page or 'website' }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No leads found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credit Management Tab -->
+            <div class="tab-pane fade" id="billing" role="tabpanel">
+                <div class="section-header">
+                    <h3>Credit Billing & Transactions</h3>
+                </div>
+
+                <!-- Credit Balance Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ "{:,}".format(clinic.credit_balance or 0) }}</div>
+                                <div class="stat-label">Available Credits</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ "{:,}".format(monthly_spending or 0) }}</div>
+                                <div class="stat-label">Monthly Spending</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ recent_transactions|length if recent_transactions else 0 }}</div>
+                                <div class="stat-label">Recent Transactions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Credit Transactions -->
+                <div class="transactions-container">
+                    <h4>Recent Credit Transactions</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recent_transactions %}
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') if transaction.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge {% if transaction.transaction_type == 'manual_allocation' %}bg-success{% elif transaction.transaction_type == 'lead_deduction' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ transaction.transaction_type.replace('_', ' ').title() if transaction.transaction_type else 'Unknown' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="{% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ '+' if transaction.amount > 0 else '' }}{{ transaction.amount }} Credits
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description or 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge {% if transaction.status == 'completed' %}bg-success{% elif transaction.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ transaction.status.title() if transaction.status else 'Unknown' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No transactions found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional CSS for credit management styling -->
+<style>
+.credit-balance {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.credit-amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.credit-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 15px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #667eea;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    float: left;
+    margin-right: 15px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.dashboard-tabs .nav-pills .nav-link {
+    border-radius: 25px;
+    padding: 12px 24px;
+    margin-right: 10px;
+    color: #667eea;
+    border: 2px solid #667eea;
+    background: transparent;
+}
+
+.dashboard-tabs .nav-pills .nav-link.active {
+    background: #667eea;
+    color: white;
+}
+
+.section-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-actions .btn {
+    margin-left: 10px;
+}
+</style>
+
+<script>
+// Dashboard JavaScript functionality
+function refreshLeads() {
+    location.reload();
+}
+
+function exportLeads() {
+    // Implementation for lead export functionality
+    alert('Export functionality coming soon!');
+}
+
+function clearFilters() {
+    document.getElementById('leadStatusFilter').value = '';
+    document.getElementById('leadTypeFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+}
+
+// Auto-refresh notifications
+setInterval(function() {
+    fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+            if (data.count > 0) {
+                document.getElementById('notificationBadge').style.display = 'inline';
+                document.getElementById('notificationBadge').textContent = data.count;
+            }
+        })
+        .catch(error => console.log('Notification check failed'));
+}, 30000); // Check every 30 seconds
+</script>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credit Billing Tab -->
+            <div class="tab-pane fade" id="billing" role="tabpanel">
+                <div class="section-header">
+                    <h3>Credit Billing Management</h3>
+                    <div class="section-actions">
+                        <a href="/clinic/billing-dashboard" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> Full Billing Dashboard
+                        </a>
+                        <a href="/clinic/disputes" class="btn btn-outline-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Dispute Leads
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Billing Overview Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ "{:,.0f}".format(clinic.credit_balance or 0) }}</div>
+                                <div class="stat-label">Current Credits</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-danger">
+                                <i class="fas fa-minus-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ "{:,.0f}".format(monthly_spending or 0) }}</div>
+                                <div class="stat-label">Monthly Spending</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">{{ this_month_leads }}</div>
+                                <div class="stat-label">Leads Generated</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">₹{{ "{:,.0f}".format((monthly_spending / this_month_leads) if this_month_leads > 0 else 0) }}</div>
+                                <div class="stat-label">Avg Cost/Lead</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Pricing Tiers -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Dynamic Lead Pricing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">100 Credits</div>
+                                <small class="text-muted">< ₹5,000</small>
+                            </div>
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">180 Credits</div>
+                                <small class="text-muted">₹5K-10K</small>
+                            </div>
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">250 Credits</div>
+                                <small class="text-muted">₹10K-20K</small>
+                            </div>
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">320 Credits</div>
+                                <small class="text-muted">₹20K-50K</small>
+                            </div>
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">400 Credits</div>
+                                <small class="text-muted">₹50K-100K</small>
+                            </div>
+                            <div class="col-md-2 text-center p-2 border">
+                                <div class="fw-bold text-primary">500 Credits</div>
+                                <small class="text-muted">₹100K+</small>
+                            </div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Lead costs are calculated automatically based on your package prices.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Transactions</h5>
+                        <a href="/clinic/billing-dashboard" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in recent_transactions[:10] %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ transaction.created_at.strftime('%d %b') if transaction.created_at else 'N/A' }}</small>
+                                        </td>
+                                        <td>
+                                            {% if transaction.transaction_type == 'deduction' %}
+                                            <span class="badge bg-danger">Lead Cost</span>
+                                            {% elif transaction.transaction_type == 'credit' %}
+                                            <span class="badge bg-success">Purchase</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ transaction.transaction_type.title() }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="{% if transaction.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                                {{ "{:,.0f}".format(transaction.amount) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>{{ transaction.description[:50] if transaction.description else 'No description' }}{% if transaction.description and transaction.description|length > 50 %}...{% endif %}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if transaction.status == 'completed' %}bg-success{% elif transaction.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                {{ transaction.status.title() if transaction.status else 'Completed' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No transactions yet</h5>
+                            <p class="text-muted">Your credit transactions will appear here</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Management Tab -->
+            <div class="tab-pane fade" id="packages" role="tabpanel">
+                <div class="section-header">
+                    <h3>Package Management</h3>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="openAddPackageModal()">
+                            <i class="fas fa-plus"></i> Add New Package
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Packages Grid -->
+                <div class="packages-grid">
+                    <div class="row">
+                        {% if clinic.packages %}
+                        {% for package in clinic.packages %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="package-card">
+                                <div class="package-header">
+                                    <h5 class="package-title">{{ package.title }}
+                                        {% if package.actual_treatment_name %}
+                                            <span class="text-muted" style="font-weight: 400; font-size: 0.9em;">
+                                                ({{ package.actual_treatment_name }})
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    <div class="package-status">
+                                        {% if package.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="package-body">
+                                    <div class="package-price">
+                                        {% if package.price_discounted %}
+                                        <span class="original-price">₹{{ "{:,.0f}".format(package.price_actual) }}</span>
+                                        <span class="discounted-price">₹{{ "{:,.0f}".format(package.price_discounted) }}</span>
+                                        {% else %}
+                                        <span class="current-price">₹{{ "{:,.0f}".format(package.price_actual) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="package-description">{{ package.description[:100] }}...</p>
+                                    <div class="package-stats">
+                                        <span class="stat-item">
+                                            <i class="fas fa-eye"></i> {{ package.view_count or 0 }} views
+                                        </span>
+                                        <span class="stat-item">
+                                            <i class="fas fa-users"></i> {{ package.lead_count or 0 }} leads
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="package-actions">
+                                    <button class="btn btn-sm btn-outline-success" onclick="viewPackageLive({{ package.id }})">
+                                        <i class="fas fa-external-link-alt"></i> View Live
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary package-edit-btn" data-package-id="{{ package.id }}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info package-analytics-btn" data-package-id="{{ package.id }}">
+                                        <i class="fas fa-chart-line"></i> Analytics
+                                    </button>
+                                    <button class="btn btn-sm {% if package.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %} package-toggle-btn" 
+                                            data-package-id="{{ package.id }}" data-active="{{ package.is_active|lower }}">
+                                        {% if package.is_active %}
+                                        <i class="fas fa-pause"></i> Deactivate
+                                        {% else %}
+                                        <i class="fas fa-play"></i> Activate
+                                        {% endif %}
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger package-delete-btn" data-package-id="{{ package.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                                <h4>No Packages Yet</h4>
+                                <p class="text-muted">Create your first treatment package to start attracting patients.</p>
+                                <button class="btn btn-primary" onclick="openAddPackageModal()">
+                                    <i class="fas fa-plus"></i> Create First Package
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credit Management Tab -->
+            <div class="tab-pane fade" id="credits" role="tabpanel">
+                <div class="section-header">
+                    <h3>Credit Management</h3>
+                    <div class="section-actions">
+                        <a href="/payment/credits/topup" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Top Up Credits
+                        </a>
+                        <a href="/payment/credits/history" class="btn btn-outline-primary">
+                            <i class="fas fa-history"></i> View History
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Credit Overview Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">₹{{ "{:,.0f}".format(clinic.credit_balance or 0) }}</div>
+                                <div class="stat-label">Current Balance</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">₹{{ "{:,.0f}".format(monthly_spending or 0) }}</div>
+                                <div class="stat-label">This Month Spent</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">₹{{ "{:,.0f}".format((clinic.credit_balance or 0) / 400 if clinic.credit_balance else 0) }}</div>
+                                <div class="stat-label">Estimated Leads</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">₹100-500</div>
+                                <div class="stat-label">Dynamic Pricing</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credit Billing Information -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="credit-info-card">
+                            <h5><i class="fas fa-info-circle"></i> Dynamic Credit Billing System</h5>
+                            <p class="text-muted mb-3">Our smart pricing system charges credits based on package value ranges:</p>
+                            <div class="pricing-tiers">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="pricing-tier">
+                                            <div class="tier-label">Basic Packages</div>
+                                            <div class="tier-range">₹0 - ₹25,000</div>
+                                            <div class="tier-cost">₹100 credits</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pricing-tier">
+                                            <div class="tier-label">Standard Packages</div>
+                                            <div class="tier-range">₹25,001 - ₹50,000</div>
+                                            <div class="tier-cost">₹200 credits</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pricing-tier">
+                                            <div class="tier-label">Premium Packages</div>
+                                            <div class="tier-range">₹50,001 - ₹100,000</div>
+                                            <div class="tier-cost">₹300 credits</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pricing-tier">
+                                            <div class="tier-label">Luxury Packages</div>
+                                            <div class="tier-range">₹100,001+</div>
+                                            <div class="tier-cost">₹400-500 credits</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="balance-alert-card">
+                            {% if clinic.credit_balance < 1000 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Low Balance Alert</strong><br>
+                                Your credit balance is running low. Consider topping up to avoid service interruption.
+                            </div>
+                            {% endif %}
+                            <div class="quick-topup">
+                                <h6>Quick Top-up</h6>
+                                <div class="topup-buttons">
+                                    <a href="/payment/credits/topup?amount=1000" class="btn btn-outline-primary btn-sm">₹1,000</a>
+                                    <a href="/payment/credits/topup?amount=5000" class="btn btn-outline-primary btn-sm">₹5,000</a>
+                                    <a href="/payment/credits/topup?amount=10000" class="btn btn-primary btn-sm">₹10,000</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Credit Transactions -->
+                <div class="credit-transactions-section">
+                    <h5>Recent Credit Transactions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Balance After</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions[:10] %}
+                                <tr>
+                                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') if transaction.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.transaction_type == 'credit' %}success{% else %}danger{% endif %}">
+                                            {{ transaction.transaction_type|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description or 'N/A' }}</td>
+                                    <td class="{% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {% if transaction.amount > 0 %}+{% endif %}₹{{ "{:,.0f}".format(transaction.amount or 0) }}
+                                    </td>
+                                    <td>₹{{ "{:,.0f}".format(transaction.balance_after or 0) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No transactions yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if recent_transactions|length > 10 %}
+                    <div class="text-center mt-3">
+                        <a href="/payment/credits/history" class="btn btn-outline-primary">
+                            View All Transactions
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="section-header">
+                    <h3>Analytics & Performance</h3>
+                </div>
+
+                <!-- Analytics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="analytics-card">
+                            <h5>Lead Conversion Rate</h5>
+                            <div class="conversion-rate">
+                                {{ "%.1f"|format((pending_leads / total_leads * 100) if total_leads > 0 else 0) }}%
+                            </div>
+                            <p class="text-muted">Based on contacted leads</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="analytics-card">
+                            <h5>Average Lead Value</h5>
+                            <div class="lead-value">₹400</div>
+                            <p class="text-muted">Average credit cost per lead</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="transactions-section">
+                    <h5>Recent Credit Transactions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.transaction_type == 'credit' %}success{% else %}danger{% endif %}">
+                                            {{ transaction.transaction_type|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description }}</td>
+                                    <td class="{% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {% if transaction.amount > 0 %}+{% endif %}₹{{ transaction.amount }}
+                                    </td>
+                                    <td>₹{{ transaction.balance_after or 0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Settings Tab -->
+            <div class="tab-pane fade" id="profile" role="tabpanel">
+                <div class="section-header">
+                    <h3>Clinic Profile Settings</h3>
+                </div>
+
+                <form class="clinic-profile-form" onsubmit="updateClinicProfile(event)">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Clinic Name</label>
+                                <input type="text" class="form-control" name="name" value="{{ clinic.name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" name="contact_number" value="{{ clinic.contact_number }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">WhatsApp Number</label>
+                                <input type="tel" class="form-control" name="whatsapp_number" value="{{ clinic.whatsapp_number }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-control" name="city" value="{{ clinic.city }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea class="form-control" name="address" rows="3">{{ clinic.address }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="4" placeholder="Describe your clinic...">{{ clinic.description or '' }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Specialties</label>
+                                <input type="text" class="form-control" name="specialties" value="{{ clinic.specialties|join(', ') if clinic.specialties else '' }}" 
+                                       placeholder="e.g., Botox, Fillers, Rhinoplasty">
+                                <small class="form-text text-muted">Separate multiple specialties with commas</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Services Offered</label>
+                                <textarea class="form-control" name="services_offered" rows="4" placeholder="List your services...">{{ clinic.services_offered|join(', ') if clinic.services_offered else '' }}</textarea>
+                                <small class="form-text text-muted">Separate multiple services with commas</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Website URL</label>
+                                <input type="url" class="form-control" name="website" value="{{ clinic.website or '' }}" placeholder="https://yourwebsite.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Credit Top-Up Modal -->
+<div id="topUpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Top Up Credits</h3>
+            <button type="button" class="close-modal" onclick="closeTopUpModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group mb-3">
+                <label for="topUpAmount" class="form-label">Amount (₹)</label>
+                <input type="number" id="topUpAmount" class="form-control" placeholder="Enter amount" min="100" step="100">
+                <small class="form-text text-muted">Minimum top-up amount: ₹100</small>
+            </div>
+            <div class="form-group mb-3">
+                <label for="paymentMethod" class="form-label">Payment Method</label>
+                <select id="paymentMethod" class="form-select">
+                    <option value="razorpay">Razorpay (Card/UPI/Wallet)</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                </select>
+            </div>
+            <div class="quick-amounts mb-3">
+                <label class="form-label">Quick Select:</label>
+                <div class="amount-buttons">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(1000)">₹1,000</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(2500)">₹2,500</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(5000)">₹5,000</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setAmount(10000)">₹10,000</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeTopUpModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="processTopUp()">Proceed to Payment</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Dashboard Styles */
+.clinic-dashboard {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.clinic-badges .badge {
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.credit-balance {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.credit-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.credit-label {
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.credit-info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+}
+
+.pricing-tiers {
+    margin-top: 1.5rem;
+}
+
+.pricing-tier {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.tier-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.tier-range {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.tier-cost {
+    color: #28a745;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.balance-alert-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.quick-topup {
+    margin-top: 1rem;
+}
+
+.topup-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.credit-transactions-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.dashboard-tabs .nav-pills .nav-link {
+    border-radius: 25px;
+    margin-right: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+.dashboard-tabs .nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.section-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.leads-table-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.package-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.package-card:hover {
+    transform: translateY(-2px);
+}
+
+.package-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.package-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.package-body {
+    padding: 1.5rem;
+}
+
+.package-price {
+    margin-bottom: 1rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #666;
+    margin-right: 0.5rem;
+}
+
+.discounted-price,
+.current-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.package-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.package-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.analytics-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.conversion-rate,
+.lead-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #28a745;
+    margin: 1rem 0;
+}
+
+.transactions-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.clinic-profile-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.contact-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.contact-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        text-align: center;
+    }
+    
+    .credit-balance {
+        margin-top: 1rem;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .section-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>
+
+<script>
+// Lead Management Functions
+function updateLeadStatus(leadId, status) {
+    fetch(`/clinic/leads/${leadId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating lead status');
+        }
+    });
+}
+
+function refreshLeads() {
+    location.reload();
+}
+
+function exportLeads() {
+    window.open('/clinic/leads/export', '_blank');
+}
+
+function clearFilters() {
+    document.getElementById('leadStatusFilter').value = '';
+    document.getElementById('leadTypeFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    refreshLeads();
+}
+
+// Package Management Functions
+function openAddPackageModal() {
+    window.location.href = '/clinic/packages/add';
+}
+
+// Package Management Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit package buttons
+    document.querySelectorAll('.package-edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const packageId = this.getAttribute('data-package-id');
+            window.location.href = `/clinic/packages/${packageId}/edit`;
+        });
+    });
+    
+    // Analytics buttons
+    document.querySelectorAll('.package-analytics-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const packageId = this.getAttribute('data-package-id');
+            window.location.href = `/clinic/packages/${packageId}/analytics`;
+        });
+    });
+    
+    // Toggle status buttons
+    document.querySelectorAll('.package-toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const packageId = this.getAttribute('data-package-id');
+            togglePackageStatus(packageId);
+        });
+    });
+    
+    // Delete buttons
+    document.querySelectorAll('.package-delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const packageId = this.getAttribute('data-package-id');
+            deletePackage(packageId);
+        });
+    });
+});
+
+function togglePackageStatus(packageId) {
+    const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    fetch(`/clinic/packages/${packageId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Error updating package status'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating package status');
+    });
+}
+
+function deletePackage(packageId) {
+    if (confirm('Are you sure you want to delete this package? This action cannot be undone.')) {
+        const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+        
+        fetch(`/clinic/packages/${packageId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Package deleted successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Error deleting package'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting package');
+        });
+    }
+}
+
+// Clinic Profile Management Functions
+function updateClinicProfile(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    submitBtn.disabled = true;
+    
+    fetch('/clinic/profile/update', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Profile updated successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Error updating profile'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating profile');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Credit Management Functions
+function openTopUpModal() {
+    document.getElementById('topUpModal').style.display = 'block';
+}
+
+function closeTopUpModal() {
+    document.getElementById('topUpModal').style.display = 'none';
+}
+
+function processTopUp() {
+    const amount = document.getElementById('topUpAmount').value;
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+    
+    const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    fetch('/clinic/credits/topup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            amount: parseFloat(amount),
+            payment_method: paymentMethod
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Credit top-up initiated successfully!');
+            closeTopUpModal();
+            // Refresh page to show updated balance
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing top-up request');
+    });
+}
+
+function setAmount(amount) {
+    document.getElementById('topUpAmount').value = amount;
+}
+
+// View live package function
+function viewPackageLive(packageId) {
+    const url = `/clinic/packages/preview/${packageId}`;
+    window.open(url, '_blank');
+}
+
+// Load notification count
+function loadNotificationCount() {
+    fetch('/clinic/api/notifications/unread-count')
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.getElementById('notificationBadge');
+        if (badge && data.count > 0) {
+            badge.textContent = data.count;
+            badge.style.display = 'inline';
+        }
+    })
+    .catch(error => console.error('Error loading notifications:', error));
+}
+
+// Initialize notification loading
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotificationCount();
+    // Refresh notification count every 30 seconds
+    setInterval(loadNotificationCount, 30000);
+});
+</script>
+{% endblock %}

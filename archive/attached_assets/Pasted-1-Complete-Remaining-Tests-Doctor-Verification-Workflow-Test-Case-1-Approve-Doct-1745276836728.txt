@@ -1,0 +1,25 @@
+1. Complete Remaining Tests:
+   - **Doctor Verification Workflow**:
+     - Test Case 1: Approve Doctor (Completed via SQL, retest via API)
+       - Action: Use curl to approve "Doctor Test" (ID 101): `curl -X POST http://localhost:5000/api/doctor/101/approve`.
+       - Expected: Verification status updates to "approved". Verify with: `SELECT id, name, verification_status FROM doctors WHERE id = 101;`.
+     - Test Case 2: Reject Doctor
+       - Action: Use curl to reject the new doctor (e.g., ID from `test_create_doctor.py`): `curl -X POST http://localhost:5000/api/doctor/<new_id>/reject`.
+       - Expected: Verification status updates to "rejected". Verify with: `SELECT id, name, verification_status FROM doctors WHERE id = <new_id>;`.
+   - **Procedure and Community Sections**:
+     - Test Case 3: Procedure Listing
+       - Action: Navigate to /procedures, confirm 5 procedures (Rhinoplasty, Facelift, etc.) display with "Doctor Test" link.
+       - Expected: All 5 procedures visible.
+     - Test Case 4: Community Threads
+       - Action: Navigate to /community, confirm 5 threads with nested replies display.
+       - Expected: All 5 threads and replies visible.
+   - Take screenshots of each test case result.
+
+2. Performance Testing:
+   - Measure page load time for /dashboard/doctor/verify, /procedures, /community using browser dev tools (e.g., Replit preview or local run).
+   - Measure API response time for /api/doctor/101/approve and /api/doctor/<new_id>/reject using `time curl -X POST http://localhost:5000/api/doctor/101/approve`.
+   - Log results (e.g., DEBUG:routes:Verification approved, INFO:db:COMMIT).
+
+3. Provide Output:
+   - Share updated test_verify_doctors.py, test_create_doctor.py, seed_nested_replies.py, check_community.py, routes.py, procedure.html, community.html, logs, console output, and screenshots.
+   - Respond: "Testing with minimal data (1 doctor, 5 procedures, 5 threads with replies) finalized. All test cases passed, with performance metrics included. Data populates and displays as expected—please review screenshots and logs. Data can be deleted later with a script (e.g., db.session.query(Doctor).delete(); db.session.query(Procedure).delete(); db.session.query(Community).delete(); db.session.query(CommunityReplies).delete(); db.session.query(User).filter(User.username.in_(['admin_test', 'doctor_test', 'doctor_test2'])).delete(); db.session.commit()). Next phase: Implement AI tools for procedure recommendations and community analytics, starting with a basic recommendation model using the existing procedure data."

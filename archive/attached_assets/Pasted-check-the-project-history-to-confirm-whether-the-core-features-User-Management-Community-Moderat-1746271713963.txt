@@ -1,0 +1,53 @@
+check the project history to confirm whether the core features 'User Management,' 'Community Moderation,' 'Analytics & Reports,' 'Doctor Verification,' and 'Content Management' were implemented arounda week ago, as they were supposed to be fixed. These features are currently showing as 'under development' on the admin dashboard (/dashboard/admin), despite the 'Banner Management' section working fine. If these features are already implemented, update the admin dashboard to link to them correctly. If they are not implemented or were overwritten, implement them now. The app uses Flask (Python) for the backend, SQLite for the database, and HTML/CSS/JavaScript for the frontend, maintaining a Practo-like UI (light theme, dynamic elements, mobile-first design). Follow these steps:
+
+Check Implementation History:
+Review the project’s commit history (e.g., using git log) around a week ago, to confirm whether 'User Management,' 'Community Moderation,' 'Analytics & Reports,' 'Doctor Verification,' and 'Content Management' were implemented.
+Check for specific routes in app.py, routes.py, or banner_routes.py (e.g., /admin/users, /admin/community-moderation, /admin/analytics, /admin/doctor-verification, /admin/content-management).
+Check for corresponding templates (e.g., templates/admin_users.html, templates/admin_community_moderation.html, templates/admin_analytics.html, templates/admin_doctor_verification.html, templates/admin_content_management.html).
+Check the database schema (e.g., using sqlite3 to inspect tables like users, doctors, community_posts) for models related to these features.
+Verify Current Status:
+If these features are already implemented:
+Update the admin dashboard template (templates/admin_dashboard.html) to link to the correct routes (e.g., <a href="/admin/users" class="btn btn-primary">Manage Users</a> for 'User Management') and remove the 'under development' placeholders.
+Ensure the routes render the correct templates and display the implemented functionality.
+If the features are not implemented or were overwritten, proceed to implement them as described below.
+Implement Missing Features (if not found):
+User Management (/admin/users):
+Create a route to list all users (from the users table), with columns for ID, Name, Email, Role (e.g., user, doctor, admin), and Created Date.
+Add functionality to edit user details (e.g., name, email, role) and delete users.
+Use a table layout with action buttons (Edit, Delete) for each user.
+Create templates/admin_users.html with a table and forms for editing users.
+Community Moderation (/admin/community-moderation):
+Create a route to list community posts (from a community_posts table), with columns for Post ID, User, Content, Post Date, and Status (e.g., Approved, Pending, Flagged).
+Add functionality to approve, reject, or delete posts.
+Include a filter to view flagged posts reported by users.
+Create templates/admin_community_moderation.html with a table and action buttons (Approve, Reject, Delete).
+Analytics & Reports (/admin/analytics):
+Create a route to display basic analytics, such as total users, total doctors, total community posts, and banner click counts (from the banner_slides table).
+Use simple charts (e.g., with Chart.js) to visualize data (e.g., user growth over time, banner clicks per day).
+Create templates/admin_analytics.html with sections for each metric and charts.
+Doctor Verification (/admin/doctor-verification):
+Create a route to list doctors (from the doctors table), with columns for ID, Name, Email, Specialization, Verification Status (e.g., Pending, Verified, Rejected), and Submitted Credentials (e.g., a link to view uploaded documents).
+Add functionality to verify or reject doctors, updating their status in the database.
+Create templates/admin_doctor_verification.html with a table and action buttons (Verify, Reject).
+Content Management (/admin/content-management):
+Create a route to manage procedures and categories (from procedures and categories tables), with options to add, edit, or delete entries.
+Include fields for procedure name, category, body area, and surgical/non-surgical status.
+Create templates/admin_content_management.html with forms for adding/editing procedures and categories.
+Ensure all new routes require admin authentication (using the same logic as /admin/banners).
+Update the database schema if necessary (e.g., create community_posts table with columns id, user_id, content, post_date, status, flagged).
+Update Admin Dashboard:
+Modify templates/admin_dashboard.html to link to the new or existing routes for each section (e.g., <a href="/admin/users" class="btn btn-primary">Manage Users</a>).
+Remove the 'under development' placeholders for these sections.
+Ensure the dashboard maintains a consistent light theme (white background, subtle borders, readable fonts) and mobile-first responsiveness.
+Test the Features:
+Navigate to https://903fd433-48ab-4ca5-b9af-eef68143d1e0-00-2cfajk5n6219.sisko.replit.dev/dashboard/admin and test each section:
+User Management: View the user list, edit a user’s role, and delete a user.
+Community Moderation: Approve a pending post, reject a flagged post, and delete a post.
+Analytics & Reports: Confirm that metrics and charts display correctly.
+Doctor Verification: Verify a doctor and reject another, ensuring the status updates.
+Content Management: Add a new procedure, edit an existing one, and delete a category.
+Monitor the browser console for JavaScript errors and check Flask server logs for backend errors.
+Provide Feedback:
+Confirm whether these features were already implemented on a week ago, and if so, why they were showing as 'under development.'
+Report any issues found during testing (e.g., errors, missing functionality) and suggest fixes.
+Ensure the admin dashboard now reflects all core features as fully functional

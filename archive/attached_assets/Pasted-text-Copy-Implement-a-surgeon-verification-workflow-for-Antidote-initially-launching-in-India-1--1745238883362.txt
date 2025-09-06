@@ -1,0 +1,64 @@
+text
+
+Copy
+Implement a surgeon verification workflow for Antidote, initially launching in India:
+
+1. Define the Doctor Model:
+   Update models.py with a Doctor model:
+   ```python
+   class Doctor(db.Model):
+       __tablename__ = 'doctors'
+       id = db.Column(db.Integer, primary_key=True)
+       user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+       medical_license_number = db.Column(db.String(50), unique=True, nullable=False)
+       qualification = db.Column(db.String(200), nullable=False)
+       practice_location = db.Column(db.String(200), nullable=False)
+       verification_status = db.Column(db.String(20), default='pending')
+       credentials_url = db.Column(db.String(200))
+       user = db.relationship('User', backref='doctor_profile')
+Build the Verification Page: Create a /dashboard/doctor/verification page in the admin dashboard:
+Add a form for doctors to submit: medical_license_number, qualification, practice_location, and a file upload for credentials (accept PDF/image).
+Include a table for admins to view all doctors with columns: name (from user.username), license number, status, and action buttons (view credentials, approve, reject).
+Add filters for status (pending, approved, rejected) and location.
+Implement the Backend Logic: Update routes.py with:
+python
+
+Copy
+from werkzeug.utils import secure_filename
+@web.route('/dashboard/doctor/verify', methods=['GET', 'POST'])
+def doctor_verify():
+    if request.method == 'POST':
+        license_number = request.form['medical_license_number']
+        qualification = request.form['qualification']
+        location = request.form['practice_location']
+        new_doctor = Doctor(user_id=current_user.id, medical_license_number=license_number,
+                          qualification=qualification, practice_location=location)
+        if 'credentials' in request.files:
+            file = request.files['credentials']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('static/doctor_credentials', filename))
+                new_doctor.credentials_url = filename
+        db.session.add(new_doctor)
+        db.session.commit()
+        return redirect(url_for('web.doctor_verification'))
+    doctors = Doctor.query.all()
+    return render_template('doctor_verification.html', doctors=doctors)
+
+@web.route('/api/doctor/<int:doctor_id>/approve', methods=['POST'])
+@login_required
+@admin_required  # Assume this decorator exists
+def approve_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    doctor.verification_status = 'approved'
+    db.session.commit()
+    return jsonify({'status': 'success'})
+Create a static/doctor_credentials directory.
+Integrate with Admin Dashboard: Update the dashboard sidebar to include a "Doctor Verification" link. Display the doctor table in the verification page.
+Test and Validate: Restart the application. Log in as a doctor, navigate to /dashboard/doctor/verify, submit a test application with a fake license number, qualification, location, and a test PDF/JPG. Log in as an admin, review the application, view credentials, and approve it. Verify the status updates and the doctor appears in the approved list. Take screenshots of the submission form, credentials view, and updated doctor table. Generate logs (e.g., DEBUG:routes:Doctor verification submitted).
+India-Specific Adjustments:
+Validate medical_license_number format (e.g., MCI-XXXXX-YYYY) in the form.
+Add an optional Aadhaar field with a disclaimer: "Aadhaar data is handled per DPDP Act, 2023, for identity verification only."
+Provide Output:
+Share updated models.py, routes.py, doctor_verification.html, dashboard sidebar file (if modified), logs, console output, and screenshots.
+Respond: "The surgeon verification workflow is implemented for India launch. Please review the screenshots and logs to confirm functionality."

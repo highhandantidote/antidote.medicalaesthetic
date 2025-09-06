@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}Package Analytics - {{ package.title }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('clinic.clinic_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('clinic.edit_package', package_id=package.id) }}">Edit Package</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+        </ol>
+    </nav>
+
+    <!-- Package Header -->
+    <div class="analytics-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-chart-line"></i> {{ package.title }}</h1>
+                <p class="text-muted">{{ package.category|title }} • {{ package.duration }} • 
+                    {% if package.price_discounted %}
+                        ₹{{ "{:,.0f}".format(package.price_discounted) }} 
+                        <span class="text-decoration-line-through text-muted">₹{{ "{:,.0f}".format(package.price_actual) }}</span>
+                    {% else %}
+                        ₹{{ "{:,.0f}".format(package.price_actual) }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="analytics-actions">
+                    <button class="btn btn-outline-primary" onclick="exportAnalytics()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <a href="{{ url_for('clinic.edit_package', package_id=package.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit Package
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon bg-primary">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">{{ package.view_count or 0 }}</div>
+                    <div class="metric-label">Total Views</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon bg-success">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">{{ package.total_leads or 0 }}</div>
+                    <div class="metric-label">Total Leads</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon bg-warning">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">{{ package.monthly_leads or 0 }}</div>
+                    <div class="metric-label">This Month</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon bg-info">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value">{{ "%.1f"|format(package.conversion_rate or 0) }}%</div>
+                    <div class="metric-label">Conversion Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5><i class="fas fa-chart-pie"></i> Lead Sources</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="leadSourceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5><i class="fas fa-chart-bar"></i> Contact Methods</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="contactMethodChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Insights -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="insights-card">
+                <div class="insights-header">
+                    <h5><i class="fas fa-lightbulb"></i> Performance Insights</h5>
+                </div>
+                <div class="insights-body">
+                    <div class="insight-item">
+                        <div class="insight-icon bg-success">
+                            <i class="fas fa-trending-up"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h6>Strong Performance</h6>
+                            <p>Your package has generated {{ package.total_leads or 0 }} leads with a {{ "%.1f"|format(package.conversion_rate or 0) }}% conversion rate.</p>
+                        </div>
+                    </div>
+                    
+                    {% if (package.monthly_leads or 0) > 0 %}
+                    <div class="insight-item">
+                        <div class="insight-icon bg-info">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h6>Recent Activity</h6>
+                            <p>{{ package.monthly_leads }} leads generated this month. Keep your package details updated for better visibility.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if (package.view_count or 0) > (package.total_leads or 0) * 10 %}
+                    <div class="insight-item">
+                        <div class="insight-icon bg-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h6>Optimization Opportunity</h6>
+                            <p>High views but low leads. Consider updating pricing, description, or adding more compelling images.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="revenue-card">
+                <div class="revenue-header">
+                    <h5><i class="fas fa-rupee-sign"></i> Revenue Estimate</h5>
+                </div>
+                <div class="revenue-body">
+                    <div class="revenue-metric">
+                        <div class="revenue-value">₹{{ "{:,.0f}".format((package.total_leads or 0) * (package.price_discounted or package.price_actual or 0)) }}</div>
+                        <div class="revenue-label">Potential Revenue</div>
+                    </div>
+                    
+                    <div class="revenue-breakdown">
+                        <div class="breakdown-item">
+                            <span>WhatsApp Leads (₹300 each)</span>
+                            <span>{{ package.chat_leads or 0 }} × ₹300 = ₹{{ "{:,.0f}".format((package.chat_leads or 0) * 300) }}</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Phone Leads (₹500 each)</span>
+                            <span>{{ package.call_leads or 0 }} × ₹500 = ₹{{ "{:,.0f}".format((package.call_leads or 0) * 500) }}</span>
+                        </div>
+                        <div class="breakdown-total">
+                            <span><strong>Total Lead Cost</strong></span>
+                            <span><strong>₹{{ "{:,.0f}".format(((package.chat_leads or 0) * 300) + ((package.call_leads or 0) * 500)) }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Leads Table -->
+    <div class="leads-section">
+        <div class="leads-header">
+            <h5><i class="fas fa-users"></i> Recent Leads</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Contact Info</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Credit Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in recent_leads %}
+                    <tr>
+                        <td>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') if lead.created_at else 'N/A' }}</td>
+                        <td>
+                            {% if lead.contact_info %}
+                                {{ lead.contact_info }}
+                            {% else %}
+                                <span class="text-muted">No contact</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if lead.action_type == 'chat' %}
+                                <span class="badge bg-success"><i class="fab fa-whatsapp"></i> WhatsApp</span>
+                            {% else %}
+                                <span class="badge bg-primary"><i class="fas fa-phone"></i> Call</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if lead.status == 'pending' %}warning{% elif lead.status == 'contacted' %}info{% elif lead.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                {{ lead.status|title }}
+                            </span>
+                        </td>
+                        <td>₹{{ 300 if lead.action_type == 'chat' else 500 }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No leads generated yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.analytics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+
+.metric-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-card,
+.insights-card,
+.revenue-card,
+.leads-section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.chart-header,
+.insights-header,
+.revenue-header,
+.leads-header {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.chart-body,
+.insights-body,
+.revenue-body {
+    padding: 1.5rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.insight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.insight-content h6 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.insight-content p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.revenue-metric {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.revenue-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.revenue-label {
+    color: #666;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.revenue-breakdown {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+}
+
+.breakdown-item,
+.breakdown-total {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.breakdown-total {
+    border-top: 1px solid #dee2e6;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.leads-section .table-responsive {
+    padding: 1.5rem;
+}
+</style>
+
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Lead Sources Chart
+    const leadSourceCtx = document.getElementById('leadSourceChart').getContext('2d');
+    new Chart(leadSourceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Package Page', 'Clinic Profile', 'Search Results', 'Direct'],
+            datasets: [{
+                data: [60, 25, 10, 5],
+                backgroundColor: [
+                    '#007bff',
+                    '#28a745',
+                    '#ffc107',
+                    '#6c757d'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Contact Methods Chart
+    const contactMethodCtx = document.getElementById('contactMethodChart').getContext('2d');
+    new Chart(contactMethodCtx, {
+        type: 'bar',
+        data: {
+            labels: ['WhatsApp', 'Phone Call'],
+            datasets: [{
+                label: 'Leads',
+                data: [{{ package.chat_leads or 0 }}, {{ package.call_leads or 0 }}],
+                backgroundColor: [
+                    '#25d366',
+                    '#007bff'
+                ],
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+
+function exportAnalytics() {
+    window.open(`/clinic/packages/{{ package.id }}/analytics/export`, '_blank');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+/* Mobile Navigation Icons - Guaranteed Fix */
+.mobile-bottom-nav .nav-icon {
+    display: inline-block !important;
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+    width: 20px !important;
+    height: 20px !important;
+    text-align: center !important;
+}
+
+/* Fallback Unicode Icons - Will Always Display */
+.mobile-bottom-nav #nav-clinics .nav-icon::before {
+    content: "🏥" !important;
+    font-style: normal !important;
+}
+
+.mobile-bottom-nav #nav-doctors .nav-icon::before {
+    content: "👨‍⚕️" !important;
+    font-style: normal !important;
+}
+
+.mobile-bottom-nav #nav-packages .nav-icon::before {
+    content: "🎁" !important;
+    font-style: normal !important;
+}
+
+.mobile-bottom-nav #nav-procedures .nav-icon::before {
+    content: "📋" !important;
+    font-style: normal !important;
+}
+
+.mobile-bottom-nav #nav-community .nav-icon::before {
+    content: "👥" !important;
+    font-style: normal !important;
+}
+
+/* Alternative: Simple geometric icons using CSS */
+.mobile-bottom-nav .nav-icon.css-icon {
+    background: currentColor;
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    position: relative;
+    display: inline-block !important;
+}
+
+.mobile-bottom-nav .nav-icon.css-icon::before,
+.mobile-bottom-nav .nav-icon.css-icon::after {
+    content: "";
+    position: absolute;
+    background: currentColor;
+}
+
+/* Clinic Icon - Building */
+.mobile-bottom-nav #nav-clinics .nav-icon.css-icon::before {
+    width: 6px;
+    height: 10px;
+    left: 2px;
+    top: 4px;
+}
+
+.mobile-bottom-nav #nav-clinics .nav-icon.css-icon::after {
+    width: 6px;
+    height: 10px;
+    right: 2px;
+    top: 4px;
+}
+
+/* Doctor Icon - Cross */
+.mobile-bottom-nav #nav-doctors .nav-icon.css-icon::before {
+    width: 2px;
+    height: 14px;
+    left: 8px;
+    top: 2px;
+}
+
+.mobile-bottom-nav #nav-doctors .nav-icon.css-icon::after {
+    width: 14px;
+    height: 2px;
+    left: 2px;
+    top: 8px;
+}
+
+/* Package Icon - Gift box */
+.mobile-bottom-nav #nav-packages .nav-icon.css-icon {
+    background: linear-gradient(135deg, #00a0b0, #30c2d0);
+}
+
+.mobile-bottom-nav #nav-packages .nav-icon.css-icon::before {
+    width: 14px;
+    height: 2px;
+    left: 2px;
+    top: 8px;
+    background: white;
+}
+
+.mobile-bottom-nav #nav-packages .nav-icon.css-icon::after {
+    width: 2px;
+    height: 14px;
+    left: 8px;
+    top: 2px;
+    background: white;
+}
+
+/* Procedures Icon - List */
+.mobile-bottom-nav #nav-procedures .nav-icon.css-icon::before {
+    width: 12px;
+    height: 2px;
+    left: 3px;
+    top: 4px;
+}
+
+.mobile-bottom-nav #nav-procedures .nav-icon.css-icon::after {
+    width: 12px;
+    height: 2px;
+    left: 3px;
+    top: 12px;
+    box-shadow: 0 -4px 0 currentColor;
+}
+
+/* Community Icon - People */
+.mobile-bottom-nav #nav-community .nav-icon.css-icon {
+    border-radius: 50% 50% 0 0;
+}
+
+.mobile-bottom-nav #nav-community .nav-icon.css-icon::before {
+    width: 6px;
+    height: 6px;
+    left: 2px;
+    top: 8px;
+    border-radius: 50%;
+}
+
+.mobile-bottom-nav #nav-community .nav-icon.css-icon::after {
+    width: 6px;
+    height: 6px;
+    right: 2px;
+    top: 8px;
+    border-radius: 50%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 360px) {
+    .mobile-bottom-nav .nav-icon {
+        font-size: 18px !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+}
+
+@media (max-width: 320px) {
+    .mobile-bottom-nav .nav-icon {
+        font-size: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+    }
+}

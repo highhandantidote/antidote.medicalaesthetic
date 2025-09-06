@@ -1,0 +1,997 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Antidote{% endblock %}
+
+{% block content %}
+<!-- Modern Admin Dashboard Header -->
+<div class="admin-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-12 col-md-6">
+                <h1 class="admin-title">Admin Dashboard</h1>
+                <p class="admin-subtitle">Manage your platform with ease</p>
+            </div>
+            <div class="col-12 col-md-6 text-md-end">
+                <div class="admin-breadcrumb">
+                    <span class="breadcrumb-item">Home</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item active">Admin Dashboard</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Content -->
+<div class="admin-content">
+    <div class="container-fluid">
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-12 mb-3">
+                <h3 class="section-title">Platform Overview</h3>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-users">
+                    <div class="stat-icon">
+                        <i data-feather="users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_users or 0 }}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-clinics">
+                    <div class="stat-icon">
+                        <i data-feather="building"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_clinics or 0 }}</div>
+                        <div class="stat-label">Total Clinics</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-procedures">
+                    <div class="stat-icon">
+                        <i data-feather="activity"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_procedures or 0 }}</div>
+                        <div class="stat-label">Total Procedures</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-leads">
+                    <div class="stat-icon">
+                        <i data-feather="trending-up"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ total_leads or 0 }}</div>
+                        <div class="stat-label">Total Leads</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credit Management Overview -->
+        <div class="row mb-4">
+            <div class="col-12 mb-3">
+                <h3 class="section-title">Credit Management Overview</h3>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-credits">
+                    <div class="stat-icon">
+                        <i data-feather="credit-card"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ "{:,}".format(stats.total_credits or 0) }}</div>
+                        <div class="stat-label">Total Credits</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-active">
+                    <div class="stat-icon">
+                        <i data-feather="check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ stats.active_clinics or 0 }}</div>
+                        <div class="stat-label">Active Clinics</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-warning">
+                    <div class="stat-icon">
+                        <i data-feather="alert-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ stats.low_balance_clinics or 0 }}</div>
+                        <div class="stat-label">Low Balance Clinics</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-lg-3 mb-3">
+                <div class="stat-card stat-card-analytics">
+                    <div class="stat-icon">
+                        <i data-feather="bar-chart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ lead_analytics.recent_leads or 0 }}</div>
+                        <div class="stat-label">Recent Leads (7 days)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Sections -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <h3 class="section-title">Management Tools</h3>
+            </div>
+            
+            <!-- User & Clinic Management -->
+            <div class="col-12 col-lg-6 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="users"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>User & Clinic Management</h4>
+                            <p>Manage users, clinics, and verification requests</p>
+                        </div>
+                    </div>
+                    <div class="management-actions">
+                        <a href="{{ url_for('web.admin_users') }}" class="action-btn action-btn-primary">
+                            <i data-feather="user-check"></i>
+                            <span>Manage Users</span>
+                        </a>
+                        <a href="{{ url_for('web.admin_clinic') }}" class="action-btn action-btn-success">
+                            <i data-feather="building"></i>
+                            <span>Manage Clinics</span>
+                        </a>
+                        <a href="{{ url_for('web.admin_doctor_verification_requests') }}" class="action-btn action-btn-warning">
+                            <i data-feather="shield"></i>
+                            <span>Verification Requests</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Management -->
+            <div class="col-12 col-lg-6 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="edit-3"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>Content Management</h4>
+                            <p>Manage procedures, categories, and community content</p>
+                        </div>
+                    </div>
+                    <div class="management-actions">
+                        <a href="{{ url_for('web.admin_procedures') }}" class="action-btn action-btn-info">
+                            <i data-feather="activity"></i>
+                            <span>Manage Procedures</span>
+                        </a>
+                        <a href="{{ url_for('web.admin_community_moderation') }}" class="action-btn action-btn-purple">
+                            <i data-feather="message-circle"></i>
+                            <span>Community Moderation</span>
+                        </a>
+                        <a href="{{ url_for('web.admin_category_images') }}" class="action-btn action-btn-teal">
+                            <i data-feather="image"></i>
+                            <span>Category Images</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics & Reports -->
+            <div class="col-12 col-lg-6 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="bar-chart-2"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>Analytics & Reports</h4>
+                            <p>View platform analytics, leads, and financial reports</p>
+                        </div>
+                    </div>
+                    <div class="management-actions">
+                        <a href="{{ url_for('web.admin_analytics') }}" class="action-btn action-btn-dark">
+                            <i data-feather="trending-up"></i>
+                            <span>Platform Analytics</span>
+                        </a>
+                        <a href="{{ url_for('comprehensive_admin.comprehensive_dashboard') }}" class="action-btn action-btn-orange">
+                            <i data-feather="target"></i>
+                            <span>NEW: Complete Lead Analytics</span>
+                        </a>
+                        <a href="{{ url_for('web.admin_transaction_history') }}" class="action-btn action-btn-green">
+                            <i data-feather="dollar-sign"></i>
+                            <span>Transaction History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Management -->
+            <div class="col-12 col-lg-6 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="settings"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>System Management</h4>
+                            <p>Manage credits, pricing, and system settings</p>
+                        </div>
+                    </div>
+                    <div class="management-actions">
+                        <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="action-btn action-btn-blue">
+                            <i data-feather="credit-card"></i>
+                            <span>Credit Management</span>
+                        </a>
+                        <a href="{{ url_for('comprehensive_admin.detailed_leads') }}" class="action-btn action-btn-indigo">
+                            <i data-feather="users"></i>
+                            <span>Detailed Lead Management</span>
+                        </a>
+                        <a href="/banners" class="action-btn action-btn-pink">
+                            <i data-feather="image"></i>
+                            <span>Banner Management</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credit Allocation and Recent Activity -->
+        <div class="row">
+            <div class="col-12 col-lg-8 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="credit-card"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>Clinic Credit Management</h4>
+                            <p>Allocate credits and manage clinic balances</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Credit Allocation Form -->
+                    <div class="credit-allocation-form mb-4">
+                        <form action="{{ url_for('admin_credit.allocate_credits') }}" method="POST" class="row g-3">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="col-md-4">
+                                <label class="form-label">Select Clinic</label>
+                                <select name="clinic_id" class="form-select" required>
+                                    <option value="">Choose a clinic...</option>
+                                    {% for clinic in clinics %}
+                                    <option value="{{ clinic.id }}">{{ clinic.name }} ({{ clinic.credit_balance or 0 }} credits)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Credits to Allocate</label>
+                                <input type="number" name="credits" class="form-control" min="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Description (Optional)</label>
+                                <input type="text" name="description" class="form-control" placeholder="Reason for allocation...">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i data-feather="plus"></i> Allocate
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Low Balance Clinics Table -->
+                    <div class="table-responsive">
+                        <h5 class="mb-3">Clinics Requiring Attention</h5>
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Clinic Name</th>
+                                    <th>Current Balance</th>
+                                    <th>Total Purchased</th>
+                                    <th>Total Used</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for clinic in clinics[:10] %}
+                                <tr class="{% if clinic.credit_balance <= 100 %}table-danger{% elif clinic.credit_balance <= 500 %}table-warning{% endif %}">
+                                    <td>
+                                        <strong>{{ clinic.name }}</strong>
+                                        <br><small class="text-muted">{{ clinic.email }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if clinic.credit_balance <= 100 %}bg-danger{% elif clinic.credit_balance <= 500 %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ clinic.credit_balance or 0 }} credits
+                                        </span>
+                                    </td>
+                                    <td>{{ clinic.total_credits_purchased or 0 }}</td>
+                                    <td>{{ clinic.total_credits_used or 0 }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="quickAllocate({{ clinic.id }}, '{{ clinic.name }}')">
+                                            <i data-feather="plus-circle"></i> Quick Allocate
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-lg-4 mb-4">
+                <div class="management-card">
+                    <div class="management-header">
+                        <div class="management-icon">
+                            <i data-feather="activity"></i>
+                        </div>
+                        <div class="management-title">
+                            <h4>Recent Transactions</h4>
+                            <p>Latest credit activities</p>
+                        </div>
+                    </div>
+                    <div class="recent-transactions">
+                        {% for transaction in recent_transactions[:8] %}
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-clinic">{{ transaction.clinic_name or 'Unknown Clinic' }}</div>
+                                <div class="transaction-type">
+                                    <span class="badge {% if transaction.transaction_type == 'allocation' %}bg-success{% elif transaction.transaction_type == 'deduction' %}bg-warning{% else %}bg-info{% endif %}">
+                                        {{ transaction.transaction_type.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="transaction-amount">
+                                {% if transaction.transaction_type == 'allocation' %}+{% else %}-{% endif %}{{ transaction.credits_used or transaction.credits_allocated or 0 }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if recent_transactions|length == 0 %}
+                        <div class="text-center text-muted py-4">
+                            <i data-feather="inbox"></i>
+                            <p class="mt-2">No recent transactions</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-outline-primary btn-sm">
+                                View All Transactions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Bar -->
+        <div class="row">
+            <div class="col-12">
+                <div class="quick-actions-bar">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-outline-primary">
+                            <i data-feather="credit-card"></i> Full Credit Dashboard
+                        </a>
+                        <a href="{{ url_for('web.admin_transaction_history') }}" class="btn btn-outline-info">
+                            <i data-feather="clock"></i> Transaction History
+                        </a>
+                        <a href="{{ url_for('lead_pricing.pricing_management') }}" class="btn btn-outline-success">
+                            <i data-feather="tag"></i> Lead Pricing
+                        </a>
+                        <a href="{{ url_for('web.admin_lead_analytics') }}" class="btn btn-outline-warning">
+                            <i data-feather="bar-chart-2"></i> Lead Analytics
+                        </a>
+                        <a href="/admin/disputes" class="btn btn-outline-danger">
+                            <i data-feather="alert-triangle"></i> View Disputes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Allocate Modal -->
+<div class="modal fade" id="quickAllocateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Credit Allocation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_credit.allocate_credits') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="clinic_id" id="quickClinicId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Clinic</label>
+                        <input type="text" id="quickClinicName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Credits to Allocate</label>
+                        <input type="number" name="credits" class="form-control" min="1" value="1000" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Quick allocation via admin dashboard">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Allocate Credits</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Admin Dashboard Styles */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.admin-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.admin-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.admin-breadcrumb {
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+.breadcrumb-separator {
+    margin: 0 0.5rem;
+}
+
+.breadcrumb-item.active {
+    opacity: 1;
+    font-weight: 500;
+}
+
+.admin-content {
+    padding: 0 0 3rem 0;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 1rem;
+}
+
+/* Modern Stat Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.stat-icon svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+}
+
+.stat-card-users .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-card-clinics .stat-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stat-card-procedures .stat-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-card-leads .stat-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+/* Additional stat card variants */
+.stat-card-credits .stat-icon { background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); }
+.stat-card-active .stat-icon { background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); }
+.stat-card-warning .stat-icon { background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); }
+.stat-card-analytics .stat-icon { background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); }
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+/* Management Cards */
+.management-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.management-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.management-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.management-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.management-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+}
+
+.management-title h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.25rem;
+}
+
+.management-title p {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 0;
+}
+
+.management-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.action-btn svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.5rem;
+}
+
+.action-btn:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+/* Action Button Variants */
+.action-btn-primary { background-color: #edf2f7; color: #667eea; border-color: #e2e8f0; }
+.action-btn-primary:hover { background-color: #667eea; color: white; }
+
+.action-btn-success { background-color: #f0fff4; color: #38a169; border-color: #c6f6d5; }
+.action-btn-success:hover { background-color: #38a169; color: white; }
+
+.action-btn-warning { background-color: #fffbeb; color: #d69e2e; border-color: #fbd38d; }
+.action-btn-warning:hover { background-color: #d69e2e; color: white; }
+
+.action-btn-info { background-color: #ebf8ff; color: #3182ce; border-color: #bee3f8; }
+.action-btn-info:hover { background-color: #3182ce; color: white; }
+
+.action-btn-purple { background-color: #faf5ff; color: #805ad5; border-color: #e9d8fd; }
+.action-btn-purple:hover { background-color: #805ad5; color: white; }
+
+.action-btn-teal { background-color: #e6fffa; color: #319795; border-color: #b2f5ea; }
+.action-btn-teal:hover { background-color: #319795; color: white; }
+
+.action-btn-dark { background-color: #f7fafc; color: #2d3748; border-color: #e2e8f0; }
+.action-btn-dark:hover { background-color: #2d3748; color: white; }
+
+.action-btn-orange { background-color: #fffaf0; color: #dd6b20; border-color: #fbd38d; }
+.action-btn-orange:hover { background-color: #dd6b20; color: white; }
+
+.action-btn-green { background-color: #f0fff4; color: #38a169; border-color: #c6f6d5; }
+.action-btn-green:hover { background-color: #38a169; color: white; }
+
+.action-btn-blue { background-color: #ebf4ff; color: #3182ce; border-color: #90cdf4; }
+.action-btn-blue:hover { background-color: #3182ce; color: white; }
+
+.action-btn-indigo { background-color: #ebf4ff; color: #5a67d8; border-color: #a3bffa; }
+.action-btn-indigo:hover { background-color: #5a67d8; color: white; }
+
+.action-btn-pink { background-color: #fef5e7; color: #d53f8c; border-color: #fed7d7; }
+.action-btn-pink:hover { background-color: #d53f8c; color: white; }
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 1.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .admin-title {
+        font-size: 2rem;
+    }
+    
+    .admin-subtitle {
+        font-size: 1rem;
+    }
+    
+    .admin-breadcrumb {
+        margin-top: 1rem;
+        text-align: left;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .stat-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+    }
+    
+    .management-card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .management-header {
+        margin-bottom: 1.25rem;
+    }
+    
+    .management-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .management-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .management-title h4 {
+        font-size: 1.125rem;
+    }
+    
+    .action-btn {
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .section-title {
+        font-size: 1.375rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-header {
+        padding: 1.25rem 0;
+        margin-bottom: 1.25rem;
+    }
+    
+    .admin-title {
+        font-size: 1.75rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+    }
+    
+    .management-card {
+        padding: 1.25rem;
+    }
+    
+    .management-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .management-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        align-self: center;
+    }
+    
+    .action-btn {
+        justify-content: center;
+    }
+}
+
+/* Credit Management Specific Styles */
+.credit-allocation-form {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.credit-allocation-form .form-label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.recent-transactions {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-info {
+    flex: 1;
+}
+
+.transaction-clinic {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.9rem;
+}
+
+.transaction-type {
+    margin-top: 0.25rem;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.quick-actions-bar {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.quick-actions-bar .btn {
+    margin-bottom: 0.5rem;
+}
+
+/* Table enhancements */
+.table th {
+    font-weight: 600;
+    color: #2d3748;
+    border-top: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badge enhancements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Mobile specific adjustments for credit management */
+@media (max-width: 768px) {
+    .credit-allocation-form .row {
+        margin: 0;
+    }
+    
+    .credit-allocation-form .col-md-4,
+    .credit-allocation-form .col-md-3,
+    .credit-allocation-form .col-md-2 {
+        padding: 0 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .transaction-amount {
+        margin-top: 0.5rem;
+        align-self: flex-end;
+    }
+    
+    .quick-actions-bar .d-flex {
+        flex-direction: column;
+    }
+    
+    .quick-actions-bar .btn {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Auto-refresh icons after AJAX calls or dynamic content updates
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length > 0) {
+                feather.replace();
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
+
+// Quick allocate modal functionality
+function quickAllocate(clinicId, clinicName) {
+    document.getElementById('quickClinicId').value = clinicId;
+    document.getElementById('quickClinicName').value = clinicName;
+    
+    // Show modal using Bootstrap 5
+    const modal = new bootstrap.Modal(document.getElementById('quickAllocateModal'));
+    modal.show();
+}
+
+// Form validation and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                submitBtn.disabled = true;
+            }
+        });
+    });
+});
+
+// Auto-refresh functionality for live data
+let autoRefreshInterval;
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(function() {
+        // Refresh transaction data and stats without full page reload
+        fetch(window.location.href + '?ajax=1')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDashboardStats(data);
+                }
+            })
+            .catch(error => {
+                console.log('Auto-refresh failed:', error);
+            });
+    }, 30000); // Refresh every 30 seconds
+}
+
+function updateDashboardStats(data) {
+    // Update stat numbers if provided
+    if (data.stats) {
+        document.querySelectorAll('.stat-number').forEach((element, index) => {
+            if (data.stats[index]) {
+                element.textContent = data.stats[index];
+            }
+        });
+    }
+}
+
+// Initialize auto-refresh
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRefresh();
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+});
+</script>
+{% endblock %}

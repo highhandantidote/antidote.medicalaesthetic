@@ -1,0 +1,150 @@
+Below is a carefully crafted prompt designed to guide the development of the GlowUp Community platform using Replit’s AI Agent (or a similar AI-assisted development tool). The prompt focuses exclusively on building the community component, replicating X.com’s UI/UX and features, integrating the Reddit API for authentic cosmetic surgery posts, and incorporating an AI-powered doctor persona (Dr. Glow) to address user pain points (fear of outcomes, safety concerns, trust, cost uncertainty, lack of support, privacy, misinformation). The goal is to create an engaging, supportive community that motivates users to book consultations, with a marketplace integration for direct slot booking (no payment). The prompt is concise, actionable, and tailored for Replit’s AI to generate code, configurations, or a development plan.
+Prompt for Replit AI Agent: GlowUp Community
+Objective: Build GlowUp Community, a social platform for cosmetic surgery enthusiasts, replicating X.com’s UI/UX and community features. The platform fosters a supportive environment to address user pain points: fear of outcomes, safety concerns, trust in providers, cost uncertainty, lack of peer support, privacy issues, and misinformation. Integrate the Reddit API to fetch posts from r/PlasticSurgery, support multimedia (text, images, videos, GIFs), and feature an AI-powered doctor persona, Dr. Glow, responding to every post with empathetic, professional, and motivational replies to encourage consultation bookings. Include a direct booking system (no payment) to connect users with verified surgeons.
+Requirements:
+UI/UX Design (X.com Replica):
+Aesthetic: Mirror X.com’s minimalist design with dark/light mode toggle, sans-serif fonts, smooth animations.
+Layout:
+Central Feed: Display user-generated and Reddit-fetched posts with multimedia.
+Sidebar: Navigation for Home, Profile, Messages, Book Appointment, Knowledge Hub, Support Groups, Explore, Trends, Notifications.
+Top Bar: Search for posts, hashtags, or surgeons; user profile with avatar.
+Multimedia Support:
+Text: Title (280 characters max), body (500 words max).
+Images: Up to 4 (JPEG, PNG, 5MB max), grid/carousel display, optional blur for privacy.
+Videos: Up to 2 minutes (MP4, 512MB max), auto-play on mute.
+GIFs: Giphy integration for expressive posts.
+Responsive Design: Mobile-first with swipe gestures, pinch-to-zoom, X.com-like fluidity.
+Engagement Features (X.com-inspired):
+Likes/Reposts/Comments: Heart, repost, comment buttons.
+Quote Posts: Add commentary to reposts.
+Bookmarks: Save posts privately, accessible via sidebar.
+Direct Messages (DMs): Encrypted chats for user-user or user-surgeon communication.
+Hashtags: Tag posts (e.g., #BotoxJourney) for discoverability.
+Trending Topics: Real-time trending hashtags and procedures (e.g., #Fillers, “Rhinoplasty”) in Trends tab, based on post engagement, searches, and Reddit upvotes.
+Live Streaming: Host Q&As (e.g., “Live Botox Q&A”) with real-time comments.
+Polls: Engage users (e.g., “Biggest concern? A) Cost B) Recovery”).
+Post Analytics: X.com-style insights (views, likes, reposts) for users.
+Suggested Accounts: Recommend surgeons or active users based on interests (e.g., liking #Lipo posts suggests “Lipo Support” group).
+Moments: Curated collections of top posts (e.g., “Best Filler Journeys”) in Explore tab.
+Custom Feeds: Users create feeds by following hashtags or accounts.
+Verified Badges: Blue checkmarks for surgeons and “GlowUp Guides” to build trust.
+Push Notifications: Alerts for likes, comments, DMs, trending topics, or group posts.
+CTA: “Book a Consultation” button on posts, profiles, sidebar, linking to direct booking.
+Community Features (Addressing Pain Points):
+User Types:
+Aspiring Patients: Share questions/goals (e.g., “Nervous about fillers, here’s my inspo photo!”).
+Post-Surgery Users: Share journeys (e.g., “My lipo at 3 weeks [video]”).
+Surgeons: Verified professionals post educational content or reply (optional paid ads).
+Support Groups: Topic-specific chats (e.g., “Botox Buddies,” “Rhinoplasty Recovery”) for peer support.
+Mentorship Program: Post-surgery users become “GlowUp Guides” to mentor newbies, earning badges.
+Knowledge Hub: Curated articles/videos on procedures, risks, recovery (sourced from ASPS, Mayo Clinic), accessible via sidebar.
+Moderation: AI flags inappropriate content (graphic images, misinformation); human moderators review via dashboard.
+Gamification: Badges (e.g., “GlowUp Star” for 10+ posts), leaderboards for engagement.
+Community Events: Weekly hashtag campaigns (e.g., #TransformationTuesday) or live streams to boost participation.
+Privacy Features:
+Anonymous posting option or blurred images.
+Encrypted DMs for sensitive discussions.
+GDPR-compliant data handling.
+Reddit API Integration:
+Fetch posts from r/PlasticSurgery using Reddit API (GET /r/PlasticSurgery/hot, GET /r/PlasticSurgery/new).
+Retrieve title, body, images, videos (Reddit-hosted, Imgur, YouTube), upvotes, comments.
+Filter by keywords (e.g., “Botox,” “recovery”) or flairs (e.g., “Before/After”).
+Map Reddit JSON to app schema (e.g., title to post_title, url to media_url).
+Store media in Cloudinary, serve via CDN.
+Poll API every 5 minutes, respect 60 requests/minute limit, cache posts in Redis.
+Display “Source: r/PlasticSurgery” with a link for compliance.
+Use Reddit upvotes/comments to influence Trending Topics (e.g., high-engagement posts boost #Lipo).
+AI-Powered Doctor Responses (Dr. Glow):
+Respond to every post within 30 seconds, analyzing text, images, videos:
+Professional: Evidence-based (e.g., “Your photo shows typical post-Botox swelling, subsiding in 2-5 days.”).
+Empathetic: Validates emotions (e.g., “Sharing your journey is so courageous!”).
+Motivational: Includes CTA (e.g., “Ready to start? Book a consultation! [Book Now]”).
+Use AWS Rekognition for multimedia analysis (e.g., identifying procedures in photos).
+Train on ASPS guidelines, PubMed, r/PlasticSurgery posts; avoid diagnoses.
+Moderate responses with OpenAI moderation API for safety.
+Example:
+Post: “My filler results [video]. Is this normal?”
+Dr. Glow Reply: “Your results look promising! Mild swelling is common for 2-5 days. Book a consultation for tailored advice! [Book Now]”
+Marketplace Integration (Direct Booking, No Payment):
+Booking System:
+Browse verified surgeons by location, specialty (e.g., fillers, rhinoplasty), reviews.
+Book consultation slots (in-person/teleconsultation) via Calendly API.
+No payment required; users enter contact details, receive email/in-app confirmation, sync to Google/Outlook.
+Surgeon Profiles:
+Credentials, before/after galleries (images/videos), reviews.
+Cost estimates via in-app tool (e.g., “Botox: $300-$600 in LA”).
+Financing links (e.g., CareCredit), handled offline.
+Cost Estimator Tool: Provide average procedure costs by location.
+User Flow: Click “Book Now,” select slot, confirm, receive confirmation.
+Admin Dashboard:
+Track engagement (views, likes, reposts), multimedia usage, booking conversions.
+Monitor Reddit API performance, Dr. Glow response quality, trending hashtags.
+Analyze sentiment (e.g., top concerns: safety, cost) to refine AI replies.
+Technical Stack:
+Frontend: React.js, Next.js, Tailwind CSS, React Player (videos), Cloudinary (images), Giphy (GIFs), Redux (state).
+Backend: Node.js, Express, MongoDB (users, posts, bookings), Redis (caching).
+APIs:
+Reddit API (OAuth 2.0, post fetching).
+Calendly API (booking).
+AWS Rekognition (multimedia analysis).
+OpenAI moderation API (content safety).
+AI: Grok 3 (or Replit-compatible LLM), fine-tuned on cosmetic surgery data.
+Hosting: Vercel (frontend), AWS (backend), Cloudflare (CDN).
+Security: HTTPS, JWT, GDPR compliance.
+Pain Point Solutions:
+Fear/Safety: Dr. Glow’s reassuring replies, Knowledge Hub, success stories.
+Trust: Verified surgeons, transparent reviews.
+Cost: Cost estimator, financing links, no upfront payment.
+Support: Support groups, mentorship, community events.
+Privacy: Anonymous posts, blurred images, secure DMs.
+Misinformation: Dr. Glow’s credible replies, curated Reddit posts, moderation.
+Development Tasks (for Replit AI Agent):
+Setup:
+Initialize Replit project with Node.js, React.js, Next.js, Tailwind CSS.
+Configure MongoDB, Redis, Cloudinary.
+Frontend:
+Build X.com-style UI: central feed, sidebar (Home, Profile, Messages, Book Appointment, Knowledge Hub, Support Groups, Explore, Trends, Notifications), top bar (search, profile).
+Implement multimedia posts (text, images, videos, GIFs), engagement features (likes, reposts, comments, DMs, hashtags, trending topics, live streaming, polls, analytics, Moments, custom feeds, suggested accounts).
+Add “Book a Consultation” CTA with Calendly widget.
+Create Knowledge Hub and Support Groups pages.
+Backend:
+Set up Express server, MongoDB schema (users, posts, bookings).
+Integrate Reddit API (OAuth 2.0, fetch posts/media, cache in Redis).
+Implement trends algorithm (based on engagement, searches, Reddit upvotes).
+Integrate Calendly API for booking.
+AI Integration:
+Implement Dr. Glow (Grok 3 or Replit LLM), fine-tuned on cosmetic surgery data.
+Add AWS Rekognition for multimedia analysis.
+Use OpenAI moderation API for content safety.
+Testing:
+Test UI (X.com fidelity), Reddit API integration, AI responses, booking flow.
+Verify trending topics and hashtag functionality.
+Deliverables:
+Replit project with working UI, community features, Reddit API, AI responses, booking system.
+Sample posts with Dr. Glow replies.
+Admin dashboard for monitoring.
+Constraints:
+Replicate X.com’s UI/UX exactly (use X.com screenshots if needed).
+Respect Reddit API rate limits (60 requests/minute).
+Ensure AI responses are safe, non-diagnostic, and motivational.
+Complete MVP within Replit’s environment, optimizing for performance.
+Example Interaction:
+User Post: “Considering rhinoplasty, here’s my inspo photo! [image] #RhinoplastyJourney”
+Dr. Glow Reply: “Your vision is exciting! Rhinoplasty can enhance your features naturally. Book a consultation to explore options! [Book Now]”
+Community: Post trends under #RhinoplastyJourney, users join “Rhinoplasty Recovery” group, surgeon hosts live Q&A.
+Start:
+Generate React components for feed, sidebar, Trends tab, and top bar.
+Set up Express routes for Reddit API post fetching and MongoDB storage.
+Implement sample Dr. Glow response function with hashtag support.
+Provide progress for review before adding booking and advanced X.com features.
+Next Steps:
+Build initial UI and Reddit API integration.
+Test Dr. Glow responses with multimedia.
+Add trending topics and hashtag functionality.
+Integrate Calendly for booking.
+Notes for Using the Prompt
+Replit AI Agent: Paste this into Replit’s AI Agent interface to guide development. Request specific components (e.g., “Start with feed and sidebar”) if iterative coding is supported.
+Customization: Adjust if Replit’s AI has limitations (e.g., use a simpler LLM if Grok 3 is unavailable, or skip AWS Rekognition).
+Testing: Use Replit’s preview to test X.com-like UI, Reddit API, and Dr. Glow responses.
+Scaling: Export to Vercel/AWS for production if Replit’s environment is limited.
+This prompt ensures a focused community platform that mirrors X.com, addresses cosmetic surgery pain points, and drives engagement and bookings. Let me know if you need to refine the prompt, generate sample code, or troubleshoot Replit’s AI Agent!

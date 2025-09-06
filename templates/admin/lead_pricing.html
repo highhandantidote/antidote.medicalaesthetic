@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Pricing Management - Admin{% endblock %}
+
+{% block head %}
+<!-- Simple table styling without DataTables -->
+<style>
+.table-responsive {
+    overflow-x: auto;
+}
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Lead Pricing Management</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTierModal">
+                <i class="fas fa-plus"></i> Add New Tier
+            </button>
+        </div>
+    </div>
+
+    <!-- Current Pricing Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Current Pricing Tiers</h6>
+                    <div class="dropdown no-arrow">
+                        <button class="btn btn-outline-primary btn-sm" onclick="previewPricingImpact()">
+                            <i class="fas fa-eye"></i> Preview Impact
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tier Name</th>
+                                    <th>Package Value Range</th>
+                                    <th>Credit Cost</th>
+                                    <th>Active</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tier in pricing_tiers %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ tier.tier_name }}</strong>
+                                    </td>
+                                    <td>
+                                        ₹{{ "{:,}".format(tier.min_package_value) }}
+                                        {% if tier.max_package_value %}
+                                            - ₹{{ "{:,}".format(tier.max_package_value) }}
+                                        {% else %}
+                                            +
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">{{ tier.credit_cost }} credits</span>
+                                    </td>
+                                    <td>
+                                        {% if tier.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ tier.created_at.strftime('%Y-%m-%d') if tier.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="editTier({{ tier.id }}, '{{ tier.tier_name }}', {{ tier.min_package_value }}, {{ tier.max_package_value or 'null' }}, {{ tier.credit_cost }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="deleteTier({{ tier.id }}, '{{ tier.tier_name }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Calculator -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pricing Calculator</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="packageValue">Package Value (₹)</label>
+                        <input type="number" class="form-control" id="packageValue" placeholder="Enter package value" min="0">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateCost()">Calculate Cost</button>
+                    <div id="calculationResult" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pricing Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pricing_stats.total_tiers }}</div>
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Tiers</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pricing_stats.avg_cost }}</div>
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Avg Cost</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pricing_stats.min_cost }}</div>
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Min Cost</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pricing_stats.max_cost }}</div>
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Max Cost</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Tier Modal -->
+<div class="modal fade" id="addTierModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Pricing Tier</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="tierForm">
+                <div class="modal-body">
+                    <input type="hidden" id="tierId" name="tier_id">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="form-group">
+                        <label for="tierName">Tier Name</label>
+                        <input type="text" class="form-control" id="tierName" name="tier_name" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="minValue">Minimum Package Value (₹)</label>
+                                <input type="number" class="form-control" id="minValue" name="min_package_value" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="maxValue">Maximum Package Value (₹)</label>
+                                <input type="number" class="form-control" id="maxValue" name="max_package_value" min="0">
+                                <small class="form-text text-muted">Leave empty for unlimited</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="creditCost">Credit Cost</label>
+                        <input type="number" class="form-control" id="creditCost" name="credit_cost" min="1" required>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> Make sure tier ranges don't overlap with existing tiers. 
+                        The system will validate for conflicts.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Tier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Impact Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pricing Impact Preview</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Preview content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isEditing = false;
+let editingTierId = null;
+
+// Get CSRF token from meta tag
+function getCSRFToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    return metaTag ? metaTag.getAttribute('content') : '';
+}
+
+// Submit tier form
+function submitTierForm(formData) {
+    const tierData = {};
+    for (let [key, value] of formData.entries()) {
+        if (value.trim() !== '') {
+            tierData[key] = value;
+        }
+    }
+    
+    // Add tier ID for editing
+    if (isEditing && editingTierId) {
+        tierData.tier_id = editingTierId;
+    }
+    
+    const url = isEditing ? '/admin/pricing/update' : '/admin/pricing/create';
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    return $.ajax({
+        url: url,
+        method: 'POST',
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
+        data: JSON.stringify(tierData),
+        success: function(data) {
+            if (data.success) {
+                alert(isEditing ? 'Tier updated successfully!' : 'Tier created successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.errors ? data.errors.join(', ') : data.message || 'Unknown error'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            alert('An error occurred while saving the tier');
+        },
+        complete: function() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+
+// Initialize page when document is ready
+$(document).ready(function() {
+    // Form submission handler
+    $('#tierForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        submitTierForm(formData);
+    });
+    
+    // Modal reset handler
+    $('#addTierModal').on('hidden.bs.modal', function() {
+        isEditing = false;
+        editingTierId = null;
+        document.getElementById('tierForm').reset();
+        document.querySelector('#addTierModal .modal-title').textContent = 'Add New Pricing Tier';
+        document.getElementById('submitBtn').textContent = 'Add Tier';
+    });
+});
+
+// Edit tier function
+function editTier(id, name, minVal, maxVal, creditCost) {
+    isEditing = true;
+    editingTierId = id;
+    
+    // Fill the form with existing data
+    document.getElementById('tierName').value = name;
+    document.getElementById('minValue').value = minVal;
+    document.getElementById('maxValue').value = maxVal === 'null' ? '' : maxVal;
+    document.getElementById('creditCost').value = creditCost;
+    
+    // Update modal title
+    document.querySelector('#addTierModal .modal-title').textContent = 'Edit Pricing Tier';
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('addTierModal')).show();
+}
+
+// Delete tier function
+function deleteTier(id, name) {
+    if (!confirm(`Are you sure you want to delete the pricing tier "${name}"?`)) {
+        return;
+    }
+    
+    $.ajax({
+        url: '/admin/pricing/delete',
+        method: 'POST',
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
+        data: JSON.stringify({tier_id: id}),
+        success: function(data) {
+            if (data.success) {
+                alert('Tier deleted successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Delete error:', error);
+            alert('An error occurred while deleting the tier');
+        }
+    });
+}
+
+// Preview pricing impact function
+function previewPricingImpact() {
+    $.ajax({
+        url: '/api/pricing/preview',
+        method: 'POST',
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        },
+        data: JSON.stringify({tiers: []}),
+        success: function(data) {
+            if (data.success) {
+                let previewHtml = '<h5>Current Pricing Impact</h5>';
+                previewHtml += '<div class="table-responsive">';
+                previewHtml += '<table class="table table-sm">';
+                previewHtml += '<thead><tr><th>Package Name</th><th>Package Price</th><th>Credit Cost</th></tr></thead>';
+                previewHtml += '<tbody>';
+                
+                if (data.preview_data && data.preview_data.length > 0) {
+                    data.preview_data.forEach(item => {
+                        previewHtml += `<tr>
+                            <td>${item.package_name}</td>
+                            <td>₹${item.package_price.toLocaleString()}</td>
+                            <td>${item.current_cost} credits</td>
+                        </tr>`;
+                    });
+                } else {
+                    previewHtml += '<tr><td colspan="3" class="text-center">No preview data available</td></tr>';
+                }
+                
+                previewHtml += '</tbody></table></div>';
+                
+                // Show preview in existing modal
+                document.getElementById('previewContent').innerHTML = previewHtml;
+                $('#previewModal').modal('show');
+            } else {
+                alert('Error loading preview: ' + (data.error || 'Unknown error'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Preview error:', error);
+            alert('An error occurred while loading preview');
+        }
+    });
+}
+
+// Reset modal when hidden
+document.getElementById('addTierModal').addEventListener('hidden.bs.modal', function() {
+    isEditing = false;
+    editingTierId = null;
+    document.getElementById('tierForm').reset();
+    document.querySelector('#addTierModal .modal-title').textContent = 'Add New Pricing Tier';
+    document.getElementById('submitBtn').textContent = 'Add Tier';
+});
+
+// Calculate cost function
+function calculateCost() {
+    const packageValue = document.getElementById('packageValue').value;
+    if (!packageValue || packageValue <= 0) {
+        alert('Please enter a valid package value');
+        return;
+    }
+    
+    fetch('/api/pricing/calculate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            package_value: parseInt(packageValue)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('calculationResult').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Package Value:</strong> ₹${data.package_value.toLocaleString()}<br>
+                    <strong>Credit Cost:</strong> ${data.credit_cost} credits
+                </div>
+            `;
+        } else {
+            document.getElementById('calculationResult').innerHTML = `
+                <div class="alert alert-danger">
+                    Error calculating cost: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('calculationResult').innerHTML = `
+            <div class="alert alert-danger">
+                An error occurred while calculating the cost
+            </div>
+        `;
+    });
+}
+
+// Preview pricing impact
+function previewPricingImpact() {
+    // Get current tiers data
+    const tiers = {{ pricing_tiers | tojson }};
+    
+    fetch('/api/pricing/preview', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            tiers: tiers
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let previewHtml = `
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Package</th>
+                                <th>Price</th>
+                                <th>Current Cost</th>
+                                <th>New Cost</th>
+                                <th>Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            data.preview_data.forEach(item => {
+                const diffClass = item.difference > 0 ? 'text-danger' : item.difference < 0 ? 'text-success' : 'text-muted';
+                const diffIcon = item.difference > 0 ? '↑' : item.difference < 0 ? '↓' : '=';
+                
+                previewHtml += `
+                    <tr>
+                        <td>${item.package_name}</td>
+                        <td>$${item.package_price.toLocaleString()}</td>
+                        <td>${item.current_cost} credits</td>
+                        <td>${item.new_cost} credits</td>
+                        <td class="${diffClass}">${diffIcon} ${Math.abs(item.difference)} credits</td>
+                    </tr>
+                `;
+            });
+            
+            previewHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('previewContent').innerHTML = previewHtml;
+            $('#previewModal').modal('show');
+        } else {
+            alert('Error loading preview: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while loading the preview');
+    });
+}
+
+
+</script>
+{% endblock %}

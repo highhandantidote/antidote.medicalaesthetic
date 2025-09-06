@@ -1,0 +1,123 @@
+<!-- Package Cards Component -->
+<div class="d-flex flex-column gap-3">
+    {% for package in packages %}
+    <div class="card shadow-sm package-card" 
+         style="cursor: pointer;" 
+         onclick="window.location.href='{{ url_for('enhanced_package.package_detail', slug=package.slug) }}'">
+        <div class="card-body">
+            <!-- Top Section: Package Info and Pricing -->
+            <div class="row align-items-center">
+                <!-- Left Section: Icon and Content -->
+                <div class="col-md-8">
+                    <div class="package-info">
+                        <div class="title-price-container">
+                            <h5 class="card-title mb-1">
+                                {{ package.title }}
+                                {# Display actual treatment name in brackets for clarity #}
+                                {% if package.actual_treatment_name %}
+                                    <span class="text-muted" style="font-weight: 400; font-size: 0.9em;">
+                                        ({{ package.actual_treatment_name }})
+                                    </span>
+                                {% endif %}
+                            </h5>
+                            <!-- Mobile price display - shows inline with title -->
+                            <div class="mobile-price d-md-none">
+                                {% if package.price_discounted and package.price_actual and package.price_discounted|float < package.price_actual|float %}
+                                <div class="text-muted text-decoration-line-through small">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                                <div class="h4 text-primary fw-bold mb-1 price-display-mobile">₹{{ "{:,.0f}".format(package.price_discounted) }}</div>
+                                {% set discount_pct = ((package.price_actual|float - package.price_discounted|float) / package.price_actual|float * 100)|round|int %}
+                                <span class="badge bg-success">{{ discount_pct }}% OFF</span>
+                                {% else %}
+                                <div class="h4 text-primary fw-bold price-display-mobile">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <h6 class="text-primary mb-2">
+                            {% if package.clinic %}
+                                {{ package.clinic.name }}
+                            {% elif package.clinic_name %}
+                                {{ package.clinic_name }}
+                            {% else %}
+                                Clinic ID: {{ package.clinic_id }}
+                            {% endif %}
+                        </h6>
+                        <p class="card-text text-muted small">{{ package.description }}</p>
+                        
+                        <!-- Additional Info -->
+                        <div class="d-flex gap-3 mt-2">
+                            {% if package.duration %}
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>{{ package.duration }}
+                            </small>
+                            {% endif %}
+                            {% if package.downtime %}
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>{{ package.downtime }} recovery
+                            </small>
+                            {% endif %}
+                            <!-- City information - enhanced to handle multiple data sources -->
+                            {% if package.clinic and package.clinic.city %}
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ package.clinic.city }}
+                            </small>
+                            {% elif package.clinic_city %}
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ package.clinic_city }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Section: Pricing - Desktop only -->
+                <div class="col-md-4 text-end d-none d-md-block">
+                    {% if package.price_discounted and package.price_actual and package.price_discounted|float < package.price_actual|float %}
+                    <div class="text-muted text-decoration-line-through small">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                    <div class="h4 text-primary fw-bold mb-1 price-display">₹{{ "{:,.0f}".format(package.price_discounted) }}</div>
+                    {% set discount_pct = ((package.price_actual|float - package.price_discounted|float) / package.price_actual|float * 100)|round|int %}
+                    <span class="badge bg-success">{{ discount_pct }}% OFF</span>
+                    {% else %}
+                    <div class="h4 text-primary fw-bold price-display">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Bottom Section: Before/After Gallery -->
+            {% if package.results_gallery and package.results_gallery|length > 0 %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="results-section">
+                        <small class="text-muted mb-2 d-block">{{ package.results_gallery|length }} Result{{ 's' if package.results_gallery|length > 1 else '' }}</small>
+                        <div class="results-carousel" style="display: flex !important; flex-direction: row !important; overflow-x: auto !important; flex-wrap: nowrap !important;">
+                            {% for result in package.results_gallery %}
+                            <div class="result-item" style="flex-shrink: 0 !important; min-width: 180px !important; display: inline-block !important;">
+                                {% if result.procedure_name %}
+                                <div class="procedure-header">
+                                    <h6 class="procedure-name">{{ result.procedure_name }}</h6>
+                                </div>
+                                {% endif %}
+                                <div class="result-pair d-flex gap-2">
+                                    {% if result.before_image %}
+                                    <div class="result-image position-relative">
+                                        <img src="{{ result.before_image }}" alt="Before" class="result-img">
+                                        <div class="image-label">BEFORE</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if result.after_image %}
+                                    <div class="result-image position-relative">
+                                        <img src="{{ result.after_image }}" alt="After" class="result-img">
+                                        <div class="image-label">AFTER</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>

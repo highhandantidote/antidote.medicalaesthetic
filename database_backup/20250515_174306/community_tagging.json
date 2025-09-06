@@ -1,0 +1,42 @@
+{
+  "table": "community_tagging",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "community_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "category_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "procedure_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "confidence_score",
+      "type": "double precision",
+      "nullable": true
+    },
+    {
+      "name": "user_confirmed",
+      "type": "boolean",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

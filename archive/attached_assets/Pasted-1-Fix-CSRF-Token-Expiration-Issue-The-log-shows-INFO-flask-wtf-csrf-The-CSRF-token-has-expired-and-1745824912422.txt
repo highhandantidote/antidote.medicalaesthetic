@@ -1,0 +1,874 @@
+1. Fix CSRF Token Expiration
+Issue: The log shows INFO:flask_wtf.csrf:The CSRF token has expired and ERROR:routes:Validation error in csrf_token: The CSRF token has expired, which could prevent form submissions (e.g., replying to reviews or updating statuses).
+
+Solution:
+
+Open your main application file (likely app.py or main.py) and increase the CSRF token expiration time by setting a higher WTF_CSRF_TIME_LIMIT. Add this to your app configuration:
+text
+
+Copy
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour in seconds
+Ensure all forms include the CSRF token. Open templates/doctor_reviews.html (and other templates with forms) and verify that the form includes:
+text
+
+Copy
+<form method="POST" action="{{ url_for('web.reply_review', review_id=review.id) }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label for="reply_text" class="form-label">Your Reply</label>
+        <textarea name="reply_text" class="form-control" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Reply</button>
+</form>
+If form.hidden_tag() is missing, ensure you’re passing a Flask-WTF form object to the template. Update the doctor_reviews route in routes.py:
+text
+
+Copy
+from flask_wtf import FlaskForm
+from wtforms import TextAreaField, SubmitField
+from wtforms.validators import DataRequired
+
+class ReplyForm(FlaskForm):
+    reply_text = TextAreaField('Reply', validators=[DataRequired()])
+    submit = SubmitField('Reply')
+
+@web.route('/dashboard/doctor/<int:doctor_id>/reviews')
+@login_required
+def doctor_reviews(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    reviews = Review.query.filter_by(doctor_id=doctor.id).all()
+    form = ReplyForm()
+    return render_template('doctor_reviews.html', doctor=doctor, reviews=reviews, form=form)
+Update the reply route to use the form:
+text
+
+Copy
+@web.route('/reply_review/<int:review_id>', methods=['POST'])
+@login_required
+def reply_review(review_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can reply to reviews.', 'danger')
+        return redirect(url_for('web.index'))
+    review = Review.query.get_or_404(review_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if not doctor or review.doctor_id != doctor.id:
+        flash('Unauthorized access. You can only reply to your own reviews.', 'danger')
+        return redirect(url_for('web.index'))
+    
+    form = ReplyForm()
+    if form.validate_on_submit():
+        reply_text = form.reply_text.data
+        reply = ReviewReply(review_id=review.id, doctor_id=doctor.id, reply_text=reply_text)
+        db.session.add(reply)
+        db.session.commit()
+        flash('Reply submitted successfully!', 'success')
+    else:
+        flash('Error submitting reply. Please try again.', 'danger')
+    return redirect(url_for('web.doctor_reviews', doctor_id=doctor.id))
+2. Fix Email Configuration for Lead Notifications
+Issue: The log shows repeated errors: ERROR:routes:Error sending email: The message does not specify a sender and a default sender has not been configured. This prevents email notifications for leads, which might also affect lead-related functionality.
+
+Solution:
+
+Configure the email settings in your application. Open app.py (or the main file) and ensure the following configurations are set:
+text
+
+Copy
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your Gmail address
+app.config['MAIL_PASSWORD'] = 'your-app-password'     # Replace with your Gmail app password
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'  # Set the default sender
+If you don’t have Flask-Mail installed, install it:
+pip install Flask-Mail
+Update requirements.txt: pip freeze > requirements.txt
+Initialize Flask-Mail in your app:
+text
+
+Copy
+from flask_mail import Mail
+
+mail = Mail(app)
+Update the lead submission route in routes.py to ensure emails are sent correctly:
+text
+
+Copy
+from flask_mail import Message
+
+@web.route('/submit_lead/<int:doctor_id>', methods=['POST'])
+def submit_lead(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    patient_name = request.form.get('patient_name')
+    procedure_name = request.form.get('procedure_name')
+    mobile = request.form.get('mobile')
+    city = request.form.get('city')
+    date = request.form.get('date')
+    consent = request.form.get('consent') == 'True'
+
+    lead = Lead(
+        doctor_id=doctor.id,
+        patient_name=patient_name,
+        procedure_name=procedure_name,
+        mobile=mobile,
+        city=city,
+        date=date,
+        consent=consent,
+        status='pending'
+    )
+    db.session.add(lead)
+    db.session.commit()
+
+    # Send email notification
+    try:
+        msg = Message(
+            subject=f'New Lead for {procedure_name}',
+            recipients=[doctor.user.email],
+            body=f'New lead from {patient_name} for {procedure_name}.\nMobile: {mobile}\nCity: {city}\nDate: {date}'
+        )
+        mail.send(msg)
+        current_app.logger.info(f'Email sent to {doctor.user.email}')
+    except Exception as e:
+        current_app.logger.error(f'Error sending email: {str(e)}')
+        flash('Lead submitted, but email notification failed.', 'warning')
+
+    # Create in-app notification
+    notification = Notification(
+        user_id=doctor.user_id,
+        message=f'New lead from {patient_name} for {procedure_name}'
+    )
+    db.session.add(notification)
+    db.session.commit()
+
+    return redirect(url_for('web.lead_confirmation', lead_id=lead.id))
+Add the Notification model to models.py if it’s missing:
+text
+
+Copy
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='notifications')
+Update the database schema:
+flask db migrate -m "Add Notification model"
+flask db upgrade
+3. Fix Missing web.register Endpoint
+Issue: The log shows ERROR:routes:Error showing lead confirmation: Could not build url for endpoint 'web.register'. Did you mean 'web.favorites' instead?. This indicates a missing or incorrectly referenced route in the lead confirmation page.
+
+Solution:
+
+Open routes.py and ensure a web.register route exists. If it’s missing, add it:
+text
+
+Copy
+@web.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('web.index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(
+            email=form.email.data,
+            name=form.name.data,
+            role='user'
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('web.login'))
+    return render_template('register.html', form=form)
+Create a RegistrationForm in a forms file (e.g., forms.py):
+text
+
+Copy
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, Length
+
+class RegistrationForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=100)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    submit = SubmitField('Register')
+Create templates/register.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Antidote</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+        <form method="POST" action="{{ url_for('web.register') }}">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                {{ form.password(class="form-control") }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</body>
+</html>
+Open templates/lead_confirmation.html and fix the incorrect reference to web.register. Replace:
+text
+
+Copy
+<a href="{{ url_for('web.register') }}">Register</a>
+with:
+text
+
+Copy
+<a href="{{ url_for('web.login') }}">Log in</a>
+or ensure the web.register route is correctly implemented as above.
+4. Fix Login Issues
+Issue: The logs show ERROR:routes:Invalid password for user: testdoctor@antidote.com multiple times before a successful login. This suggests the password might be incorrect or the password hashing/verification logic is faulty.
+
+Solution:
+
+Verify the password for testdoctor@antidote.com. The correct password should be Doctor1234 as per your instructions. If it’s not working, reset the password by updating the database:
+Run this SQL command:
+text
+
+Copy
+UPDATE user SET password_hash = 'pbkdf2:sha256:260000$...hash...' WHERE email = 'testdoctor@antidote.com';
+Alternatively, reset the password programmatically. Add a temporary route in routes.py to reset the password:
+text
+
+Copy
+@web.route('/reset_test_doctor_password')
+def reset_test_doctor_password():
+    user = User.query.filter_by(email='testdoctor@antidote.com').first()
+    if user:
+        user.set_password('Doctor1234')
+        db.session.commit()
+        return 'Password reset successfully for testdoctor@antidote.com'
+    return 'User not found'
+Access this route by navigating to /reset_test_doctor_password, then remove the route after use.
+Ensure the User model’s password hashing and verification are correct in models.py:
+text
+
+Copy
+from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='user')
+    password_hash = db.Column(db.String(128), nullable=False)
+    doctor = db.relationship('Doctor', backref='user', uselist=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+Test logging in again with testdoctor@antidote.com and password Doctor1234.
+5. Fix Appointments Not Showing
+Issue: You booked an appointment as testuser, but the doctor dashboard shows "No upcoming appointments."
+
+Solution:
+
+Verify the appointment exists in the database:
+Run:
+text
+
+Copy
+SELECT * FROM appointment WHERE doctor_id = 1;
+If no results are found, the booking process is likely broken. Ensure the booking route exists and saves appointments correctly. Add or update the route in routes.py:
+text
+
+Copy
+from datetime import datetime
+
+@web.route('/book_appointment/<int:doctor_id>', methods=['GET', 'POST'])
+@login_required
+def book_appointment(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if request.method == 'POST':
+        procedure_name = request.form.get('procedure_name')
+        appointment_date = request.form.get('appointment_date')
+        appointment_time = request.form.get('appointment_time')
+        appointment = Appointment(
+            user_id=current_user.id,
+            doctor_id=doctor.id,
+            procedure_name=procedure_name,
+            appointment_date=datetime.strptime(appointment_date, '%Y-%m-%d').date(),
+            appointment_time=datetime.strptime(appointment_time, '%H:%M').time(),
+            status='pending'
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        flash('Appointment booked successfully!', 'success')
+        return redirect(url_for('web.index'))
+    return render_template('book_appointment.html', doctor=doctor)
+Create templates/book_appointment.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Appointment - {{ doctor.name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Book Appointment with {{ doctor.name }}</h2>
+        <form method="POST" action="{{ url_for('web.book_appointment', doctor_id=doctor.id) }}">
+            <div class="mb-3">
+                <label for="procedure_name" class="form-label">Procedure</label>
+                <input type="text" name="procedure_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="appointment_date" class="form-label">Date</label>
+                <input type="date" name="appointment_date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="appointment_time" class="form-label">Time</label>
+                <input type="time" name="appointment_time" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Book Appointment</button>
+        </form>
+    </div>
+</body>
+</html>
+Log in as testuser@antidote.com and book an appointment for Dr. John Smith (doctor_id=1) with a future date (e.g., 2025-05-01) and time (e.g., 10:00).
+Verify the appointment shows in the doctor dashboard under "Upcoming Appointments."
+6. Fix Patient Leads Action Buttons
+Issue: The "View," "Contact," and "Update Status" buttons in the patient leads section don’t work.
+
+Solution:
+
+Update the doctor_leads.html template to ensure the buttons point to the correct routes:
+text
+
+Copy
+<table class="table">
+    <thead>
+        <tr>
+            <th>Patient</th>
+            <th>Contact</th>
+            <th>Message</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lead in leads %}
+            <tr>
+                <td>{{ lead.patient_name }}</td>
+                <td>{{ lead.mobile }}<br>{{ lead.user.email if lead.user else '' }}</td>
+                <td>{{ lead.procedure_name }}</td>
+                <td>{{ lead.date }}</td>
+                <td>{{ lead.status }}</td>
+                <td>
+                    <a href="{{ url_for('web.view_lead', lead_id=lead.id) }}" class="btn btn-outline-primary btn-sm">View</a>
+                    <a href="{{ url_for('web.contact_lead', lead_id=lead.id) }}" class="btn btn-outline-primary btn-sm">Contact</a>
+                    <a href="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" class="btn btn-outline-primary btn-sm">Update Status</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+Ensure the routes exist in routes.py (as provided in the previous response). If they’re missing, add them:
+text
+
+Copy
+@web.route('/lead/<int:lead_id>/view')
+@login_required
+def view_lead(lead_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    lead = Lead.query.get_or_404(lead_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    return render_template('lead_view.html', lead=lead, doctor=doctor)
+
+@web.route('/lead/<int:lead_id>/contact')
+@login_required
+def contact_lead(lead_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    lead = Lead.query.get_or_404(lead_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    flash('Contact functionality is under development.', 'info')
+    return redirect(url_for('web.doctor_leads', doctor_id=doctor.id))
+
+@web.route('/lead/<int:lead_id>/update_status', methods=['GET', 'POST'])
+@login_required
+def update_lead_status(lead_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    lead = Lead.query.get_or_404(lead_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if lead.doctor_id != doctor.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    if request.method == 'POST':
+        new_status = request.form.get('status')
+        lead.status = new_status
+        db.session.commit()
+        flash('Lead status updated!', 'success')
+        return redirect(url_for('web.doctor_leads', doctor_id=doctor.id))
+    return render_template('update_lead_status.html', lead=lead, doctor=doctor)
+Create templates/lead_view.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lead Details - {{ lead.patient_name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Lead Details</h2>
+        <p><strong>Patient:</strong> {{ lead.patient_name }}</p>
+        <p><strong>Procedure:</strong> {{ lead.procedure_name }}</p>
+        <p><strong>Mobile:</strong> {{ lead.mobile }}</p>
+        <p><strong>City:</strong> {{ lead.city }}</p>
+        <p><strong>Date:</strong> {{ lead.date }}</p>
+        <p><strong>Status:</strong> {{ lead.status }}</p>
+        <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-primary">Back to Leads</a>
+    </div>
+</body>
+</html>
+Create templates/update_lead_status.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Lead Status - {{ lead.patient_name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Update Lead Status</h2>
+        <form method="POST" action="{{ url_for('web.update_lead_status', lead_id=lead.id) }}">
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="pending" {% if lead.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="contacted" {% if lead.status == 'contacted' %}selected{% endif %}>Contacted</option>
+                    <option value="converted" {% if lead.status == 'converted' %}selected{% endif %}>Converted</option>
+                    <option value="closed" {% if lead.status == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+        <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</body>
+</html>
+7. Fix Inability to Reply to Reviews
+Issue: The "Reply" button in the reviews section doesn’t work, even after previous attempts to fix it.
+
+Solution:
+
+Ensure the ReviewReply model exists in models.py (as provided earlier). If it’s missing, add it:
+text
+
+Copy
+class ReviewReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    review_id = db.Column(db.Integer, db.ForeignKey('review.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    reply_text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    review = db.relationship('Review', backref='replies')
+    doctor = db.relationship('Doctor', backref='review_replies')
+Update the database schema:
+flask db migrate -m "Add ReviewReply model"
+flask db upgrade
+Verify the doctor_reviews.html template matches the structure provided earlier, with the reply form included.
+Test replying to the review by clicking the "Reply" button and submitting a response.
+8. Fix Missing "Answer as Doctor" in Community
+Issue: The "Answer as Doctor" option is missing in the community section.
+
+Solution:
+
+Update the doctor_community.html template to include an "Answer as Doctor" option for threads:
+text
+
+Copy
+<div class="col-md-9">
+    <h3>Community Engagement</h3>
+    <div class="alert alert-info">
+        Engaging with the community as a doctor helps build trust and establish you as an authority in your field.
+    </div>
+    <h5>Recent Threads in Your Specialties</h5>
+    <a href="{{ url_for('web.community') }}" class="btn btn-outline-primary mb-3">View All Threads</a>
+    {% if threads %}
+        <ul>
+            {% for thread in threads %}
+                <li>
+                    <a href="{{ url_for('web.community_thread', thread_id=thread.id) }}">{{ thread.title }}</a>
+                    <a href="{{ url_for('web.reply_to_thread', thread_id=thread.id) }}" class="btn btn-outline-primary btn-sm">Answer as Doctor</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No recent community threads in your specialties</p>
+    {% endif %}
+</div>
+Add a route to handle replying to threads in routes.py:
+text
+
+Copy
+@web.route('/community/thread/<int:thread_id>/reply', methods=['GET', 'POST'])
+@login_required
+def reply_to_thread(thread_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can reply to community threads.', 'danger')
+        return redirect(url_for('web.community'))
+    thread = Community.query.get_or_404(thread_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if request.method == 'POST':
+        reply_content = request.form.get('reply_content')
+        if not reply_content:
+            flash('Reply cannot be empty.', 'danger')
+            return redirect(url_for('web.community_thread', thread_id=thread.id))
+        reply = CommunityReply(
+            thread_id=thread.id,
+            user_id=current_user.id,
+            content=reply_content,
+            is_doctor_reply=True
+        )
+        db.session.add(reply)
+        db.session.commit()
+        flash('Reply posted successfully!', 'success')
+        return redirect(url_for('web.community_thread', thread_id=thread.id))
+    return render_template('community_reply.html', thread=thread, doctor=doctor)
+Add the CommunityReply model to models.py if it’s missing:
+text
+
+Copy
+class CommunityReply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    thread_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_doctor_reply = db.Column(db.Boolean, default=False)
+    thread = db.relationship('Community', backref='replies')
+    user = db.relationship('User', backref='community_replies')
+Update the database schema:
+flask db migrate -m "Add CommunityReply model"
+flask db upgrade
+Create templates/community_reply.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reply to Thread - {{ thread.title }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Reply to Thread: {{ thread.title }}</h2>
+        <form method="POST" action="{{ url_for('web.reply_to_thread', thread_id=thread.id) }}">
+            <div class="mb-3">
+                <label for="reply_content" class="form-label">Your Reply (as Doctor)</label>
+                <textarea name="reply_content" class="form-control" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Reply</button>
+        </form>
+        <a href="{{ url_for('web.community_thread', thread_id=thread.id) }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</body>
+</html>
+9. Fix Other Action Buttons
+Issue: Other action buttons (e.g., "Edit Profile," "Add Procedure," "Details," "Remove" in My Procedures) aren’t working.
+
+Solution:
+
+Edit Profile Button:
+Ensure the "Edit Profile" button links to a route:
+text
+
+Copy
+<a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+Add the route in routes.py:
+text
+
+Copy
+@web.route('/dashboard/doctor/<int:doctor_id>/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_doctor_profile(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    if request.method == 'POST':
+        doctor.name = request.form.get('name')
+        doctor.specialty = request.form.get('specialty')
+        doctor.experience = request.form.get('experience')
+        doctor.city = request.form.get('city')
+        doctor.state = request.form.get('state')
+        doctor.hospital = request.form.get('hospital')
+        doctor.consultation_fee = request.form.get('consultation_fee')
+        doctor.bio = request.form.get('bio')
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('web.doctor_dashboard', doctor_id=doctor.id))
+    return render_template('edit_doctor_profile.html', doctor=doctor)
+Create templates/edit_doctor_profile.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - {{ doctor.name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Profile</h2>
+        <form method="POST" action="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" name="name" class="form-control" value="{{ doctor.name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="specialty" class="form-label">Specialty</label>
+                <input type="text" name="specialty" class="form-control" value="{{ doctor.specialty }}">
+            </div>
+            <div class="mb-3">
+                <label for="experience" class="form-label">Experience (Years)</label>
+                <input type="number" name="experience" class="form-control" value="{{ doctor.experience }}">
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <input type="text" name="city" class="form-control" value="{{ doctor.city }}">
+            </div>
+            <div class="mb-3">
+                <label for="state" class="form-label">State</label>
+                <input type="text" name="state" class="form-control" value="{{ doctor.state }}">
+            </div>
+            <div class="mb-3">
+                <label for="hospital" class="form-label">Hospital</label>
+                <input type="text" name="hospital" class="form-control" value="{{ doctor.hospital }}">
+            </div>
+            <div class="mb-3">
+                <label for="consultation_fee" class="form-label">Consultation Fee</label>
+                <input type="number" step="0.01" name="consultation_fee" class="form-control" value="{{ doctor.consultation_fee }}">
+            </div>
+            <div class="mb-3">
+                <label for="bio" class="form-label">Bio</label>
+                <textarea name="bio" class="form-control" rows="5">{{ doctor.bio }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+        <a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</body>
+</html>
+Add Procedure Button:
+Ensure the "Add Procedure" button links to a route:
+text
+
+Copy
+<a href="{{ url_for('web.add_procedure', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Add Procedure</a>
+Add the route in routes.py:
+text
+
+Copy
+@web.route('/dashboard/doctor/<int:doctor_id>/add_procedure', methods=['GET', 'POST'])
+@login_required
+def add_procedure(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    if request.method == 'POST':
+        procedure_name = request.form.get('procedure_name')
+        category = request.form.get('category')
+        price_min = request.form.get('price_min')
+        price_max = request.form.get('price_max')
+        procedure = Procedure(
+            name=procedure_name,
+            category=category,
+            price_min=price_min,
+            price_max=price_max
+        )
+        db.session.add(procedure)
+        db.session.commit()
+        doctor_procedure = DoctorProcedure(doctor_id=doctor.id, procedure_id=procedure.id)
+        db.session.add(doctor_procedure)
+        db.session.commit()
+        flash('Procedure added successfully!', 'success')
+        return redirect(url_for('web.doctor_procedures', doctor_id=doctor.id))
+    return render_template('add_procedure.html', doctor=doctor)
+Create templates/add_procedure.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Procedure - {{ doctor.name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Add Procedure</h2>
+        <form method="POST" action="{{ url_for('web.add_procedure', doctor_id=doctor.id) }}">
+            <div class="mb-3">
+                <label for="procedure_name" class="form-label">Procedure Name</label>
+                <input type="text" name="procedure_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <input type="text" name="category" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="price_min" class="form-label">Price Range (Min)</label>
+                <input type="number" name="price_min" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="price_max" class="form-label">Price Range (Max)</label>
+                <input type="number" name="price_max" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Procedure</button>
+        </form>
+        <a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</body>
+</html>
+Details and Remove Buttons in My Procedures:
+Update doctor_procedures.html to ensure the buttons link to routes:
+text
+
+Copy
+<table class="table">
+    <thead>
+        <tr>
+            <th>Procedure</th>
+            <th>Category</th>
+            <th>Price Range</th>
+            <th>Rating</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for procedure in procedures %}
+            <tr>
+                <td>{{ procedure.name }}</td>
+                <td>{{ procedure.category }}</td>
+                <td>${{ procedure.price_min }} - ${{ procedure.price_max }}</td>
+                <td>★ {{ procedure.rating }} ({{ procedure.review_count }})</td>
+                <td>
+                    <a href="{{ url_for('web.procedure_details', procedure_id=procedure.id) }}" class="btn btn-outline-primary btn-sm">Details</a>
+                    <a href="{{ url_for('web.remove_procedure', procedure_id=procedure.id, doctor_id=doctor.id) }}" class="btn btn-outline-danger btn-sm">Remove</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+Add the routes in routes.py:
+text
+
+Copy
+@web.route('/procedure/<int:procedure_id>/details')
+@login_required
+def procedure_details(procedure_id):
+    procedure = Procedure.query.get_or_404(procedure_id)
+    doctor = Doctor.query.filter_by(user_id=current_user.id).first()
+    if not doctor:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    return render_template('procedure_details.html', procedure=procedure, doctor=doctor)
+
+@web.route('/dashboard/doctor/<int:doctor_id>/remove_procedure/<int:procedure_id>')
+@login_required
+def remove_procedure(doctor_id, procedure_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor_procedure = DoctorProcedure.query.filter_by(doctor_id=doctor.id, procedure_id=procedure_id).first()
+    if doctor_procedure:
+        db.session.delete(doctor_procedure)
+        db.session.commit()
+        flash('Procedure removed successfully!', 'success')
+    return redirect(url_for('web.doctor_procedures', doctor_id=doctor.id))
+Create templates/procedure_details.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Procedure Details - {{ procedure.name }}</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Procedure Details</h2>
+        <p><strong>Name:</strong> {{ procedure.name }}</p>
+        <p><strong>Category:</strong> {{ procedure.category }}</p>
+        <p><strong>Price Range:</strong> ${{ procedure.price_min }} - ${{ procedure.price_max }}</p>
+        <p><strong>Rating:</strong> ★ {{ procedure.rating }} ({{ procedure.review_count }} reviews)</p>
+        <a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="btn btn-primary">Back to Procedures</a>
+    </div>
+</body>
+</html>
+10. Thorough Testing
+Restart the application:
+Restarted Start application
+Log in as testdoctor@antidote.com with password Doctor1234.
+Test each section:
+Overview: Verify the stats (Leads, Appointments, Reviews) are correct.
+Appointments: Book an appointment as testuser and confirm it appears under "Upcoming Appointments."
+Patient Leads: Click "View," "Contact," and "Update Status" buttons for each lead and confirm they work.
+Reviews: Reply to the review from testuser and confirm the reply appears.
+My Procedures: Add a new procedure, view details, and remove a procedure.
+Community: Reply to the thread "hair is great" using the "Answer as Doctor" option.
+Check the Flask logs and browser console for any errors during testing.

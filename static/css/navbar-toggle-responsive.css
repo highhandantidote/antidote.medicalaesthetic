@@ -1,0 +1,45 @@
+/* Navbar Toggle Button Responsive Visibility Rules */
+
+/* Hide navbar toggle (hamburger menu) on desktop screens */
+@media (min-width: 992px) {
+    .navbar-toggler {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+}
+
+/* Show navbar toggle only on mobile and tablet screens */
+@media (max-width: 991.98px) {
+    .navbar-toggler {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 9999 !important;
+    }
+}
+
+/* Ensure proper navbar layout on desktop */
+@media (min-width: 992px) {
+    .navbar-collapse {
+        display: flex !important;
+        flex-basis: auto !important;
+    }
+    
+    .navbar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+}
+
+/* Mobile navbar collapse behavior */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        display: none !important;
+    }
+    
+    .navbar-collapse.show {
+        display: block !important;
+    }
+}

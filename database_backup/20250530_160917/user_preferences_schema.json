@@ -1,0 +1,38 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('user_preferences_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "preferred_procedures",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "body_focus",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "budget_range",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "notification_prefs",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  }
+]

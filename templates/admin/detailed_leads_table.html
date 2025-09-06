@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Detailed Lead Management | Admin Dashboard{% endblock %}
+
+{% block head %}
+<style>
+.leads-container {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.lead-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #007bff;
+    transition: all 0.3s ease;
+}
+
+.lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.lead-header {
+    display: flex;
+    justify-content-between;
+    align-items-start;
+    margin-bottom: 1rem;
+}
+
+.lead-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.lead-contact {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.lead-score {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.lead-score.high { background: linear-gradient(45deg, #28a745, #20c997); }
+.lead-score.medium { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+.lead-score.low { background: linear-gradient(45deg, #dc3545, #e74c3c); }
+
+.lead-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.source-badge {
+    background: #007bff;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-new { background: #e3f2fd; color: #1976d2; }
+.status-contacted { background: #f3e5f5; color: #7b1fa2; }
+.status-converted { background: #e8f5e8; color: #388e3c; }
+.status-pending { background: #fff3e0; color: #f57c00; }
+
+.lead-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-action {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-contact {
+    background: #28a745;
+    color: white;
+}
+
+.btn-contact:hover {
+    background: #218838;
+    color: white;
+}
+
+.btn-edit {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-edit:hover {
+    background: #e0a800;
+}
+
+.filter-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stats-row {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-users"></i> Detailed Lead Management</h1>
+                    <p class="text-muted">Complete lead information with contact details and sources</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('comprehensive_admin.comprehensive_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-line"></i> Analytics View
+                    </a>
+                    <button class="btn btn-success" onclick="exportLeads()">
+                        <i class="fas fa-download"></i> Export Leads
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-row">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_leads }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ new_leads }}</div>
+                    <div class="stat-label">New Leads</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ contacted_leads }}</div>
+                    <div class="stat-label">Contacted</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ converted_leads }}</div>
+                    <div class="stat-label">Converted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Time Period</label>
+                <select name="days" class="form-select" onchange="this.form.submit()">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Lead Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+                    <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contacted</option>
+                    <option value="converted" {% if status_filter == 'converted' %}selected{% endif %}>Converted</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Lead Source</label>
+                <select name="source" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Sources</option>
+                    {% for source in available_sources %}
+                    <option value="{{ source }}" {% if source_filter == source %}selected{% endif %}>{{ source|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Min Score</label>
+                <select name="min_score" class="form-select" onchange="this.form.submit()">
+                    <option value="">Any Score</option>
+                    <option value="80" {% if min_score == 80 %}selected{% endif %}>80+ (High)</option>
+                    <option value="60" {% if min_score == 60 %}selected{% endif %}>60+ (Medium)</option>
+                    <option value="40" {% if min_score == 40 %}selected{% endif %}>40+ (Low)</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Leads List -->
+    <div class="leads-container">
+        {% if leads %}
+            {% for lead in leads %}
+            <div class="lead-card">
+                <div class="lead-header">
+                    <div>
+                        <div class="lead-name">{{ lead.patient_name or 'Anonymous Lead' }}</div>
+                        <div class="lead-contact">
+                            {% if lead.mobile_number %}
+                            <i class="fas fa-phone"></i> {{ lead.mobile_number }}
+                            {% endif %}
+                            {% if lead.email %}
+                            <i class="fas fa-envelope"></i> {{ lead.email }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {% set score = lead.lead_score or 50 %}
+                        <div class="lead-score {% if score >= 80 %}high{% elif score >= 60 %}medium{% else %}low{% endif %}">
+                            Score: {{ score }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lead-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Procedure Interest</div>
+                        <div class="detail-value">{{ lead.procedure_name or 'Not specified' }}</div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Lead Source</div>
+                        <div class="detail-value">
+                            <span class="source-badge">{{ lead.source or 'Unknown' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-{{ lead.status or 'new' }}">
+                                {{ (lead.status or 'new').title() }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Created</div>
+                        <div class="detail-value">
+                            {{ lead.created_at.strftime('%Y-%m-%d %H:%M') if lead.created_at else 'Unknown' }}
+                        </div>
+                    </div>
+
+                    {% if lead.city %}
+                    <div class="detail-item">
+                        <div class="detail-label">Location</div>
+                        <div class="detail-value">{{ lead.city }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if lead.preferred_date %}
+                    <div class="detail-item">
+                        <div class="detail-label">Preferred Date</div>
+                        <div class="detail-value">{{ lead.preferred_date.strftime('%Y-%m-%d') }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if lead.notes %}
+                <div class="mt-3">
+                    <div class="detail-label">Notes</div>
+                    <div class="detail-value">{{ lead.notes }}</div>
+                </div>
+                {% endif %}
+
+                <div class="lead-actions">
+                    <button class="btn btn-action btn-contact" onclick="contactLead({{ lead.id }})">
+                        <i class="fas fa-phone"></i> Contact
+                    </button>
+                    <button class="btn btn-action btn-edit" onclick="editLead({{ lead.id }})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    {% if lead.mobile_number %}
+                    <a href="tel:{{ lead.mobile_number }}" class="btn btn-action btn-contact">
+                        <i class="fas fa-phone-alt"></i> Call Now
+                    </a>
+                    {% endif %}
+                    {% if lead.email %}
+                    <a href="mailto:{{ lead.email }}" class="btn btn-action btn-edit">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="pagination-wrapper">
+                <nav>
+                    <ul class="pagination">
+                        {% if current_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ current_page - 1 }}&days={{ days }}&status={{ status_filter }}&source={{ source_filter }}&min_score={{ min_score }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in range(1, total_pages + 1) %}
+                        {% if page_num == current_page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_num }}&days={{ days }}&status={{ status_filter }}&source={{ source_filter }}&min_score={{ min_score }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if current_page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ current_page + 1 }}&days={{ days }}&status={{ status_filter }}&source={{ source_filter }}&min_score={{ min_score }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No Leads Found</h3>
+                <p>No leads match your current filters. Try adjusting the filters or check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function contactLead(leadId) {
+    if (confirm('Mark this lead as contacted?')) {
+        fetch(`/admin/comprehensive/update-lead-status/${leadId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
+            },
+            body: JSON.stringify({status: 'contacted'})
+        }).then(() => {
+            location.reload();
+        });
+    }
+}
+
+function editLead(leadId) {
+    window.location.href = `/admin/leads/edit/${leadId}`;
+}
+
+function exportLeads() {
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = `/admin/comprehensive/export-leads?${params.toString()}`;
+}
+
+// Auto-refresh every 2 minutes
+setInterval(() => {
+    window.location.reload();
+}, 120000);
+</script>
+{% endblock %}

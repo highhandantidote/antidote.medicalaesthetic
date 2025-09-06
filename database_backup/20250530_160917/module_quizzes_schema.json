@@ -1,0 +1,44 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('module_quizzes_id_seq'::regclass)"
+  },
+  {
+    "name": "module_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "title",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "description",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "passing_score",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "updated_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

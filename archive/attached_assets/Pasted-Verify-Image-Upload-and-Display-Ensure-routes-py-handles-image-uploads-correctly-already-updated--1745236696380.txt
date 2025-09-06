@@ -1,0 +1,66 @@
+Verify Image Upload and Display:
+Ensure routes.py handles image uploads correctly (already updated, but confirm):
+```python
+from werkzeug.utils import secure_filename
+@web.route('/dashboard/community/create', methods=['GET', 'POST'])
+def create_thread():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        category_id = request.form['category_id']
+        new_thread = Community(title=title, content=content, category_id=category_id, author_id=current_user.id)
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('static/media', filename))
+                new_thread.photo_url = filename
+        db.session.add(new_thread)
+        db.session.commit()
+        return redirect(url_for('web.community_dashboard'))
+    return render_template('create_thread.html', categories=Category.query.all())
+Confirm community_thread_detail.html displays the image:
+
+html
+
+Copy
+{% if thread.photo_url %}
+    <img src="{{ url_for('static', filename='media/' + thread.photo_url) }}" alt="Thread Image" style="max-width: 300px;">
+{% endif %}
+Test: Upload a test JPG in the create form, submit, and verify the image appears on the thread page.
+
+Fix Persistent "John Smith" Author Name:
+Check if thread.user is resolving correctly. If user is None, it might fall back to a default. Update models.py to ensure the relationship is bidirectional:
+
+python
+
+Copy
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    # ... other fields ...
+    threads = db.relationship('Community', backref='user', lazy=True)
+Re-run the template updates to ensure all instances of thread.user.name are replaced with thread.user.username:
+
+bash
+
+Copy
+sed -i 's/thread.user.name/thread.user.username/g' templates/*.html
+Test: Log in with your Google account, create a thread, and confirm your username (not "John Smith") appears.
+
+Validate Username Display Across Pages:
+Verify community.html, community_thread_detail.html, dashboard_community.html, and reply_template.html all use {{ thread.user.username if thread.user else 'Anonymous' }}.
+Test: Check /community and /dashboard/community to ensure all author names are usernames.
+
+Test and Validate:
+Restart the application.
+Navigate to /dashboard/community, click "Create Thread," upload a test JPG, fill in title and content, select a category, and submit. Verify the new thread appears with the image and your username.
+Check /community to ensure all threads (including the new one) show usernames, not "John Smith."
+Navigate to /community/thread/3, confirm the media preview works, and check author names.
+Take screenshots of the create form (with image upload), the new thread (with image), /community (with usernames), and the console (F12).
+Generate logs for the create action (e.g., DEBUG:routes:Creating thread).
+
+Provide Output:
+Share updated routes.py, create_thread.html, edit_thread.html, community.html, community_thread_detail.html, dashboard_community.html, reply_template.html, models.py (if modified), logs, console output, and screenshots.
+Respond to Replit’s question: "Yes, everything is displaying usernames correctly in the community section. Image upload and preview are working properly—please review the screenshots and logs to confirm.

@@ -1,0 +1,198 @@
+/* Mobile Horizontal Scrolling Fix */
+/* Prevents horizontal scrolling on mobile without affecting functionality */
+
+/* Global overflow control */
+html {
+    overflow-x: hidden !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Container fixes */
+.container,
+.container-fluid {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 768px) {
+    /* Prevent any element from extending beyond viewport */
+    * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Container adjustments - Full width edge-to-edge */
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Remove container padding completely for full width */
+    .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Banner slider mobile fix */
+    .banner-slider {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Hero banner container mobile fix */
+    .hero-banner-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    .hero-banner-container .banner-slider {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Banner container mobile fix - Full width edge-to-edge */
+    .banner-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Fix slide content */
+    .banner-slider .slide-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    
+    /* Row and column fixes */
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    .col, .col-*, [class*="col-"] {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix any grids or carousels */
+    .highlights-grid, 
+    .procedures-carousel, 
+    .doctors-grid, 
+    .packages-grid, 
+    .clinics-carousel, 
+    .categories-carousel {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+    
+    /* Fix images */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Fix any full-width elements */
+    .w-100 {
+        max-width: 100% !important;
+    }
+    
+    /* Fix viewport width elements */
+    [style*="100vw"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Ensure all content within containers uses full width */
+    .container > * {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Fix section padding to use full width */
+    .section, .hero-section, .content-section {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Fix card containers to use full width */
+    .card, .card-body {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+    
+    /* Ensure banner containers don't exceed viewport */
+    .banner-container {
+        margin-left: -10px !important;
+        margin-right: -10px !important;
+        width: calc(100% + 20px) !important;
+        max-width: calc(100vw) !important;
+        overflow: hidden !important;
+    }
+    
+    .hero-banner-container {
+        margin-left: -10px !important;
+        margin-right: -10px !important;
+        width: calc(100% + 20px) !important;
+        max-width: calc(100vw) !important;
+        overflow: hidden !important;
+    }
+}
+
+/* Tablet fixes */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    .banner-slider {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+}
+
+/* Ensure no element creates horizontal scroll */
+@media (max-width: 768px) {
+    body > * {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+}

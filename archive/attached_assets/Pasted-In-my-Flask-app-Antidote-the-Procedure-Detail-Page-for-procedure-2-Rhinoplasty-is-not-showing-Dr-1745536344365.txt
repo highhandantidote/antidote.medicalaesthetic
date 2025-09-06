@@ -1,0 +1,49 @@
+In my Flask app Antidote, the Procedure Detail Page for /procedure/2 (Rhinoplasty) is not showing Dr. John Smith (ID 3) because the database tables (e.g., doctor_procedures) were not created. Fix the database initialization and complete the testing:
+1. Open app.py or main.py to verify Flask-SQLAlchemy configuration:
+   - Ensure the database URI is correct (e.g., 'postgresql://user:password@localhost:5432/antidote').
+   - Add or confirm the following to initialize the database:
+     from flask_sqlalchemy import SQLAlchemy
+     db = SQLAlchemy()
+     def create_app():
+         app = Flask(__name__)
+         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@localhost:5432/antidote'
+         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+         db.init_app(app)
+         with app.app_context():
+             db.create_all()  # Create all tables
+         return app
+   - If db.create_all() is missing, add it and restart the application.
+2. Restart the application to create the tables:
+   Restarted Start application
+3. Verify the tables exist:
+   SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public';
+   - Expect to see: users, doctors, procedures, doctor_procedures, reviews, favorites.
+4. Insert test data:
+   - Insert Dr. John Smith:
+     INSERT INTO doctors (id, name, specialty, experience_years, location, rating, reviews_count, verification_status) VALUES (3, 'Dr. John Smith', 'Rhinoplasty Specialist', 15, 'New York, NY', 4.8, 0, 'Verified') RETURNING id;
+   - Insert Rhinoplasty procedure:
+     INSERT INTO procedures (id, procedure_name) VALUES (2, 'Rhinoplasty') RETURNING id;
+   - Insert association:
+     INSERT INTO doctor_procedures (doctor_id, procedure_id, created_at) VALUES (3, 2, CURRENT_TIMESTAMP) RETURNING id;
+   - Insert test user if missing:
+     INSERT INTO users (id, email, username, password_hash) VALUES (1, 'testuser@antidote.com', 'Test User', 'pbkdf2:sha256:150000$...') RETURNING id;
+     Note: Replace password_hash with the correct hash for 'Test@1234' (generate using Flask-Bcrypt if needed).
+5. Log in as testuser@antidote.com (password: Test@1234) at http://localhost:5000/login, confirming "Test User" in the navigation bar.
+6. Navigate to http://localhost:5000/procedure/2 (Rhinoplasty).
+7. Confirm Dr. John Smith (ID 3) is listed under "Doctors Who Perform This Procedure":
+   - If not, inspect the rendered HTML (F12 > Elements) around the doctors section and share the output.
+8. Confirm the procedure name is "Rhinoplasty" on the page.
+9. Click "Write a Review" on the Reviews tab, confirm the modal appears, enter rating 4 and comment "Great experience," submit the review, and verify it appears in the Reviews tab.
+10. Check the browser console (F12 > Console) for errors.
+11. Check the Network tab (F12 > Network) for a POST request to /submit-review with a 200 response.
+12. Verify server logs: tail -n 50 /tmp/replit-nix-errors.log.
+13. Verify the database for the submitted review:
+    SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND procedure_id = 2 LIMIT 5;
+14. Provide a screenshot of /procedure/2 showing the doctors list, review form modal, and submitted review.
+15. Update models.py, routes.py, templates, or the database if any issues arise.
+16. Share observations for each step, including:
+   - Database table creation success.
+   - Login success and "Test User" visibility.
+   - Doctors list content and procedure name.
+   - Review modal appearance and submission success.
+   - Any errors in the console, network, or server logs.

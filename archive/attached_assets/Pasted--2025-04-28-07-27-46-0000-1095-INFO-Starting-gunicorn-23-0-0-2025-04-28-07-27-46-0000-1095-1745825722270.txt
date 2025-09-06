@@ -1,0 +1,50 @@
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Starting gunicorn 23.0.0
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Listening at: http://0.0.0.0:5000 (1095)
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Using worker: sync
+[2025-04-28 07:27:46 +0000] [1106] [INFO] Booting worker with pid: 1106
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:46 +0000] [1095] [INFO] Handling signal: winch
+INFO:app:Creating database tables if they don't exist...
+[2025-04-28 07:27:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:47 +0000] [1095] [INFO] Handling signal: winch
+INFO:app:Database tables created successfully.
+INFO:routes:Community API routes imported successfully.
+INFO:routes:Education routes imported successfully.
+INFO:routes:Community reply routes imported successfully.
+INFO:routes:Community API blueprint registered successfully.
+INFO:routes:Education blueprint registered successfully.
+INFO:routes:Community reply blueprint registered successfully.
+[2025-04-28 07:27:57 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:57 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:27:58 +0000] [1095] [INFO] Handling signal: winch
+INFO:routes:Index page showing: 2 procedures, 0 threads, 1 doctors
+[2025-04-28 07:28:00 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:28:00 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:28:01 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:47 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:53 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:54 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:54 +0000] [1095] [INFO] Handling signal: winch
+[2025-04-28 07:29:54 +0000] [1095] [INFO] Handling signal: winch
+INFO:routes:Index page showing: 2 procedures, 0 threads, 1 doctors
+[2025-04-28 07:30:09 +0000] [1095] [INFO] Handling

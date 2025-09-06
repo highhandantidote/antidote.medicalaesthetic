@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Treatment & Doctor Recommendations{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header" style="background: none; border-bottom: 1px solid rgba(0, 0, 0, 0.125);">
+                    <h3 class="mb-0">AI Health Recommendation System</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p><strong>New:</strong> You can now analyze multiple conditions at once for comprehensive recommendations!</p>
+                        <p class="mb-0"><strong>Important:</strong> For audio recording, please also type your concern for more accurate results. Audio transcription may not always capture the nuances of medical terminology or different languages.</p>
+                    </div>
+
+                    <form id="recommendation-form" enctype="multipart/form-data">
+                        <!-- Add CSRF token -->
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div id="concerns-container">
+                            <div class="concern-group mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <i class="fas fa-comment-medical text-primary me-2 position-absolute" style="top: 10px; left: 10px; z-index: 10;"></i>
+                                    <span class="badge bg-light text-dark border">Primary Concern</span>
+                                </div>
+                                <textarea class="form-control query-text" name="query_text" rows="4" style="padding-left: 35px;" placeholder="e.g., I want to reduce wrinkles or improve my nose shape..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" id="add-concern-btn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-plus"></i> Add Another Concern
+                            </button>
+                            <small class="text-muted ms-2">Add multiple concerns for comprehensive analysis</small>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="audio" class="form-label">Or upload an audio recording</label>
+                                <input type="file" class="form-control" id="audio" name="audio" accept="audio/*">
+                                <div class="mt-2">
+                                    <button type="button" id="record-button" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-microphone"></i> Record Audio
+                                    </button>
+                                    <button type="button" id="stop-button" class="btn btn-outline-danger btn-sm d-none">
+                                        <i class="fas fa-stop"></i> Stop Recording
+                                    </button>
+                                </div>
+                                <div id="audio-player-container" class="mt-2 d-none">
+                                    <audio id="audio-player" controls></audio>
+                                </div>
+                                <div id="recording-feedback" class="mt-2 small text-muted">
+                                    <span class="badge bg-info d-none" id="recording-badge">Recording in progress...</span>
+                                    <span class="badge bg-success d-none" id="recorded-badge">Audio recorded successfully</span>
+                                    <div class="mt-1 d-none" id="recording-tip">Remember to also type your concern for more accurate results.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label for="image" class="form-label mb-0">Upload an Image (optional)</label>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('image').click()">
+                                        <i class="fas fa-upload"></i> Choose Image
+                                    </button>
+                                </div>
+                                <input type="file" class="form-control d-none" id="image" name="image" accept="image/*">
+                                <div id="image-preview-container" class="mt-2 d-none">
+                                    <img id="image-preview" class="img-fluid img-thumbnail" alt="Image preview">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-light border">Discover Your Treatments</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="results-container" class="mt-4 d-none">
+                <div class="card shadow">
+                    <div class="card-header" style="background: none; border-bottom: 1px solid rgba(0, 0, 0, 0.125);">
+                        <h4 class="mb-0">Your Personalized Recommendations</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="analysis-results" class="mb-4 p-3 border rounded">
+                            <h5>What we understand about your health concerns:</h5>
+                            
+                            <div class="primary-concern-section">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">Primary Concern</h6>
+                                    <span class="badge bg-light text-dark border">Main Issue</span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Primary concern:</strong> <span id="primary-concern"></span></p>
+                                        <p><strong>Body part:</strong> <span id="body-part"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Severity:</strong> <span id="severity"></span></p>
+                                        <p><strong>Language detected:</strong> <span id="language-detected"></span></p>
+                                    </div>
+                                </div>
+                                <p><strong>Symptoms identified:</strong> <span id="symptoms"></span></p>
+                            </div>
+                            
+                            <div id="additional-concerns-section" class="mt-4 d-none">
+                                <hr>
+                                <h6>Additional Concerns Considered</h6>
+                                <div id="additional-concerns-container">
+                                    <!-- Additional concerns will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Recommended Procedures</h5>
+                        <div id="procedures-container" class="row"></div>
+
+                        <h5 class="mt-4 mb-3">Recommended Doctors</h5>
+                        <div id="doctors-container" class="row"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('recommendation-form');
+    const resultsContainer = document.getElementById('results-container');
+    const concernsContainer = document.getElementById('concerns-container');
+    const addConcernBtn = document.getElementById('add-concern-btn');
+    
+    // Handle adding multiple concerns
+    let concernCounter = 1;
+    
+    addConcernBtn.addEventListener('click', function() {
+        concernCounter++;
+        const newConcern = document.createElement('div');
+        newConcern.className = 'concern-group mb-4';
+        newConcern.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label">Additional Health Concern</label>
+                <div>
+                    <span class="badge bg-light text-dark border">Concern #${concernCounter}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2 remove-concern-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <textarea class="form-control additional-query-text" name="additional_query_text_${concernCounter}" rows="3" placeholder="e.g., I want to reduce wrinkles or improve my nose shape..."></textarea>
+        `;
+        
+        concernsContainer.appendChild(newConcern);
+        
+        // Add event listener to remove button
+        const removeBtn = newConcern.querySelector('.remove-concern-btn');
+        removeBtn.addEventListener('click', function() {
+            concernsContainer.removeChild(newConcern);
+        });
+    });
+    
+    // Image preview
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('image-preview');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.classList.remove('d-none');
+            }
+            
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            imagePreviewContainer.classList.add('d-none');
+        }
+    });
+    
+    // Audio recording
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordButton = document.getElementById('record-button');
+    const stopButton = document.getElementById('stop-button');
+    const audioPlayer = document.getElementById('audio-player');
+    const audioPlayerContainer = document.getElementById('audio-player-container');
+    const audioInput = document.getElementById('audio');
+    
+    recordButton.addEventListener('click', async function() {
+        audioChunks = [];
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.addEventListener('dataavailable', function(e) {
+                audioChunks.push(e.data);
+            });
+            
+            mediaRecorder.addEventListener('stop', function() {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayer.src = audioUrl;
+                audioPlayerContainer.classList.remove('d-none');
+                
+                // Create a File from Blob and set it as the input value
+                const audioFile = new File([audioBlob], 'recorded_audio.mp3', { type: 'audio/mpeg' });
+                
+                // Create a DataTransfer object and add the file
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(audioFile);
+                audioInput.files = dataTransfer.files;
+                
+                // Reset and update UI
+                recordButton.classList.remove('d-none');
+                stopButton.classList.add('d-none');
+                
+                // Show recorded feedback
+                document.getElementById('recording-badge').classList.add('d-none');
+                document.getElementById('recorded-badge').classList.remove('d-none');
+                document.getElementById('recording-tip').classList.remove('d-none');
+            });
+            
+            mediaRecorder.start();
+            
+            // Update UI
+            recordButton.classList.add('d-none');
+            stopButton.classList.remove('d-none');
+            
+            // Show recording feedback
+            document.getElementById('recording-badge').classList.remove('d-none');
+            document.getElementById('recorded-badge').classList.add('d-none');
+            
+        } catch (err) {
+            console.error('Error accessing microphone:', err);
+            alert('Could not access your microphone. Please check your browser permissions.');
+        }
+    });
+    
+    stopButton.addEventListener('click', function() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            
+            // Stop all tracks
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+        submitButton.disabled = true;
+        
+        try {
+            // Collect all concerns into a single structured query
+            const formData = new FormData(form);
+            
+            // Get the primary concern
+            const primaryConcern = document.querySelector('.query-text').value;
+            
+            // Get all additional concerns
+            const additionalConcerns = [];
+            document.querySelectorAll('.additional-query-text').forEach(textarea => {
+                if (textarea.value.trim()) {
+                    additionalConcerns.push(textarea.value.trim());
+                }
+            });
+            
+            // If we have additional concerns, update the main query
+            if (additionalConcerns.length > 0) {
+                let combinedQuery = primaryConcern + "\n\nAdditional Health Concerns:\n";
+                additionalConcerns.forEach((concern, index) => {
+                    combinedQuery += `${index + 1}. ${concern}\n`;
+                });
+                
+                // Replace the original query with our combined one
+                formData.set('query_text', combinedQuery);
+            }
+            
+            const response = await fetch('/api/analyze-query', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Display results
+                document.getElementById('primary-concern').textContent = data.analysis.primary_concern || 'Not identified';
+                document.getElementById('body-part').textContent = data.analysis.body_part || 'Not identified';
+                document.getElementById('severity').textContent = data.analysis.severity || 'Not identified';
+                document.getElementById('language-detected').textContent = data.analysis.language_detected || 'Not identified';
+                document.getElementById('symptoms').textContent = data.analysis.symptoms.join(', ') || 'None identified';
+                
+                // Handle additional concerns display
+                const additionalConcernsSection = document.getElementById('additional-concerns-section');
+                const additionalConcernsContainer = document.getElementById('additional-concerns-container');
+                
+                // Check if there are additional concerns from the API response
+                if (data.analysis.additional_concerns && data.analysis.additional_concerns.length > 0) {
+                    additionalConcernsSection.classList.remove('d-none');
+                    additionalConcernsContainer.innerHTML = '';
+                    
+                    data.analysis.additional_concerns.forEach((concern, index) => {
+                        const concernElement = document.createElement('div');
+                        concernElement.className = 'additional-concern p-3 mb-2 bg-light rounded';
+                        concernElement.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Additional Concern #${index + 1}</h6>
+                                <span class="badge bg-light text-dark border">Secondary</span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Concern:</strong> ${concern.concern || 'Not identified'}</p>
+                                    <p><strong>Body part:</strong> ${concern.body_part || 'Not identified'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Severity:</strong> ${concern.severity || 'Not identified'}</p>
+                                    <p><strong>Symptoms:</strong> ${concern.symptoms ? concern.symptoms.join(', ') : 'None identified'}</p>
+                                </div>
+                            </div>
+                            <p><strong>Recommended procedures:</strong> ${concern.potential_procedures ? concern.potential_procedures.join(', ') : 'None identified'}</p>
+                        `;
+                        additionalConcernsContainer.appendChild(concernElement);
+                    });
+                } 
+                // If no additional concerns from API but we had them in our form, show them more simply
+                else if (additionalConcerns.length > 0) {
+                    additionalConcernsSection.classList.remove('d-none');
+                    additionalConcernsContainer.innerHTML = '';
+                    
+                    additionalConcerns.forEach((concern, index) => {
+                        const concernElement = document.createElement('div');
+                        concernElement.className = 'additional-concern p-3 mb-2 bg-light rounded';
+                        concernElement.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Additional Concern #${index + 1}</h6>
+                                <span class="badge bg-light text-dark border">Submitted</span>
+                            </div>
+                            <p>${concern}</p>
+                        `;
+                        additionalConcernsContainer.appendChild(concernElement);
+                    });
+                } else {
+                    additionalConcernsSection.classList.add('d-none');
+                }
+                
+                // Display procedures
+                const proceduresContainer = document.getElementById('procedures-container');
+                proceduresContainer.innerHTML = '';
+                
+                if (data.procedures.length === 0) {
+                    proceduresContainer.innerHTML = '<div class="col-12"><p class="text-muted">No procedures found matching your description.</p></div>';
+                } else {
+                    data.procedures.forEach(procedure => {
+                        const procedureCard = document.createElement('div');
+                        procedureCard.className = 'col-md-6 col-lg-4 mb-3';
+                        procedureCard.innerHTML = `
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">${procedure.name}</h5>
+                                    <p class="card-text">${procedure.description || ''}</p>
+                                    <p class="card-text"><small class="text-muted">Body Part: ${procedure.body_part || 'N/A'}</small></p>
+                                    <p class="card-text">Cost: ₹${procedure.min_cost} - ₹${procedure.max_cost}</p>
+                                    ${procedure.avg_rating ? `<p class="card-text">Rating: ${procedure.avg_rating.toFixed(1)} (${procedure.review_count} reviews)</p>` : ''}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="/procedure/${procedure.id}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                </div>
+                            </div>
+                        `;
+                        proceduresContainer.appendChild(procedureCard);
+                    });
+                }
+                
+                // Display doctors
+                const doctorsContainer = document.getElementById('doctors-container');
+                doctorsContainer.innerHTML = '';
+                
+                if (data.doctors.length === 0) {
+                    doctorsContainer.innerHTML = '<div class="col-12"><p class="text-muted">No doctors found matching your description.</p></div>';
+                } else {
+                    data.doctors.forEach(doctor => {
+                        const doctorCard = document.createElement('div');
+                        doctorCard.className = 'col-md-6 col-lg-4 mb-3';
+                        doctorCard.innerHTML = `
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Dr. ${doctor.name}</h5>
+                                    <p class="card-text"><strong>Specialization:</strong> ${doctor.specialization || 'N/A'}</p>
+                                    <p class="card-text"><strong>Qualification:</strong> ${doctor.qualification || 'N/A'}</p>
+                                    <p class="card-text"><strong>Experience:</strong> ${doctor.experience_years || 'N/A'} years</p>
+                                    ${doctor.rating ? `<p class="card-text">Rating: ${doctor.rating.toFixed(1)}</p>` : ''}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="/doctor/${doctor.id}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                                </div>
+                            </div>
+                        `;
+                        doctorsContainer.appendChild(doctorCard);
+                    });
+                }
+                
+                // Show results
+                resultsContainer.classList.remove('d-none');
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+                
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error occurred'));
+            }
+            
+        } catch (err) {
+            console.error('Error submitting form:', err);
+            alert('An error occurred while processing your request. Please try again.');
+        } finally {
+            // Reset button state
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %}

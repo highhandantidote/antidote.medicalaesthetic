@@ -1,0 +1,108 @@
+/* Mobile-specific borderless input styling */
+@media (max-width: 768px) {
+    /* Remove all borders from form inputs on mobile - target the specific Bootstrap border class */
+    input[type="text"],
+    input[type="search"], 
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select,
+    .form-control,
+    .hero-search-input,
+    .ultra-search-input,
+    .border,
+    .form-control.border,
+    .hero-search-input.border {
+        border: none !important;
+        border-width: 0 !important;
+        border-style: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    /* Remove focus borders and shadows */
+    input[type="text"]:focus,
+    input[type="search"]:focus, 
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    textarea:focus,
+    select:focus,
+    .form-control:focus,
+    .hero-search-input:focus,
+    .ultra-search-input:focus {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    /* Target specific hero search containers */
+    .hero-search-container input,
+    .hero-search-container .form-control,
+    .hero-search-section input,
+    .hero-search-section .form-control,
+    div[style*="background-color: #f1f3fc"] input {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Remove all borders from form inputs on small mobile - target the specific Bootstrap border class */
+    input[type="text"],
+    input[type="search"], 
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select,
+    .form-control,
+    .hero-search-input,
+    .ultra-search-input,
+    .border,
+    .form-control.border,
+    .hero-search-input.border {
+        border: none !important;
+        border-width: 0 !important;
+        border-style: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    /* Remove focus borders and shadows */
+    input[type="text"]:focus,
+    input[type="search"]:focus, 
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    textarea:focus,
+    select:focus,
+    .form-control:focus,
+    .hero-search-input:focus,
+    .ultra-search-input:focus {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    /* Target specific hero search containers */
+    .hero-search-container input,
+    .hero-search-container .form-control,
+    .hero-search-section input,
+    .hero-search-section .form-control,
+    div[style*="background-color: #f1f3fc"] input {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+}

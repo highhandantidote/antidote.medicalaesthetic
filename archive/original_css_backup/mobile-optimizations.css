@@ -1,0 +1,181 @@
+/* Mobile Optimization for Antidote Platform
+   This CSS targets smaller screen sizes and improves the mobile experience */
+
+/* Global mobile text size adjustments */
+@media (max-width: 768px) {
+    body {
+        font-size: 15px !important;
+    }
+    
+    h1, .h1 {
+        font-size: 24px !important;
+        line-height: 1.3 !important;
+    }
+    
+    h2, .h2 {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+    }
+    
+    h3, .h3 {
+        font-size: 18px !important;
+    }
+    
+    h4, .h4 {
+        font-size: 16px !important;
+    }
+    
+    h5, .h5 {
+        font-size: 15px !important;
+    }
+    
+    .hero-title {
+        font-size: 24px !important;
+        line-height: 1.3 !important;
+    }
+    
+    .hero-subtitle {
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Navbar adjustments */
+    .navbar-brand img {
+        height: 40px !important;
+    }
+    
+    /* Button and form adjustments */
+    .btn, button {
+        padding: 0.5rem 1rem !important;
+        font-size: 14px !important;
+    }
+    
+    .form-control, input, textarea, select {
+        font-size: 14px !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* Increase spacing between touchable elements */
+    .mb-2 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .card-title {
+        font-size: 16px !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .card-text {
+        font-size: 14px !important;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 576px) {
+    body {
+        font-size: 14px !important;
+    }
+    
+    /* Smaller text sizes for very small screens */
+    .hero-title {
+        font-size: 20px !important;
+    }
+    
+    .hero-subtitle {
+        font-size: 13px !important;
+    }
+    
+    /* Compact navbar */
+    .navbar-brand img {
+        height: 35px !important;
+    }
+    
+    .navbar {
+        padding: 0.5rem 1rem !important;
+    }
+    
+    /* More compact buttons and forms */
+    .btn, button {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 13px !important;
+    }
+    
+    .form-control, input, textarea, select {
+        font-size: 13px !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+    
+    /* AI recommendation card */
+    .ai-recommendation-card .card-title {
+        font-size: 15px !important;
+    }
+    
+    .ai-recommendation-card .form-label {
+        font-size: 14px !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Search box optimization */
+    .hero-search-input {
+        font-size: 13px !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .hero-search-btn {
+        font-size: 13px !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .hero-search-tab {
+        font-size: 13px !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+    
+    /* Procedure and doctor cards */
+    .procedure-card .card-title,
+    .doctor-card .card-title {
+        font-size: 15px !important;
+    }
+    
+    .procedure-card .card-text,
+    .doctor-card .card-text {
+        font-size: 13px !important;
+    }
+    
+    /* Card spacing */
+    .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    /* Improve touch targets */
+    a, .btn, .nav-link {
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    
+    /* Disable hover effects to improve performance */
+    .depth-effect:hover,
+    .glow-effect:hover,
+    .press-effect:hover,
+    .ultra-card:hover,
+    .ultra-procedure-card:hover,
+    .ultra-doctor-card:hover,
+    .ultra-thread-card:hover {
+        transform: none !important;
+        box-shadow: inherit !important;
+    }
+}

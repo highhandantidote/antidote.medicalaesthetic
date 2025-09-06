@@ -1,0 +1,101 @@
+{
+  "name": "Antidote Medical Marketplace",
+  "short_name": "Antidote",
+  "description": "India's premier medical aesthetic marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00A0B0",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-IN",
+  "categories": ["medical", "health", "lifestyle"],
+  "icons": [
+    {
+      "src": "/static/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/antidote-logo-new.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/antidote-logo-new.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/images/antidote-logo-new.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Antidote Medical Marketplace Homepage"
+    },
+    {
+      "src": "/static/images/antidote-logo-new.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Antidote Mobile Experience"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Procedures",
+      "short_name": "Procedures",
+      "description": "Browse medical aesthetic procedures",
+      "url": "/procedures",
+      "icons": [
+        {
+          "src": "/static/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Find Clinics",
+      "short_name": "Clinics",
+      "description": "Find verified medical clinics",
+      "url": "/clinics",
+      "icons": [
+        {
+          "src": "/static/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "AI Recommendations",
+      "short_name": "AI Guide",
+      "description": "Get personalized treatment recommendations",
+      "url": "/ai-recommendation",
+      "icons": [
+        {
+          "src": "/static/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

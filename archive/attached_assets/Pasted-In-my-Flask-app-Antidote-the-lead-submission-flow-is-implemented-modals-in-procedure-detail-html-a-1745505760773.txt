@@ -1,0 +1,12 @@
+In my Flask app Antidote, the lead submission flow is implemented (modals in procedure_detail.html and doctor_detail.html, submit_lead route in routes.py), but the "Book Consultation" button on doctors.html (the "All Doctors" list page) doesn’t show the modal form. Fix this and add lead source tracking:
+1. Add the same consultation modal to doctors.html as in procedure_detail.html (fields: Patient Name, Mobile, City [Hyderabad, Mumbai, Delhi, Bangalore, Chennai], Procedure [Rhinoplasty, Liposuction, Blepharoplasty, Tummy Tuck, Breast Augmentation], Preferred Date, Consent Checkbox ["I consent to data processing per Antidote’s privacy policy"]), and ensure the "Book Consultation" button for each doctor triggers it with the doctor_id pre-filled.
+2. Update the Lead model in models.py to add a source field (e.g., "Procedure Page", "Doctor Page").
+3. Update the forms in procedure_detail.html, doctor_detail.html, and doctors.html to include a hidden source field ("Procedure Page" for procedure_detail.html, "Doctor Page" for doctor_detail.html and doctors.html).
+4. Update the submit_lead route in routes.py to save the source field.
+5. Test the flow:
+   - Access /mock_login to set session['user_id'] = 1.
+   - From doctors.html, click "Book Consultation" for a doctor, submit a lead (Patient Name: "Test User", Mobile: "9876543210", City: "Hyderabad", Procedure: "Rhinoplasty", Preferred Date: "2025-05-01", Consent: checked), and verify the modal appears and the lead is saved with source="Doctor Page".
+   - Verify the lead in the database (db.session.execute("SELECT * FROM lead").fetchall()), confirm the doctor email notification, and check lead_confirmation.html loads.
+   - Test edge cases: Submit with invalid mobile ("123") and without consent, ensuring error messages.
+6. Update the .env file with placeholder SMTP settings (e.g., MAIL_SERVER='smtp.gmail.com', MAIL_PORT=587, MAIL_USERNAME='placeholder@gmail.com', MAIL_PASSWORD='placeholder-app-password') and note that actual credentials are needed for email delivery.
+7. Update models.py, routes.py, templates/doctors.html, and other templates as needed.

@@ -1,0 +1,16 @@
+/* Emergency fix to remove "Available" badge */
+span.ultra-badge.ultra-badge-success,
+div:has(> span.ultra-badge.ultra-badge-success),
+.row:has(> .col-md-6:has(> div:has(> i.fa-briefcase + span:contains("0 yrs")))),
+.doctor-card span.badge:contains("Available"),
+span.fa-times-circle ~ span,
+span.text-danger,
+span.badge-danger {
+  display: none !important;
+}
+
+/* Make sure doctor images are properly sized and vary */
+.doctor-image, .rounded-circle {
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}

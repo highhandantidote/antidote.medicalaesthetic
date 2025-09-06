@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Book Consultation - Antidote{% endblock %}
+
+{% block extra_head %}
+<style>
+.consultation-form {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-control:focus {
+    border-color: var(--antidote-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 176, 0.25);
+}
+
+.btn-consultation {
+    background: linear-gradient(135deg, #00A0B0, #30C2D0);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-consultation:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 160, 176, 0.3);
+}
+
+.procedure-suggestion {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    margin: 2px 0;
+    transition: all 0.2s ease;
+}
+
+.procedure-suggestion:hover {
+    background: var(--antidote-primary);
+    color: white;
+}
+
+#procedureSuggestions {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    display: none;
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="consultation-form p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h1 class="h2 text-gradient fw-bold mb-3">Book Your Consultation</h1>
+                    <p class="text-muted">Connect with verified doctors for safe and successful cosmetic procedures</p>
+                </div>
+
+                <form id="consultationForm" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label fw-semibold">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Enter your full name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label fw-semibold">Phone Number *</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder="Enter your phone number">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label fw-semibold">City *</label>
+                            <input type="text" class="form-control" id="city" name="city" required placeholder="Enter your city">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="treatment" class="form-label fw-semibold">Treatment Looking For *</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="treatment" name="treatment" required 
+                                       placeholder="Start typing procedure name..." autocomplete="off">
+                                <div id="procedureSuggestions"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="message" class="form-label fw-semibold">Additional Message (Optional)</label>
+                        <textarea class="form-control" id="message" name="message" rows="4" 
+                                  placeholder="Tell us more about your consultation needs..."></textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-consultation text-white px-5">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Submit Consultation Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const treatmentInput = document.getElementById('treatment');
+    const suggestionsDiv = document.getElementById('procedureSuggestions');
+    let procedures = [];
+
+    // Fetch procedures for autocomplete
+    fetch('/api/procedures')
+        .then(response => response.json())
+        .then(data => {
+            procedures = data.procedures || [];
+        })
+        .catch(error => console.error('Error fetching procedures:', error));
+
+    treatmentInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (query.length < 2) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        const filteredProcedures = procedures.filter(procedure => 
+            procedure.name.toLowerCase().includes(query) ||
+            (procedure.alternative_names && procedure.alternative_names.toLowerCase().includes(query))
+        ).slice(0, 8);
+
+        if (filteredProcedures.length > 0) {
+            suggestionsDiv.innerHTML = filteredProcedures.map(procedure => 
+                `<div class="procedure-suggestion" data-name="${procedure.name}">${procedure.name}</div>`
+            ).join('');
+            suggestionsDiv.style.display = 'block';
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    // Handle suggestion clicks
+    suggestionsDiv.addEventListener('click', function(e) {
+        if (e.target.classList.contains('procedure-suggestion')) {
+            treatmentInput.value = e.target.dataset.name;
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!treatmentInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+
+    // Form submission
+    document.getElementById('consultationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        // Submit the form
+        fetch('/consult/book', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Consultation request submitted successfully! We will contact you soon.');
+                this.reset();
+            } else {
+                alert('Error submitting request. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting request. Please try again.');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+/* Mobile Navigation Dropdown Spacing Fix */
+/* Fix excessive spacing in mobile toggle dropdown to match industry standards */
+
+/* Mobile Navigation Collapse Spacing */
+@media (max-width: 991.98px) {
+    /* Reduce padding between nav items in mobile collapse */
+    .navbar-collapse .navbar-nav .nav-item {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Reduce padding on nav links in mobile collapse */
+    .navbar-collapse .navbar-nav .nav-link {
+        padding: 8px 16px !important; /* Industry standard: 8px vertical, 16px horizontal */
+        font-size: 16px !important; /* Standard mobile touch target size */
+        line-height: 1.5 !important;
+        border-bottom: 1px solid #f8f9fa !important;
+        margin: 0 !important;
+    }
+    
+    /* Remove border from last item */
+    .navbar-collapse .navbar-nav .nav-item:last-child .nav-link {
+        border-bottom: none !important;
+    }
+    
+    /* Reduce padding on the collapsed navbar container */
+    .navbar-collapse {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+    
+    /* Compact user authentication section in mobile */
+    .navbar-collapse .d-flex {
+        padding: 8px 16px !important;
+        gap: 8px !important;
+    }
+    
+    /* Compact button styling in mobile */
+    .navbar-collapse .btn {
+        padding: 6px 12px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Compact dropdown in mobile */
+    .navbar-collapse .dropdown-menu {
+        margin-top: 4px !important;
+        border-radius: 8px !important;
+        padding: 4px 0 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .navbar-collapse .dropdown-item {
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Navbar Toggle Button - Rounded Rectangle Design */
+    .navbar-toggler {
+        background: #f8f9fa !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-size: 18px !important;
+        transition: all 0.3s ease !important;
+        min-width: 52px !important;
+        min-height: 44px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .navbar-toggler:hover,
+    .navbar-toggler:focus,
+    .navbar-toggler:active,
+    .navbar-toggler[aria-expanded="true"] {
+        background: #e9ecef !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    /* Custom hamburger lines */
+    .navbar-toggler-icon-custom {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        width: 18px !important;
+        height: 12px !important;
+    }
+    
+    .navbar-toggler-icon-custom span {
+        display: block !important;
+        height: 2px !important;
+        width: 100% !important;
+        background-color: #495057 !important;
+        border-radius: 1px !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Active state styling for mobile nav */
+    .navbar-collapse .navbar-nav .nav-link:hover,
+    .navbar-collapse .navbar-nav .nav-link:focus {
+        background-color: #f8f9fa !important;
+        color: #00A0B0 !important;
+    }
+    
+    /* All nav links should have consistent styling */
+    .navbar-collapse .navbar-nav .nav-link {
+        background-color: transparent !important;
+        font-weight: 500 !important;
+    }
+}
+
+/* Extra small devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+    .navbar-collapse .navbar-nav .nav-link {
+        padding: 10px 16px !important; /* Slightly larger touch targets for small phones */
+        font-size: 16px !important;
+    }
+    
+    .navbar-collapse .btn {
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .navbar-collapse .d-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    /* Smaller button sizes for very small screens */
+    .navbar-toggler {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+    }
+    
+    .mobile-back-btn {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        padding: 12px !important;
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    .mobile-back-btn i {
+        font-size: 20px !important;
+        color: #4FACFE !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Adjust navbar padding for small screens */
+    .navbar {
+        padding: 0.5rem 0.75rem !important;
+    }
+}
+
+/* Smooth animation for collapse */
+.navbar-collapse {
+    transition: height 0.3s ease !important;
+}
+
+/* Ensure the collapse doesn't interfere with page content */
+.navbar-collapse.show {
+    background-color: #fff !important;
+    border-top: 1px solid #dee2e6 !important;
+}

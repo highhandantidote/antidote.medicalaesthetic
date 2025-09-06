@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_data.meta_data.title }}{% endblock %}
+{% block meta_description %}{{ page_data.meta_data.description }}{% endblock %}
+{% block meta_keywords %}{{ page_data.meta_data.keywords }}{% endblock %}
+{% block canonical_url %}{{ page_data.meta_data.canonical_url }}{% endblock %}
+
+{% block og_title %}{{ page_data.meta_data.og_title }}{% endblock %}
+{% block og_description %}{{ page_data.meta_data.og_description }}{% endblock %}
+
+{% block content %}
+<!-- Structured Data for Local Business -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "name": "Antidote Medical Marketplace - {{ city_name }}",
+    "description": "Medical aesthetic marketplace connecting patients with qualified surgeons in {{ city_name }}",
+    "areaServed": {
+        "@type": "City",
+        "name": "{{ city_name }}"
+    },
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Medical Aesthetic Services",
+        "itemListElement": [
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "MedicalService",
+                    "name": "Plastic Surgery Consultation"
+                }
+            },
+            {
+                "@type": "Offer", 
+                "itemOffered": {
+                    "@type": "MedicalService",
+                    "name": "Cosmetic Surgery Procedures"
+                }
+            }
+        ]
+    }
+}
+</script>
+
+<!-- Breadcrumbs -->
+<nav aria-label="breadcrumb" class="bg-light py-2">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/cities/">Cities</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ city_name }}</li>
+            {% if service_type %}
+            <li class="breadcrumb-item active" aria-current="page">{{ service_type.replace('_', ' ').title() }}</li>
+            {% endif %}
+        </ol>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">{{ page_data.hero_content.headline }}</h1>
+                <p class="lead mb-4">{{ page_data.hero_content.subheadline }}</p>
+                <p class="mb-4">{{ page_data.hero_content.location_highlight }}</p>
+                
+                <!-- Trust Indicators -->
+                <div class="row g-3 mb-4">
+                    {% for indicator in page_data.hero_content.trust_indicators %}
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>{{ indicator }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="#qualified-providers" class="btn btn-light btn-lg">
+                        {{ page_data.hero_content.cta_text }}
+                    </a>
+                    <a href="#services" class="btn btn-outline-light btn-lg">
+                        View Services
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <!-- Hero Image or Medical Illustration -->
+                <div class="text-center">
+                    <img src="{{ url_for('static', filename='images/medical-consultation.svg') }}" 
+                         alt="Medical consultation in {{ city_name }}" 
+                         class="img-fluid" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">{{ page_data.services_section.title }}</h2>
+                <p class="lead text-muted">{{ page_data.services_section.quality_assurance }}</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for service in page_data.services_section.services %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ service.name }}</h5>
+                        <p class="card-text text-muted">{{ service.description }}</p>
+                        <p class="small"><strong>{{ service.local_providers }}</strong></p>
+                        <a href="{{ service.url }}" class="btn btn-outline-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Local Clinics Section -->
+<section id="local-clinics" class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-5 fw-bold">{{ page_data.local_clinics.title }}</h2>
+                <p class="lead">{{ page_data.local_clinics.description }}</p>
+            </div>
+        </div>
+        
+        <!-- Coverage Areas -->
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <h3 class="h4 fw-bold mb-3">Areas We Cover</h3>
+                <div class="row g-3">
+                    {% for area in page_data.area_coverage.areas %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 bg-white shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">{{ area.name }}</h6>
+                                <p class="card-text small text-muted">{{ area.description }}</p>
+                                <span class="badge bg-primary">{{ area.specialties }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selection Criteria -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="h4 fw-bold mb-3">Our Selection Criteria</h3>
+                <div class="row g-3">
+                    {% for criteria in page_data.local_clinics.selection_criteria %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-star text-warning me-2 mt-1"></i>
+                            <span>{{ criteria }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Qualified Providers Section -->
+<section id="qualified-providers" class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-5 fw-bold">Find Qualified Medical Professionals in {{ city_name }}</h2>
+                <p class="lead">Connect with board-certified surgeons and licensed medical professionals who meet our strict qualification standards.</p>
+            </div>
+        </div>
+        
+        <!-- Search/Filter Interface -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <form class="row g-3">
+                            <div class="col-md-6">
+                                <label for="procedure-select" class="form-label fw-bold">Select Procedure</label>
+                                <select class="form-select" id="procedure-select">
+                                    <option selected>Choose procedure...</option>
+                                    {% for service in page_data.services_section.services %}
+                                    <option value="{{ service.name.lower() }}">{{ service.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="area-select" class="form-label fw-bold">Select Area</label>
+                                <select class="form-select" id="area-select">
+                                    <option selected>Choose area...</option>
+                                    {% for area in page_data.area_coverage.areas %}
+                                    <option value="{{ area.name.lower() }}">{{ area.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-search me-2"></i>Find Qualified Providers
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Call to Action -->
+        <div class="row">
+            <div class="col-lg-6 mx-auto text-center">
+                <div class="bg-primary text-white p-4 rounded">
+                    <h4 class="fw-bold mb-3">Ready to Get Started?</h4>
+                    <p class="mb-3">Book consultations with qualified medical professionals in {{ city_name }}</p>
+                    <a href="/procedures/" class="btn btn-light btn-lg">Browse All Procedures</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold text-center mb-5">{{ page_data.faq_section.title }}</h2>
+                
+                <div class="accordion" id="cityFaqAccordion">
+                    {% for faq in page_data.faq_section.faqs %}
+                    <div class="accordion-item border-0 mb-3">
+                        <h3 class="accordion-header" id="faq{{ loop.index }}Heading">
+                            <button class="accordion-button collapsed fw-bold" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#faq{{ loop.index }}Collapse" 
+                                    aria-expanded="false" aria-controls="faq{{ loop.index }}Collapse">
+                                {{ faq.question }}
+                            </button>
+                        </h3>
+                        <div id="faq{{ loop.index }}Collapse" class="accordion-collapse collapse" 
+                             aria-labelledby="faq{{ loop.index }}Heading" data-bs-parent="#cityFaqAccordion">
+                            <div class="accordion-body">
+                                {{ faq.answer }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Medical Disclaimer -->
+<section class="py-4 bg-secondary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="text-center">
+                    <h6 class="fw-bold mb-2">Medical Disclaimer</h6>
+                    <p class="small mb-0">
+                        This information is for educational purposes only and does not constitute medical advice. 
+                        Consult with qualified medical professionals for personalized assessment and treatment recommendations. 
+                        All procedures should be performed by board-certified surgeons in accredited medical facilities.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Schema.org FAQ Structured Data -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {% for faq in page_data.faq_section.faqs %}
+        {
+            "@type": "Question",
+            "name": "{{ faq.question }}",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "{{ faq.answer }}"
+            }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #00a0b0 0%, #0087a0 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #00a0b0 0%, #0087a0 100%);
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #00a0b0;
+    color: white;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 160, 176, 0.25);
+}
+
+.btn-primary {
+    background-color: #00a0b0;
+    border-color: #00a0b0;
+}
+
+.btn-primary:hover {
+    background-color: #0087a0;
+    border-color: #0087a0;
+}
+
+.btn-outline-primary {
+    color: #00a0b0;
+    border-color: #00a0b0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #00a0b0;
+    border-color: #00a0b0;
+}
+
+.text-primary {
+    color: #00a0b0 !important;
+}
+
+.bg-primary {
+    background-color: #00a0b0 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Form submission handling
+    const searchForm = document.querySelector('#qualified-providers form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const procedure = document.getElementById('procedure-select').value;
+            const area = document.getElementById('area-select').value;
+            
+            // Build search URL
+            let searchUrl = '/search?';
+            if (procedure && procedure !== 'Choose procedure...') {
+                searchUrl += 'procedure=' + encodeURIComponent(procedure) + '&';
+            }
+            if (area && area !== 'Choose area...') {
+                searchUrl += 'area=' + encodeURIComponent(area) + '&';
+            }
+            searchUrl += 'city={{ city_name | lower }}';
+            
+            window.location.href = searchUrl;
+        });
+    }
+});
+</script>
+{% endblock %}

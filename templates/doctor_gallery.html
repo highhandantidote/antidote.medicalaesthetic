@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+
+{% block title %}Photo Gallery | Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Gallery Tips -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Gallery Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li class="mb-2">Upload high-quality before & after photos</li>
+                        <li class="mb-2">Ensure proper patient consent for all photos</li>
+                        <li class="mb-2">Consistent angles show better results</li>
+                        <li class="mb-2">Group photos by procedure type</li>
+                        <li>Photos with descriptions get more engagement</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Photo Gallery</h3>
+                    <div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPhotoModal">
+                            <i class="fas fa-upload me-1"></i> Upload Photos
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter section -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter me-1"></i> Filter by Procedure
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">All Photos</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% for dp in doctor.doctor_procedures %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id, procedure_id=dp.procedure_id) }}">
+                                            {{ dp.procedure.procedure_name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" id="gridViewBtn">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="listViewBtn">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {% if doctor_photos %}
+                        <!-- Grid View (default) -->
+                        <div id="gridView" class="row g-3">
+                            {% for photo in doctor_photos %}
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="card bg-dark h-100">
+                                        <div class="position-relative">
+                                            <img src="{{ photo.photo_url }}" class="card-img-top" alt="Before and After">
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <button class="btn btn-sm btn-danger rounded-circle" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deletePhotoModal" 
+                                                    data-photo-id="{{ photo.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="position-absolute bottom-0 start-0 p-2">
+                                                {% if photo.procedure %}
+                                                    <span class="badge bg-primary">{{ photo.procedure.procedure_name }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text small">{{ photo.description or 'No description provided' }}</p>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <span class="small text-muted">{{ photo.created_at.strftime('%b %d, %Y') }}</span>
+                                                <button class="btn btn-sm btn-outline-light" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editPhotoModal" 
+                                                    data-photo-id="{{ photo.id }}"
+                                                    data-description="{{ photo.description }}"
+                                                    data-procedure-id="{{ photo.procedure_id }}">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- List View (hidden by default) -->
+                        <div id="listView" class="d-none">
+                            <div class="table-responsive">
+                                <table class="table table-dark">
+                                    <thead>
+                                        <tr>
+                                            <th>Thumbnail</th>
+                                            <th>Procedure</th>
+                                            <th>Description</th>
+                                            <th>Date Added</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for photo in doctor_photos %}
+                                            <tr>
+                                                <td>
+                                                    <img src="{{ photo.photo_url }}" style="width: 80px; height: 60px; object-fit: cover;" class="img-thumbnail">
+                                                </td>
+                                                <td>{{ photo.procedure.procedure_name if photo.procedure else 'N/A' }}</td>
+                                                <td>{{ photo.description or 'No description' }}</td>
+                                                <td>{{ photo.created_at.strftime('%b %d, %Y') }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-light" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#editPhotoModal" 
+                                                            data-photo-id="{{ photo.id }}"
+                                                            data-description="{{ photo.description }}"
+                                                            data-procedure-id="{{ photo.procedure_id }}">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deletePhotoModal" 
+                                                            data-photo-id="{{ photo.id }}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if page_count > 1 %}
+                            <div class="d-flex justify-content-center mt-4">
+                                <nav aria-label="Gallery pagination">
+                                    <ul class="pagination">
+                                        <li class="page-item {{ 'disabled' if current_page == 1 else '' }}">
+                                            <a class="page-link" href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id, page=current_page-1, procedure_id=request.args.get('procedure_id', '')) }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        
+                                        {% for page in range(1, page_count + 1) %}
+                                            <li class="page-item {{ 'active' if page == current_page else '' }}">
+                                                <a class="page-link" href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id, page=page, procedure_id=request.args.get('procedure_id', '')) }}">
+                                                    {{ page }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                        
+                                        <li class="page-item {{ 'disabled' if current_page == page_count else '' }}">
+                                            <a class="page-link" href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id, page=current_page+1, procedure_id=request.args.get('procedure_id', '')) }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You haven't uploaded any photos yet. Add before and after photos to showcase your work.
+                        </div>
+                        <div class="text-center mt-4">
+                            <p>Adding before and after photos significantly increases patient engagement and interest in your procedures.</p>
+                            <button type="button" class="btn btn-primary btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#addPhotoModal">
+                                <i class="fas fa-upload me-2"></i> Upload Your First Photo
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Gallery Analytics Card -->
+            {% if doctor_photos %}
+                <div class="card bg-dark text-white">
+                    <div class="card-header">
+                        <h4 class="mb-0">Gallery Analytics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Most Viewed Photos</h5>
+                                <div class="chart-container" style="position: relative; height:200px;">
+                                    <canvas id="photoViewsChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Photos by Procedure</h5>
+                                <div class="chart-container" style="position: relative; height:200px;">
+                                    <canvas id="procedurePhotosChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Upload Photo Modal -->
+<div class="modal fade" id="addPhotoModal" tabindex="-1" aria-labelledby="addPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPhotoModalLabel">Upload Photos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.upload_photo', doctor_id=doctor.id) }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="photoType" class="form-label">Photo Type</label>
+                        <select class="form-select" id="photoType" name="photo_type">
+                            <option value="before_after">Before & After</option>
+                            <option value="procedure">Procedure</option>
+                            <option value="profile">Profile Photo</option>
+                            <option value="clinic">Clinic/Facility</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="procedureId" class="form-label">Related Procedure</label>
+                        <select class="form-select" id="procedureId" name="procedure_id">
+                            <option value="">-- Select a procedure --</option>
+                            {% for dp in doctor.doctor_procedures %}
+                                <option value="{{ dp.procedure_id }}">{{ dp.procedure.procedure_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="photoFiles" class="form-label">Select Photos</label>
+                        <input type="file" class="form-control" id="photoFiles" name="photos" multiple accept="image/*" required>
+                        <div class="form-text">You can select multiple files. Maximum 5MB per file.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe the procedure and results"></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="patientConsent" name="patient_consent" required>
+                        <label class="form-check-label" for="patientConsent">
+                            I confirm that I have obtained proper patient consent to share these photos
+                        </label>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Photos</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Photo Modal -->
+<div class="modal fade" id="editPhotoModal" tabindex="-1" aria-labelledby="editPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPhotoModalLabel">Edit Photo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.edit_photo', doctor_id=doctor.id) }}" method="POST">
+                    <input type="hidden" name="photo_id" id="editPhotoId">
+                    
+                    <div class="mb-3">
+                        <label for="editProcedureId" class="form-label">Related Procedure</label>
+                        <select class="form-select" id="editProcedureId" name="procedure_id">
+                            <option value="">-- Select a procedure --</option>
+                            {% for dp in doctor.doctor_procedures %}
+                                <option value="{{ dp.procedure_id }}">{{ dp.procedure.procedure_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Photo Modal -->
+<div class="modal fade" id="deletePhotoModal" tabindex="-1" aria-labelledby="deletePhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePhotoModalLabel">Delete Photo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this photo? This action cannot be undone.</p>
+                <form action="{{ url_for('web.delete_photo', doctor_id=doctor.id) }}" method="POST">
+                    <input type="hidden" name="photo_id" id="deletePhotoId">
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete Photo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View toggle
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        
+        if (gridViewBtn && listViewBtn) {
+            gridViewBtn.addEventListener('click', function() {
+                gridView.classList.remove('d-none');
+                listView.classList.add('d-none');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            });
+            
+            listViewBtn.addEventListener('click', function() {
+                gridView.classList.add('d-none');
+                listView.classList.remove('d-none');
+                gridViewBtn.classList.remove('active');
+                listViewBtn.classList.add('active');
+            });
+        }
+        
+        // Edit photo modal
+        const editPhotoModal = document.getElementById('editPhotoModal');
+        if (editPhotoModal) {
+            editPhotoModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const photoId = button.getAttribute('data-photo-id');
+                const description = button.getAttribute('data-description');
+                const procedureId = button.getAttribute('data-procedure-id');
+                
+                document.getElementById('editPhotoId').value = photoId;
+                document.getElementById('editDescription').value = description || '';
+                
+                if (procedureId) {
+                    document.getElementById('editProcedureId').value = procedureId;
+                }
+            });
+        }
+        
+        // Delete photo modal
+        const deletePhotoModal = document.getElementById('deletePhotoModal');
+        if (deletePhotoModal) {
+            deletePhotoModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const photoId = button.getAttribute('data-photo-id');
+                document.getElementById('deletePhotoId').value = photoId;
+            });
+        }
+        
+        // Initialize charts if we have photos
+        {% if doctor_photos %}
+            // Sample data for the charts - in a real application this would come from the backend
+            const photoLabels = ['Photo 1', 'Photo 2', 'Photo 3', 'Photo 4', 'Photo 5'];
+            const photoViews = [120, 85, 70, 45, 30];
+            
+            // Views chart
+            const viewsCtx = document.getElementById('photoViewsChart').getContext('2d');
+            new Chart(viewsCtx, {
+                type: 'bar',
+                data: {
+                    labels: photoLabels,
+                    datasets: [{
+                        label: 'Views',
+                        data: photoViews,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Procedures chart
+            const procedureCtx = document.getElementById('procedurePhotosChart').getContext('2d');
+            new Chart(procedureCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Rhinoplasty', 'Breast Augmentation', 'Liposuction', 'Other'],
+                    datasets: [{
+                        label: 'Photos',
+                        data: [12, 8, 5, 3],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(255, 206, 86, 0.5)',
+                            'rgba(75, 192, 192, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

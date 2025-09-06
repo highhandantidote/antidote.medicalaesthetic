@@ -1,0 +1,113 @@
+In my Flask app Antidote, on the Rhinoplasty Procedure Detail Page (/procedure/2), the "Write a Review" button doesn’t open the modal (partially fixed), the "Helpful" and "Report" buttons don’t work, and the "Doctors Performing This Procedure" section is missing. Based on your progress, you’ve updated the "Write a Review" button to use Bootstrap 5 data attributes and identified endpoint mismatches for "Helpful" and "Report" buttons. Let’s finalize the fixes and test thoroughly:
+1. Finalize the "Write a Review" button on /procedure/2:
+   - Verify the button and modal in templates/procedure_detail.html:
+     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#writeReviewModal">Write a Review</button>
+     <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title" id="writeReviewModalLabel">Write a Review</h5>
+             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+             <form id="reviewForm" action="{{ url_for('web.submit_review') }}" method="POST">
+               <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+               <div class="mb-3">
+                 <label for="rating" class="form-label">Rating (1-5)</label>
+                 <select name="rating" id="rating" class="form-control" required>
+                   <option value="1">1</option>
+                   <option value="2">2</option>
+                   <option value="3">3</option>
+                   <option value="4">4</option>
+                   <option value="5">5</option>
+                 </select>
+               </div>
+               <div class="mb-3">
+                 <label for="comment" class="form-label">Comment</label>
+                 <textarea name="comment" id="comment" class="form-control" required></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit Review</button>
+             </form>
+           </div>
+         </div>
+       </div>
+     </div>
+   - Ensure no custom JavaScript (e.g., openReviewModal) remains in the scripts block.
+   - Confirm jQuery and Bootstrap are loaded in templates/base.html:
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+   - Restart the application:
+     Restarted Start application
+   - Navigate to /procedure/2, click "Write a Review," and confirm the modal opens.
+
+2. Fix the "Helpful" and "Report" buttons:
+   - Open templates/procedure_detail.html and verify the buttons:
+     <button class="btn btn-outline-light btn-sm helpful-btn" data-review-id="{{ review.id }}">Helpful</button>
+     <button class="btn btn-outline-light btn-sm report-btn" data-review-id="{{ review.id }}">Report</button>
+   - Update the JavaScript in the scripts block to use the correct endpoints:
+     <script>
+       document.querySelectorAll('.helpful-btn').forEach(button => {
+         button.addEventListener('click', function() {
+           const reviewId = this.getAttribute('data-review-id');
+           fetch('/helpful/' + reviewId, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       });
+       document.querySelectorAll('.report-btn').forEach(button => {
+         button.addEventListener('click', function() {
+           const reviewId = this.getAttribute('data-review-id');
+           fetch('/report/' + reviewId, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       });
+     </script>
+   - Verify the routes in routes.py:
+     @web.route('/helpful/<int:review_id>', methods=['POST'])
+     @login_required
+     def helpful_review(review_id):
+         review = Review.query.get_or_404(review_id)
+         review.helpful_count = (review.helpful_count or 0) + 1
+         db.session.commit()
+         return jsonify({'message': 'Marked as helpful'})
+     @web.route('/report/<int:review_id>', methods=['POST'])
+     @login_required
+     def report_review(review_id):
+         review = Review.query.get_or_404(review_id)
+         review.reported = True
+         db.session.commit()
+         return jsonify({'message': 'Review reported'})
+   - Test the buttons on the existing review (ID from database, e.g., SELECT id FROM reviews WHERE procedure_id = 2 LIMIT 1) and confirm alerts appear.
+   - Check the browser console (F12 > Console) and Network tab (F12 > Network) for errors or failed requests.
+
+3. Fix the "Doctors Performing This Procedure" section:
+   - Verify the database association:
+     SELECT * FROM doctor_procedures WHERE doctor_id = 3 AND procedure_id = 2;
+   - Open routes.py and confirm the procedure_detail route:
+     procedure_doctors = Doctor.query.join(DoctorProcedure).filter(DoctorProcedure.procedure_id == procedure.id).all()
+   - Add a debug log if not present:
+     print(f"Procedure ID: {procedure.id}, Doctors found: {len(procedure_doctors)}")
+   - Open procedure_detail.html and ensure the section exists:
+     <h3>Doctors Performing This Procedure</h3>
+     {% if procedure_doctors %}
+         <ul>
+         {% for doctor in procedure_doctors %}
+             <li>{{ doctor.name }} (ID: {{ doctor.id }})</li>
+         {% endfor %}
+         </ul>
+     {% else %}
+         <p>No doctors found for this procedure.</p>
+     {% endif %}
+   - Navigate to /procedure/2 and confirm Dr. John Smith appears.
+
+4. Check server logs for debug output:
+   tail -n 50 /tmp/replit-nix-errors.log
+
+5. Provide a screenshot of /procedure/2 showing:
+   - The doctors section with Dr. John Smith.
+   - The review modal open after clicking "Write a Review".
+   - The "Helpful" and "Report" buttons functioning (e.g., after clicking, show the alert "Marked as helpful" or "Review reported").
+
+6. Share observations, including any errors in the console, network, or server logs (e.g., from the console screenshot taken 3 minutes ago).
+7. Once fixed, confirm the Procedure Detail Page functionality is complete and suggest proceeding with removing the "Learn" feature as requested.

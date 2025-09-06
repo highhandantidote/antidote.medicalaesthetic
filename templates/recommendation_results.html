@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Personalized Recommendations{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Page Header with Animation -->
+    <div class="row justify-content-center mb-5" data-aos="fade-up">
+        <div class="col-lg-10 text-center">
+            <span class="badge bg-gradient-primary px-3 py-2 mb-3">AI-Powered Results</span>
+            <h1 class="display-5 fw-bold mb-3">Your Personalized Health Recommendations</h1>
+            <p class="lead text-muted">Based on your consultation with our AI, we've analyzed your concerns and found these potential matches to help you on your healthcare journey.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Understanding Card -->
+            <div class="card premium-card shadow-lg rounded-4 mb-5" data-aos="fade-up" data-aos-delay="100">
+                <div class="ai-header p-4 d-flex align-items-center">
+
+                    <div>
+                        <h3 class="text-white mb-0 fw-bold">Analysis Results</h3>
+                        <p class="text-white-50 mb-0">Our AI's understanding of your concerns</p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="analysis-item p-3 rounded-3 bg-light bg-opacity-50 border border-light h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                        <i class="fas fa-stethoscope text-primary"></i>
+                                    </div>
+                                    <h5 class="mb-0 fw-medium">Primary Concern</h5>
+                                </div>
+                                <p class="ps-4 mb-0 mt-1">{{ analysis.primary_concern or 'Not identified' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analysis-item p-3 rounded-3 bg-light bg-opacity-50 border border-light h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                        <i class="fas fa-child text-primary"></i>
+                                    </div>
+                                    <h5 class="mb-0 fw-medium">Body Part</h5>
+                                </div>
+                                <p class="ps-4 mb-0 mt-1">{{ analysis.body_part or 'Not identified' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analysis-item p-3 rounded-3 bg-light bg-opacity-50 border border-light h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                        <i class="fas fa-exclamation-triangle text-primary"></i>
+                                    </div>
+                                    <h5 class="mb-0 fw-medium">Severity</h5>
+                                </div>
+                                <p class="ps-4 mb-0 mt-1">{{ analysis.severity or 'Not identified' }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="analysis-item p-3 rounded-3 bg-light bg-opacity-50 border border-light h-100">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                        <i class="fas fa-language text-primary"></i>
+                                    </div>
+                                    <h5 class="mb-0 fw-medium">Language Detected</h5>
+                                </div>
+                                <p class="ps-4 mb-0 mt-1">{{ analysis.language_detected or 'Not identified' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-item p-3 rounded-3 bg-light bg-opacity-50 border border-light mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                                <i class="fas fa-list-ul text-primary"></i>
+                            </div>
+                            <h5 class="mb-0 fw-medium">Symptoms Identified</h5>
+                        </div>
+                        <div class="ps-4 mb-0 mt-2">
+                            {% if analysis.symptoms %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for symptom in analysis.symptoms %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">{{ symptom }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted fst-italic">No specific symptoms identified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-start border-4 rounded-3 d-flex">
+                        <div class="me-3 fs-3 text-info">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading fw-medium">Important Note</h5>
+                            <p class="mb-0">These recommendations are based on AI analysis and are meant to guide you. Always consult with a healthcare professional for a proper diagnosis and treatment plan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Procedures -->
+            <div class="card premium-card shadow-lg rounded-4 mb-5" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-header bg-gradient-success text-white p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-white p-2 me-3">
+                        <i class="fas fa-clipboard-list text-success"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold">Recommended Procedures</h3>
+                        <p class="mb-0 text-white-50">Medical treatments matched to your needs</p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if procedures %}
+                        <div class="row g-4">
+                            {% for procedure in procedures %}
+                                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                                    <div class="card h-100 shadow-sm hover-shadow procedure-card">
+                                        {% set icon_class = 'fas fa-syringe' %}
+                                        {% if 'face' in procedure.body_part|lower %}
+                                            {% set icon_class = 'fas fa-smile' %}
+                                        {% elif 'hair' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-cut' %}
+                                        {% elif 'breast' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-female' %}
+                                        {% elif 'lip' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-lips' %}
+                                        {% elif 'nose' in procedure.procedure_name|lower or 'rhinoplasty' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-nose' %}
+                                        {% elif 'eye' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-eye' %}
+                                        {% elif 'body' in procedure.procedure_name|lower or 'tummy' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-child' %}
+                                        {% elif 'skin' in procedure.procedure_name|lower %}
+                                            {% set icon_class = 'fas fa-allergies' %}
+                                        {% endif %}
+                                        
+                                        <div class="card-header bg-light border-0 pt-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="procedure-icon-bg me-3">
+                                                    <i class="{{ icon_class }}"></i>
+                                                </div>
+                                                <h5 class="card-title mb-0">{{ procedure.procedure_name }}</h5>
+                                            </div>
+                                            <div class="small text-muted mt-2">
+                                                <i class="fas fa-map-marker-alt me-1"></i> {{ procedure.body_part or 'General' }}
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text">{{ procedure.short_description }}</p>
+                                            <div class="mb-3">
+                                                <!-- Cost Range Row -->
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-rupee-sign text-success me-1"></i>
+                                                    <strong class="me-1">Cost Range:</strong>
+                                                    <span class="text-success fw-medium">₹{{ procedure.min_cost }} - ₹{{ procedure.max_cost }}</span>
+                                                </div>
+                                                
+                                                <!-- Recovery Row -->
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-clock text-primary me-1"></i>
+                                                    <strong class="me-1">Recovery:</strong>
+                                                    <span>{{ procedure.recovery_time|default('Varies') }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-end">
+                                                {% if procedure.avg_rating %}
+                                                    <div class="rating">
+                                                        <span class="star-rating me-1">
+                                                            <i class="fas fa-star"></i> {{ procedure.avg_rating|round(1) }}
+                                                        </span>
+                                                        <span class="small text-muted">({{ procedure.review_count }} reviews)</span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent border-top-0 text-center">
+                                            <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-outline-primary w-100">
+                                                View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning border-start border-4 rounded-3 d-flex">
+                            <div class="me-3 fs-3 text-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading fw-medium">No Procedures Found</h5>
+                                <p class="mb-0">We couldn't identify suitable procedures based on your description. Please try describing your concerns in more detail or consult with a healthcare professional.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recommended Doctors -->
+            <div class="card premium-card shadow-lg rounded-4 mb-5" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-header bg-gradient-info text-white p-4 d-flex align-items-center">
+                    <div class="rounded-circle bg-white p-2 me-3">
+                        <i class="fas fa-user-md text-info"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold">Recommended Specialists</h3>
+                        <p class="mb-0 text-white-50">Expert doctors who specialize in your concerns</p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if doctors %}
+                        <div class="row g-4">
+                            {% for doctor in doctors %}
+                                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                                    <div class="card h-100 shadow-sm hover-shadow doctor-card">
+                                        <div class="card-body position-relative">
+                                            <div class="d-flex mb-3">
+                                                <div class="doctor-image-container me-3">
+                                                    {% if doctor.profile_image %}
+                                                        <img src="{{ doctor.profile_image }}" alt="Dr. {{ doctor.name }}" class="doctor-image">
+                                                    {% else %}
+                                                        <div class="doctor-image-placeholder">
+                                                            <i class="fas fa-user-md"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h5 class="card-title mb-1">Dr. {{ doctor.name }}</h5>
+                                                    <p class="specialty-badge">{{ doctor.specialization or 'Specialist' }}</p>
+                                                    {% if doctor.verified %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check-circle me-1"></i> Verified
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="doctor-details">
+                                                <div class="doctor-info-item">
+                                                    <i class="fas fa-graduation-cap text-primary me-2"></i>
+                                                    <span>{{ doctor.qualification or 'Medical Degree' }}</span>
+                                                </div>
+                                                <div class="doctor-info-item">
+                                                    <i class="fas fa-history text-primary me-2"></i>
+                                                    <span>{{ doctor.experience_years or 0 }} years experience</span>
+                                                </div>
+                                                {% if doctor.clinic_address %}
+                                                <div class="doctor-info-item">
+                                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                                    <span>{{ doctor.clinic_address }}</span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="doctor-info-item">
+                                                    <i class="fas fa-calendar-check text-success me-2"></i>
+                                                    <span>Available Today</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent d-flex justify-content-between">
+                                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-outline-primary flex-grow-1 me-2">
+                                                View Profile
+                                            </a>
+                                            <a href="{{ url_for('web.book_appointment', doctor_id=doctor.id) }}" class="btn btn-primary flex-grow-1">
+                                                Book
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning border-start border-4 rounded-3 d-flex">
+                            <div class="me-3 fs-3 text-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading fw-medium">No Doctors Found</h5>
+                                <p class="mb-0">We couldn't identify suitable specialists based on your description. Please try describing your concerns in more detail or search for doctors by specialization.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-5 d-flex justify-content-center gap-3" data-aos="fade-up" data-aos-delay="400">
+                <a href="/ai-recommendation" class="btn btn-gradient-primary btn-lg">
+                    <i class="fas fa-redo me-2"></i> Start New Recommendation
+                </a>
+                <a href="{{ url_for('web.index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home me-2"></i> Return to Home
+                </a>
+            </div>
+            
+            <!-- Save results reminder -->
+            <div class="text-center mt-3" data-aos="fade-up" data-aos-delay="500">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i> 
+                    Log in to save these recommendations in your profile for future reference.
+                </p>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

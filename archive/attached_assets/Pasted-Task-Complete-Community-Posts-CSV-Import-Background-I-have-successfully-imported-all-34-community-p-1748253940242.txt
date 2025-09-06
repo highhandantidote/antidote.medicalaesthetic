@@ -1,0 +1,52 @@
+Task: Complete Community Posts CSV Import
+Background
+I have successfully imported all 34 community posts from the CSV file attached_assets/community_new - Sheet1.csv into the database. However, the reply data import is incomplete. Currently only 53 replies have been imported, but the CSV contains much more reply data (up to 8 replies per post with nested conversations).
+
+Current Status
+✅ Posts: All 34 community posts imported successfully
+✅ Users: All main post authors created
+⚠️ Replies: Only partial import complete (53 out of ~120+ total replies)
+⚠️ Reply Counts: Need updating after full import
+
+CSV Structure
+The CSV file contains:
+
+34 rows (one per community post)
+Main post data: title, content, username, email, procedure_name, category_name, tags, view_count, etc.
+Reply data: up to 8 replies per post with columns like:
+reply_1_content, reply_1_username, reply_1_email, reply_1_is_doctor, reply_1_is_expert, reply_1_date
+reply_2_content, reply_2_username, etc. (up to reply_8_)
+Some replies have reply_X_parent_reply for nested conversations
+Scripts Already Created
+direct_csv_import.py - Main import script (partially working)
+final_replies_import.py - Alternative approach
+bulk_replies_import.py - Batch processing approach
+complete_replies_import.py - Comprehensive import script
+Database Schema
+community table: Contains the 34 posts with source_type = 'manual'
+community_replies table: Should contain ALL replies from CSV
+users table: Contains post authors and reply users
+What Needs to be Done
+Import ALL remaining replies from the CSV file (replies 1-8 for each of the 34 posts)
+Create any missing users for reply authors
+Handle nested replies using the parent_reply references
+Update reply_count for all community posts
+Verify no data is left behind - the CSV has comprehensive reply data that must all be imported
+Approach Recommendations
+Use the existing direct_csv_import.py script as the base - it was working correctly but timing out
+Process in smaller batches to avoid timeouts (maybe 5-10 posts at a time)
+Add duplicate checking to avoid re-importing existing replies
+Commit frequently to save progress
+Run final verification to ensure all CSV data is imported
+Key Points
+The CSV file is complete and authentic - DO NOT leave any data behind
+All 34 posts are already imported correctly
+Focus only on importing the missing reply data
+Each post should have multiple authentic replies from users like expert_wyvern, CloudberryPop, NebulaNoodle, etc.
+Some users are experts (expert_ prefix), others are patients
+Update the reply_count field in the community table after import
+Success Criteria
+All replies from CSV imported (should be 100+ total replies)
+All 34 posts have their correct reply counts
+No CSV data left behind
+Community platform shows authentic discussions with proper user roles

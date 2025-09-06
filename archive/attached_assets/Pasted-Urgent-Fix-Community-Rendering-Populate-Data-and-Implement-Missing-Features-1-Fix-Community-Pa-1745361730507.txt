@@ -1,0 +1,48 @@
+Urgent: Fix Community Rendering, Populate Data, and Implement Missing Features:
+
+1. Fix Community Page Rendering (Within 24 Hours):
+   - Debug why `/community` shows “No discussions yet” despite 6 threads:
+     - Check `routes.py` for `/community` route—ensure query is correct (e.g., `SELECT * FROM threads ORDER BY created_at DESC`).
+     - Verify `community.html` loops through threads data (e.g., `{% for thread in threads %}`).
+   - Test: Confirm 6 threads display, body part filter shows 5 for “Face,” 1 for “Breast,” search for “cost” returns 2 threads, filter lag <100ms with timestamp logs.
+
+2. Populate Data Across All Pages (Within 48 Hours):
+   - **Seed Doctors**:
+     - Create `seed_doctors.py` to seed 50 doctors: `id`, `name` (e.g., “Dr. Priya Sharma”), `specialty` (20 Plastic Surgery, 15 Dermatology, 15 Reconstructive Surgery), `qualifications` (e.g., “MBBS, MS”), `verified` (30 True, 20 False), `created_at`.
+     - Verify with: SELECT COUNT(*) FROM doctors; SELECT id, name, specialty, verified FROM doctors LIMIT 5.
+   - **Seed Procedures**:
+     - Use `seed_procedures_batch.py` to seed 112 more procedures (total 117): ~70 Face (add Brow Lift, Cheek Implants), ~30 Breast (add Breast Lift, Breast Reduction), ~17 Body (add Tummy Tuck, Liposuction); ~70 surgical, ~47 non-surgical.
+     - Verify with: SELECT COUNT(*) FROM procedures; SELECT id, procedure_name, body_part, surgical FROM procedures WHERE id IN (1, 13, 50).
+   - **Seed Threads**:
+     - Use `seed_community_threads_batch.py` to seed 50 more threads: 30 Face, 15 Breast, 5 Body, 5 more with “cost” (total 8 with “cost”).
+     - Verify with: SELECT COUNT(*) FROM threads; SELECT id, title, procedure_id, keywords FROM threads LIMIT 10.
+
+3. Implement Missing Features (Within 72 Hours):
+   - **Add Surgical/Non-Surgical Filter**:
+     - Add filter to `/procedures` and `/dashboard/procedures` using `surgical` column (e.g., ~70 surgical, ~47 non-surgical).
+     - Test: Filter shows correct counts, lag <100ms.
+   - **Add Reviews and Popularity Metrics**:
+     - Seed 100 reviews (20 per current procedure, 4-5 stars, e.g., “Great experience with Rhinoplasty!”).
+     - Update `/procedures` to show ratings, `/categories` to show popularity (based on thread count, e.g., Facial Procedures: High if >20 threads).
+     - Verify with: SELECT AVG(rating) FROM reviews WHERE procedure_id = 1;.
+
+4. Retest All Pages After Populating (Within 96 Hours):
+   - **User-Facing Pages**:
+     - **Main Page (`/`)**: Confirm doctor section shows 50 doctors, procedures section shows 117, threads show 56, search/filter works.
+     - **Body Parts (`/body-parts`)**: Show counts (e.g., Face: 70, Breast: 30, Body: 17), load time <2s.
+     - **Categories (`/categories`)**: Show updated popularity (e.g., Facial Procedures: High).
+     - **Procedures (`/procedures`)**: Verify 117 procedures, filter works, load time <2s.
+     - **Doctors (`/doctors`)**: Confirm 50 doctors, filters work, load time <2s.
+     - **Community (`/community`)**: Verify 56 threads, filters work, search for “cost” returns 8 threads, load time <2s.
+     - **New Thread (`/community/new`)**: Confirm dropdown shows 117 procedures, test thread creation, verify analytics (thread count: 57, “cost” in 9 threads).
+   - **Admin Pages**:
+     - **Community Analytics (`/dashboard/community`)**: Confirm charts (e.g., “cost” with 8 mentions), metrics (Total Discussions: 56), load time <2s.
+     - **Doctor Verification (`/dashboard/doctor/verify`)**: Verify 50 doctors, test approve/reject.
+     - **Admin Procedures (`/dashboard/procedures`)**: Confirm 117 procedures, test editing (update Rhinoplasty description), verify analytics.
+
+5. Respond:
+   - Summarize: “Fixed community rendering—6 threads now display. Populated 50 doctors, 117 procedures, 56 threads. Added surgical/non-surgical filter, seeded reviews, updated popularity metrics. Retested all pages: [list key results, e.g., filters work, load times <2s]. Ready for load testing.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `doctors.html`, `procedures.html`, `body_parts.html`, `categories.html`, `community_new.html`, `index.html`, `dashboard_community.html`, `dashboard_doctor_verify.html`, `dashboard_procedures.html`, `seed_doctors.py`, `seed_procedures_batch.py`, `seed_community_threads_batch.py`, console output, and screenshots of all pages.
+
+6. Next Steps:
+   - Proceed to load testing with 20 concurrent users, targeting 99.9% uptime.

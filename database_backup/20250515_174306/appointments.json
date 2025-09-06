@@ -1,0 +1,57 @@
+{
+  "table": "appointments",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "user_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "doctor_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "procedure_name",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "appointment_date",
+      "type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "name": "appointment_time",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "status",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

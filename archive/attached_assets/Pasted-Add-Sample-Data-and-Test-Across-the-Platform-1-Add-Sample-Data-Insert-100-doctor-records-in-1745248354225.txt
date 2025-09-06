@@ -1,0 +1,80 @@
+Add Sample Data and Test Across the Platform:
+
+1. Add Sample Data:
+   - Insert 100 doctor records into the `doctors` table with varied data:
+     - `medical_license_number`: Random MCI-XXXXX-YYYY (e.g., MCI-12345-2025, MCI-67890-2026).
+     - `qualification`: Mix of "MBBS", "MS", "MD" with random years (e.g., "MBBS 2015").
+     - `practice_location`: Indian cities (e.g., Delhi, Mumbai, Bangalore, Chennai).
+     - `verification_status`: 50% "pending", 30% "approved", 20% "rejected".
+     - `credentials_url`: Mock file paths (e.g., "static/doctor_credentials/doc1.pdf").
+     - `aadhaar_number`: 50% with random XXXX-XXXX-XXXX, 50% null.
+     - `name`: Random names (e.g., "Dr. Anil Sharma", "Dr. Priya Patel").
+     - `specialty`: Varied (e.g., "Plastic Surgery", "Dermatology").
+     - `experience`: Random integers 5-20.
+   - Insert 500 community thread records into the `community` table:
+     - `title`: Random titles (e.g., "Rhinoplasty Tips", "Laser Treatment Query").
+     - `content`: Random text (50-200 chars).
+     - `category_id`: Random from existing categories.
+     - `author_id`: Link to random `user_id` (assume 50 users exist).
+     - `photo_url`: 30% with mock paths (e.g., "static/media/thread1.jpg").
+
+2. Implement Data Insertion:
+   - Create a script (e.g., `seed_data.py`) to populate the database:
+     ```python
+     from app import db
+     from models import Doctor, Community, User
+     import random
+     import string
+
+     def generate_doctor():
+         return Doctor(
+             user_id=random.randint(1, 50),
+             medical_license_number=f"MCI-{random.randint(10000, 99999)}-{random.randint(2020, 2025)}",
+             qualification=random.choice(["MBBS", "MS", "MD"]) + " " + str(random.randint(2000, 2020)),
+             practice_location=random.choice(["Delhi", "Mumbai", "Bangalore", "Chennai"]),
+             verification_status=random.choices(["pending", "approved", "rejected"], weights=[50, 30, 20], k=1)[0],
+             credentials_url=f"static/doctor_credentials/doc{random.randint(1, 100)}.pdf" if random.random() > 0.2 else None,
+             aadhaar_number=f"{random.randint(1000, 9999)}-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}" if random.random() > 0.5 else None,
+             name=f"Dr. {random.choice(['Anil', 'Priya', 'Rahul', 'Sneha'])} {random.choice(['Sharma', 'Patel', 'Singh', 'Reddy'])}",
+             specialty=random.choice(["Plastic Surgery", "Dermatology", "Cosmetic Surgery"]),
+             experience=random.randint(5, 20)
+         )
+
+     def generate_thread():
+         return Community(
+             title=f"{random.choice(['Rhinoplasty', 'Laser', 'Filler']) } {random.choice(['Tips', 'Query', 'Review'])}",
+             content=''.join(random.choices(string.ascii_letters + ' ', k=random.randint(50, 200))),
+             category_id=random.randint(1, 5),  # Assume 5 categories
+             author_id=random.randint(1, 50),
+             photo_url=f"static/media/thread{random.randint(1, 50)}.jpg" if random.random() > 0.7 else None
+         )
+
+     if __name__ == "__main__":
+         for _ in range(100):
+             db.session.add(generate_doctor())
+         for _ in range(500):
+             db.session.add(generate_thread())
+         db.session.commit()
+Run the script: python seed_data.py.
+Test Across the Platform:
+Doctor Verification Workflow:
+Test Case 1: Valid Submission - Log in as a doctor, submit MCI-12345-2025, "MBBS", "Delhi, India", a test PDF. Expected: Status "pending."
+Test Case 2: Invalid License - Submit MCI-123. Expected: Alert triggers.
+Test Case 3: Admin Approval - Log in as admin, approve a pending doctor. Expected: Status "approved."
+Test Case 4: Credential View - View the PDF. Expected: File displays.
+Test Case 5: Reject Action - Reject a doctor. Expected: Status "rejected."
+Community Section:
+Test Case 6: Thread Listing - Navigate to /community, verify 500 threads load. Expected: All threads visible, pagination if needed.
+Test Case 7: Thread Details - View a thread with a photo. Expected: Image displays.
+Performance Testing:
+Measure page load time for /dashboard/doctor/verify with 100 doctors.
+Measure API response time for /api/doctor/<doctor_id>/approve with 50% load.
+Note memory usage and error rates in logs.
+Test and Validate:
+Restart the application.
+Run all test cases, noting results (pass/fail) in a summary.
+Take screenshots of doctor submission, admin approval, community listing, thread details, and performance metrics (e.g., browser dev tools).
+Generate logs (e.g., DEBUG:routes:Doctor verification submitted, INFO:db:COMMIT, performance stats).
+Provide Output:
+Share updated models.py, routes.py, seed_data.py, doctor_verification.html, admin_doctor_verifications.html, community.html, logs, console output, and screenshots.
+Respond: "Sample data added and tested across the platform. All test cases passed, with performance metrics included. The extra fields and data volume enhance testing—please review the screenshots and logs. Next steps confirmed for analytics."

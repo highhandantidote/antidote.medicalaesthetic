@@ -1,0 +1,559 @@
+/**
+ * Light theme specific styles for Antidote platform
+ * Modern, vibrant color scheme for a premium healthcare marketplace
+ */
+
+:root[data-bs-theme='light'] {
+    /* Primary brand colors - Modern Professional Teal palette */
+    --antidote-primary: #00A0B0;
+    --antidote-primary-light: #30C2D0;
+    --antidote-primary-dark: #007A8C;
+    --antidote-secondary: #5F6CAF;
+    
+    /* Status colors - Clean and accessible */
+    --antidote-success: #2CC59F;
+    --antidote-danger: #E54F6D;
+    --antidote-warning: #FFBE0B;
+    --antidote-info: #00A0B0;
+    
+    /* UI colors - Clean light theme */
+    --antidote-light: #f9fafb;
+    --antidote-light-gray: #f3f4f6;
+    --antidote-dark: #1f2937;
+    --antidote-white: #ffffff;
+    --antidote-black: #111827;
+    
+    /* Border and surface colors */
+    --antidote-border: #e5e7eb;
+    --antidote-card-bg: #ffffff;
+    --antidote-surface: #f9fafb;
+    --antidote-bg: #ffffff;
+    --antidote-bg-secondary: #f3f4f6;
+    
+    /* Text colors - High contrast for readability */
+    --antidote-text: #111827;
+    --antidote-text-secondary: #4b5563;
+    --antidote-text-muted: #6b7280;
+    --antidote-text-light: #9ca3af;
+    
+    /* Effects */
+    --antidote-shadow: rgba(0, 0, 0, 0.05);
+    
+    /* Accent colors for category badges and indicators */
+    --antidote-accent-1: #8b5cf6; /* Purple */
+    --antidote-accent-2: #ec4899; /* Pink */
+    --antidote-accent-3: #06b6d4; /* Cyan */
+    --antidote-accent-4: #10b981; /* Emerald */
+    --antidote-accent-5: #f59e0b; /* Amber */
+
+    /* Bootstrap overrides */
+    --bs-body-bg: var(--antidote-bg);
+    --bs-body-color: var(--antidote-text);
+    --bs-link-color: var(--antidote-primary);
+    --bs-link-hover-color: var(--antidote-primary-dark);
+    --bs-body-bg-rgb: 255, 255, 255;
+    --bs-primary: var(--antidote-primary);
+    --bs-primary-rgb: 12, 113, 58;
+    --bs-secondary: var(--antidote-secondary);
+    --bs-secondary-rgb: 201, 162, 39;
+    --bs-success: var(--antidote-success);
+    --bs-success-rgb: 12, 113, 58;
+    --bs-info: var(--antidote-info);
+    --bs-info-rgb: 25, 163, 80;
+    --bs-warning: var(--antidote-warning);
+    --bs-warning-rgb: 230, 179, 37;
+    --bs-danger: var(--antidote-danger);
+    --bs-danger-rgb: 239, 68, 68;
+    --bs-light: var(--antidote-light);
+    --bs-light-rgb: 249, 250, 251;
+    --bs-dark: var(--antidote-dark);
+    --bs-dark-rgb: 31, 41, 55;
+    
+    /* Gradients - Modern Professional Teal palette */
+    --gradient-primary: linear-gradient(to right, var(--antidote-primary), #30C2D0);
+    --gradient-success: linear-gradient(to right, var(--antidote-success), #4AD8B8);
+    --gradient-danger: linear-gradient(to right, var(--antidote-danger), #F37A90);
+    --gradient-warning: linear-gradient(to right, var(--antidote-warning), #FFD13A);
+    --gradient-info: linear-gradient(to right, var(--antidote-info), #30C2D0);
+    --gradient-secondary: linear-gradient(to right, var(--antidote-secondary), #7D8BC8);
+}
+
+/* Apply light theme - force override dark classes */
+:root[data-bs-theme='light'] .bg-dark {
+    background-color: var(--antidote-white) !important;
+}
+
+:root[data-bs-theme='light'] .text-light {
+    color: var(--antidote-text) !important;
+}
+
+:root[data-bs-theme='light'] .text-white {
+    color: var(--antidote-text) !important;
+}
+
+:root[data-bs-theme='light'] .text-white-50 {
+    color: var(--antidote-text-muted) !important;
+}
+
+:root[data-bs-theme='light'] .text-white-opacity-50 {
+    color: var(--antidote-text-muted) !important;
+}
+
+/* Force override bootstrap dark classes */
+:root[data-bs-theme='light'] .bg-dark {
+    background-color: var(--antidote-white) !important;
+}
+
+:root[data-bs-theme='light'] .bg-black {
+    background-color: var(--antidote-white) !important;
+}
+
+:root[data-bs-theme='light'] .bg-dark-subtle {
+    background-color: var(--antidote-light) !important;
+}
+
+:root[data-bs-theme='light'] .border-dark {
+    border-color: var(--antidote-border) !important;
+}
+
+/* Navbar styles for light theme */
+:root[data-bs-theme='light'] .navbar-dark {
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04) !important;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8) !important;
+}
+
+:root[data-bs-theme='light'] .navbar-dark .navbar-nav .nav-link {
+    color: var(--antidote-text-secondary) !important;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+:root[data-bs-theme='light'] .navbar-dark .navbar-nav .nav-link:hover,
+:root[data-bs-theme='light'] .navbar-dark .navbar-nav .nav-link.active {
+    color: var(--antidote-primary) !important;
+}
+
+:root[data-bs-theme='light'] .navbar-dark .navbar-brand {
+    color: var(--antidote-primary) !important;
+    font-weight: 700;
+}
+
+:root[data-bs-theme='light'] .navbar-toggler {
+    border-color: var(--antidote-border) !important;
+    color: var(--antidote-text) !important;
+}
+
+:root[data-bs-theme='light'] .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 37, 41, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Footer styles for light theme */
+:root[data-bs-theme='light'] footer.bg-dark {
+    background-color: var(--antidote-light) !important;
+    color: var(--antidote-text-secondary) !important;
+    border-top: 1px solid var(--antidote-border) !important;
+}
+
+:root[data-bs-theme='light'] footer a.text-light {
+    color: var(--antidote-primary) !important;
+    transition: color 0.2s ease;
+}
+
+:root[data-bs-theme='light'] footer a.text-light:hover {
+    color: var(--antidote-primary-dark) !important;
+    text-decoration: none;
+}
+
+:root[data-bs-theme='light'] .footer-title {
+    color: var(--antidote-text) !important;
+}
+
+/* Card styles for light theme */
+:root[data-bs-theme='light'] .card {
+    background-color: #ffffff;
+    border: 1px solid var(--antidote-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+:root[data-bs-theme='light'] .card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+}
+
+:root[data-bs-theme='light'] .card-title {
+    color: var(--antidote-text);
+}
+
+:root[data-bs-theme='light'] .card-text {
+    color: var(--antidote-text-secondary);
+}
+
+/* Hero section for light theme */
+:root[data-bs-theme='light'] .hero-section {
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%234361ee' fill-opacity='0.03'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-bs-theme='light'] .hero-title {
+    color: var(--antidote-text);
+}
+
+:root[data-bs-theme='light'] .hero-subtitle {
+    color: var(--antidote-text-secondary);
+}
+
+/* Button Overrides for Light Theme - Premium Emerald-Gold palette */
+:root[data-bs-theme='light'] .btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+    box-shadow: 0 4px 10px rgba(12, 113, 58, 0.2);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+:root[data-bs-theme='light'] .btn-primary:hover {
+    box-shadow: 0 6px 15px rgba(12, 113, 58, 0.3);
+    transform: translateY(-2px);
+}
+
+:root[data-bs-theme='light'] .btn-secondary {
+    background: var(--gradient-gold);
+    border: none;
+    box-shadow: 0 4px 10px rgba(201, 162, 39, 0.2);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #333;
+}
+
+:root[data-bs-theme='light'] .btn-secondary:hover {
+    box-shadow: 0 6px 15px rgba(201, 162, 39, 0.3);
+    transform: translateY(-2px);
+    color: #222;
+}
+
+:root[data-bs-theme='light'] .btn-outline-primary {
+    border-color: var(--antidote-primary);
+    color: var(--antidote-primary);
+    font-weight: 500;
+}
+
+:root[data-bs-theme='light'] .btn-outline-primary:hover {
+    background-color: var(--antidote-primary);
+    color: #ffffff;
+}
+
+:root[data-bs-theme='light'] .btn-outline-secondary {
+    border-color: var(--antidote-secondary);
+    color: var(--antidote-secondary);
+    font-weight: 500;
+}
+
+:root[data-bs-theme='light'] .btn-outline-secondary:hover {
+    background-color: var(--antidote-secondary);
+    color: #333;
+}
+
+:root[data-bs-theme='light'] .btn-outline-light {
+    color: var(--antidote-text-secondary);
+    border-color: var(--antidote-border);
+}
+
+:root[data-bs-theme='light'] .btn-outline-light:hover {
+    background-color: var(--antidote-bg-secondary);
+    color: var(--antidote-text);
+}
+
+/* Search autocomplete styles for light theme */
+:root[data-bs-theme='light'] .search-autocomplete {
+    background-color: #ffffff;
+    border: 1px solid var(--antidote-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 0.75rem;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-item {
+    color: var(--antidote-text-secondary);
+    border-bottom: 1px solid var(--antidote-border);
+    padding: 0.75rem 1rem;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-item:hover,
+:root[data-bs-theme='light'] .search-autocomplete-item.active {
+    background-color: rgba(12, 113, 58, 0.05);
+}
+
+:root[data-bs-theme='light'] .search-highlight {
+    color: var(--antidote-primary);
+    font-weight: 500;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-category {
+    color: var(--antidote-text-muted);
+    font-size: 0.8rem;
+}
+
+/* Procedure cards specific styling for light theme */
+:root[data-bs-theme='light'] .procedure-card .card {
+    background-color: #ffffff;
+    border: 1px solid var(--antidote-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+:root[data-bs-theme='light'] .procedure-card .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(12, 113, 58, 0.12);
+    border-color: rgba(201, 162, 39, 0.1);
+}
+
+:root[data-bs-theme='light'] .procedure-card .card-title {
+    color: var(--antidote-text);
+    font-weight: 600;
+}
+
+:root[data-bs-theme='light'] .procedure-card .card-text {
+    color: var(--antidote-text-secondary);
+}
+
+:root[data-bs-theme='light'] .text-success,
+:root[data-bs-theme='light'] .text-warning,
+:root[data-bs-theme='light'] .text-danger,
+:root[data-bs-theme='light'] .text-info {
+    font-weight: 500;
+}
+
+/* Alert styling for light theme */
+:root[data-bs-theme='light'] .alert {
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-bs-theme='light'] .alert-info {
+    background-color: rgba(25, 163, 80, 0.1);
+    color: var(--antidote-info);
+    border-left: 3px solid var(--antidote-info);
+}
+
+:root[data-bs-theme='light'] .alert-success {
+    background-color: rgba(12, 113, 58, 0.1);
+    color: var(--antidote-success);
+    border-left: 3px solid var(--antidote-success);
+}
+
+:root[data-bs-theme='light'] .alert-warning {
+    background-color: rgba(230, 179, 37, 0.1);
+    color: var(--antidote-warning);
+    border-left: 3px solid var(--antidote-warning);
+}
+
+:root[data-bs-theme='light'] .alert-danger {
+    background-color: rgba(207, 46, 46, 0.1);
+    color: var(--antidote-danger);
+    border-left: 3px solid var(--antidote-danger);
+}
+
+/* Dropdown menu styles for light theme */
+:root[data-bs-theme='light'] .dropdown-menu {
+    background-color: #ffffff;
+    border: 1px solid var(--antidote-border);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0;
+}
+
+:root[data-bs-theme='light'] .dropdown-menu-dark {
+    background-color: #ffffff !important;
+}
+
+:root[data-bs-theme='light'] .dropdown-menu-dark .dropdown-item {
+    color: var(--antidote-text-secondary) !important;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+:root[data-bs-theme='light'] .dropdown-menu-dark .dropdown-item:hover,
+:root[data-bs-theme='light'] .dropdown-menu-dark .dropdown-item:focus {
+    background-color: rgba(12, 113, 58, 0.07);
+    color: var(--antidote-primary) !important;
+}
+
+:root[data-bs-theme='light'] .dropdown-divider {
+    border-top: 1px solid var(--antidote-border);
+    margin: 0.5rem 0;
+}
+
+/* Body part cards styles for light theme */
+:root[data-bs-theme='light'] .body-part-card {
+    background-color: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-bs-theme='light'] .body-part-card:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 15px 35px rgba(12, 113, 58, 0.15);
+}
+
+:root[data-bs-theme='light'] .body-part-icon-wrapper {
+    background: linear-gradient(135deg, rgba(12, 113, 58, 0.08), rgba(25, 163, 80, 0.06));
+}
+
+:root[data-bs-theme='light'] .body-part-card.face .body-part-icon-wrapper {
+    background: linear-gradient(135deg, rgba(12, 113, 58, 0.1), rgba(25, 163, 80, 0.08));
+}
+
+:root[data-bs-theme='light'] .body-part-card.head .body-part-icon-wrapper {
+    background: linear-gradient(135deg, rgba(7, 81, 40, 0.1), rgba(12, 113, 58, 0.08));
+}
+
+:root[data-bs-theme='light'] .body-part-card.body .body-part-icon-wrapper {
+    background: linear-gradient(135deg, rgba(12, 113, 58, 0.1), rgba(25, 163, 80, 0.08));
+}
+
+:root[data-bs-theme='light'] .body-part-card.skin .body-part-icon-wrapper {
+    background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), rgba(230, 198, 66, 0.08));
+}
+
+:root[data-bs-theme='light'] .body-part-icon {
+    color: var(--antidote-primary);
+}
+
+:root[data-bs-theme='light'] .body-part-title {
+    color: var(--antidote-text);
+    font-weight: 600;
+}
+
+:root[data-bs-theme='light'] .body-part-description {
+    color: var(--antidote-text-secondary);
+    line-height: 1.6;
+}
+
+/* Stat cards light theme styling */
+:root[data-bs-theme='light'] .stat-card {
+    background: #ffffff;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    border-radius: 1rem;
+}
+
+:root[data-bs-theme='light'] .stat-icon {
+    background: linear-gradient(145deg, rgba(12, 113, 58, 0.08), rgba(25, 163, 80, 0.15));
+    color: var(--antidote-primary);
+}
+
+:root[data-bs-theme='light'] .stat-value {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+:root[data-bs-theme='light'] .stat-title {
+    color: var(--antidote-text-secondary);
+}
+
+/* Community section light styling */
+:root[data-bs-theme='light'] .thread-card {
+    background-color: #ffffff;
+    border-color: var(--antidote-border) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+:root[data-bs-theme='light'] .thread-card:hover {
+    box-shadow: 0 5px 15px rgba(12, 113, 58, 0.08);
+    transform: translateY(-2px);
+    border-color: rgba(12, 113, 58, 0.2) !important;
+}
+
+:root[data-bs-theme='light'] .thread-title a {
+    color: var(--antidote-text);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+:root[data-bs-theme='light'] .thread-title a:hover {
+    color: var(--antidote-primary);
+}
+
+:root[data-bs-theme='light'] .thread-content {
+    color: var(--antidote-text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+:root[data-bs-theme='light'] .thread-badges .badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+:root[data-bs-theme='light'] .pagination .page-link {
+    color: var(--antidote-text-secondary);
+    border-color: var(--antidote-border);
+}
+
+:root[data-bs-theme='light'] .pagination .page-item.active .page-link {
+    background-color: var(--antidote-primary);
+    border-color: var(--antidote-primary);
+    color: #ffffff;
+}
+
+:root[data-bs-theme='light'] .pagination .page-link:hover {
+    background-color: var(--antidote-light-gray);
+    color: var(--antidote-primary);
+}
+
+/* Form controls in light theme */
+:root[data-bs-theme='light'] .form-control,
+:root[data-bs-theme='light'] .form-select {
+    background-color: #ffffff;
+    border-color: var(--antidote-border);
+    color: var(--antidote-text);
+}
+
+:root[data-bs-theme='light'] .form-control:focus,
+:root[data-bs-theme='light'] .form-select:focus {
+    border-color: var(--antidote-primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(12, 113, 58, 0.15);
+}
+
+:root[data-bs-theme='light'] .form-control::placeholder {
+    color: var(--antidote-text-light);
+}
+
+:root[data-bs-theme='light'] .input-group-text {
+    background-color: var(--antidote-light);
+    border-color: var(--antidote-border);
+    color: var(--antidote-text-secondary);
+}
+
+/* Search autocomplete styles for light theme */
+:root[data-bs-theme='light'] .search-autocomplete {
+    background-color: #ffffff;
+    border: 1px solid var(--antidote-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 0.75rem;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-item {
+    color: var(--antidote-text-secondary);
+    border-bottom: 1px solid var(--antidote-border);
+    padding: 0.75rem 1rem;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-item:hover,
+:root[data-bs-theme='light'] .search-autocomplete-item.active {
+    background-color: rgba(12, 113, 58, 0.05);
+}
+
+:root[data-bs-theme='light'] .search-highlight {
+    color: var(--antidote-primary);
+    font-weight: 500;
+}
+
+:root[data-bs-theme='light'] .search-autocomplete-category {
+    color: var(--antidote-text-muted);
+    font-size: 0.8rem;
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('banner_slides_id_seq'::regclass)"
+  },
+  {
+    "name": "banner_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "title",
+    "type": "character varying",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "subtitle",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "image_url",
+    "type": "character varying",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "redirect_url",
+    "type": "character varying",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "display_order",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_active",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "updated_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "click_count",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "impression_count",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  }
+]

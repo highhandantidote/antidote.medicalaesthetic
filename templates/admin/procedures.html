@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+
+{% block title %}Procedures Management | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.admin_dashboard') }}">Admin Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Procedures Management</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mb-4">Procedures Management</h1>
+            
+            <!-- Featured Procedure Images Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Featured Procedure Images</h5>
+                    <small class="text-muted">Add images to procedures displayed on the homepage</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if featured_procedures %}
+                            {% for procedure in featured_procedures %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 border">
+                                    <div class="card-body text-center">
+                                        {% if procedure.image_url %}
+                                            <img src="{{ procedure.image_url }}" 
+                                                 alt="{{ procedure.procedure_name }}" 
+                                                 class="img-fluid rounded mb-3"
+                                                 style="height: 120px; width: 100%; object-fit: cover;">
+                                            <div class="badge bg-success mb-2">
+                                                <i class="fas fa-check"></i> Image Added
+                                            </div>
+                                        {% else %}
+                                            <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center" 
+                                                 style="height: 120px;">
+                                                <i class="fas fa-image fa-3x text-muted"></i>
+                                            </div>
+                                            <div class="badge bg-warning text-dark mb-2">
+                                                <i class="fas fa-exclamation"></i> No Image
+                                            </div>
+                                        {% endif %}
+                                        <h6 class="card-title">{{ procedure.procedure_name }}</h6>
+                                        <div class="mb-2">
+                                            <div class="badge bg-primary">
+                                                <i class="fas fa-star me-1"></i> Featured
+                                            </div>
+                                        </div>
+                                        <form action="/admin/upload-procedure-image" method="post" enctype="multipart/form-data" class="mt-3">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+                                            <div class="mb-2">
+                                                <input type="file" class="form-control form-control-sm" name="image" accept="image/*" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-upload me-1"></i>
+                                                {% if procedure.image_url %}Update{% else %}Upload{% endif %} Image
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No featured procedures selected. Mark procedures as featured below to display them on the homepage.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="mb-4">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProcedureModal">
+                    <i class="fas fa-plus-circle me-2"></i> Add New Procedure
+                </button>
+                <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="fas fa-plus-circle me-2"></i> Add Category
+                </button>
+                <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#addBodyPartModal">
+                    <i class="fas fa-plus-circle me-2"></i> Add Body Part
+                </button>
+            </div>
+            
+            <!-- Filters -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="categoryFilter" class="form-label">Category</label>
+                                <select class="form-select" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bodyPartFilter" class="form-label">Body Part</label>
+                                <select class="form-select" id="bodyPartFilter">
+                                    <option value="">All Body Parts</option>
+                                    {% for body_part in body_parts %}
+                                        <option value="{{ body_part.id }}">{{ body_part.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="searchFilter" class="form-label">Search</label>
+                                <input type="text" class="form-control" id="searchFilter" placeholder="Search procedures...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Procedures Table -->
+            <div class="card bg-dark text-white">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Procedures</h5>
+                    <span class="badge bg-primary">{{ procedures|length }} Total</span>
+                </div>
+                <div class="card-body">
+                    {% if procedures %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Body Part</th>
+                                        <th>Cost Range</th>
+                                        <th>Featured</th>
+                                        <th>Doctors</th>
+                                        <th>Reviews</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for procedure in procedures %}
+                                        <tr>
+                                            <td>{{ procedure.id }}</td>
+                                            <td>{{ procedure.procedure_name }}</td>
+                                            <td>
+                                                {% if procedure.category %}
+                                                    {{ procedure.category.name }}
+                                                {% else %}
+                                                    <span class="text-muted">None</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ procedure.body_part }}</td>
+                                            <td>
+                                                {% if procedure.min_cost and procedure.max_cost %}
+                                                    ₹{{ procedure.min_cost }} - ₹{{ procedure.max_cost }}
+                                                {% else %}
+                                                    <span class="text-muted">Not set</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="featured-{{ procedure.id }}" 
+                                                           {% if procedure.is_featured %}checked{% endif %}
+                                                           onchange="toggleFeatured({{ procedure.id }}, this.checked)">
+                                                    <label class="form-check-label" for="featured-{{ procedure.id }}">
+                                                        {% if procedure.is_featured %}
+                                                            <span class="badge bg-warning"><i class="fas fa-star"></i> Featured</span>
+                                                        {% else %}
+                                                            <span class="text-muted">Not Featured</span>
+                                                        {% endif %}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td>{{ procedure.doctors|length if procedure.doctors else 0 }}</td>
+                                            <td>{{ procedure.reviews|length if procedure.reviews else 0 }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-sm btn-info" target="_blank">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-primary" onclick="editProcedure({{ procedure.id }})">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" onclick="deleteProcedure({{ procedure.id }})">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No procedures found. Click "Add New Procedure" to create one.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Procedure Modal -->
+<div class="modal fade" id="addProcedureModal" tabindex="-1" aria-labelledby="addProcedureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProcedureModalLabel">Add New Procedure</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.add_procedure') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="procedure_name" class="form-label">Procedure Name *</label>
+                                <input type="text" class="form-control" id="procedure_name" name="procedure_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Category *</label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="body_part" class="form-label">Body Part *</label>
+                                <input type="text" class="form-control" id="body_part" name="body_part" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="min_cost" class="form-label">Min Cost (₹)</label>
+                                <input type="number" class="form-control" id="min_cost" name="min_cost">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="max_cost" class="form-label">Max Cost (₹)</label>
+                                <input type="number" class="form-control" id="max_cost" name="max_cost">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="short_description" class="form-label">Short Description *</label>
+                        <textarea class="form-control" id="short_description" name="short_description" rows="2" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="overview" class="form-label">Overview *</label>
+                        <textarea class="form-control" id="overview" name="overview" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="procedure_details" class="form-label">Procedure Details *</label>
+                        <textarea class="form-control" id="procedure_details" name="procedure_details" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ideal_candidates" class="form-label">Ideal Candidates *</label>
+                        <textarea class="form-control" id="ideal_candidates" name="ideal_candidates" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="recovery_process" class="form-label">Recovery Process</label>
+                                <textarea class="form-control" id="recovery_process" name="recovery_process" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="risks" class="form-label">Risks</label>
+                                <textarea class="form-control" id="risks" name="risks" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="benefits" class="form-label">Benefits</label>
+                        <textarea class="form-control" id="benefits" name="benefits" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="thumbnail" class="form-label">Thumbnail Image</label>
+                        <input type="file" class="form-control" id="thumbnail" name="thumbnail">
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Procedure</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.add_category') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="category_name" class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="category_name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="display_name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="display_name" name="display_name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="category_description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="body_part_id" class="form-label">Body Part</label>
+                        <select class="form-select" id="body_part_id" name="body_part_id">
+                            <option value="">Select Body Part</option>
+                            {% for body_part in body_parts %}
+                                <option value="{{ body_part.id }}">{{ body_part.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Body Part Modal -->
+<div class="modal fade" id="addBodyPartModal" tabindex="-1" aria-labelledby="addBodyPartModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBodyPartModalLabel">Add New Body Part</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.add_body_part') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="body_part_name" class="form-label">Body Part Name *</label>
+                        <input type="text" class="form-control" id="body_part_name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="body_part_display_name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="body_part_display_name" name="display_name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="body_part_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="body_part_description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Body Part</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript functions for procedure management
+function editProcedure(procedureId) {
+    alert('Edit procedure ' + procedureId + ' (Feature coming soon)');
+    // This would be implemented with AJAX to fetch procedure details and open the edit modal
+}
+
+function deleteProcedure(procedureId) {
+    if (confirm('Are you sure you want to delete this procedure? This action cannot be undone.')) {
+        // This would submit a form or make an AJAX call to delete the procedure
+        alert('Delete procedure ' + procedureId + ' (Feature coming soon)');
+    }
+}
+
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const bodyPartFilter = document.getElementById('bodyPartFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    
+    if (categoryFilter && bodyPartFilter && searchFilter) {
+        const filterTable = function() {
+            const categoryId = categoryFilter.value;
+            const bodyPartId = bodyPartFilter.value;
+            const searchText = searchFilter.value.toLowerCase();
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                // Category filter
+                if (categoryId && row.cells[2].textContent.trim() !== document.querySelector(`#categoryFilter option[value="${categoryId}"]`).textContent) {
+                    showRow = false;
+                }
+                
+                // Body part filter (simplified - would need to be improved for actual implementation)
+                if (bodyPartId && !row.cells[3].textContent.includes(document.querySelector(`#bodyPartFilter option[value="${bodyPartId}"]`).textContent)) {
+                    showRow = false;
+                }
+                
+                // Search filter
+                if (searchText && !row.cells[1].textContent.toLowerCase().includes(searchText)) {
+                    showRow = false;
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        };
+        
+        categoryFilter.addEventListener('change', filterTable);
+        bodyPartFilter.addEventListener('change', filterTable);
+        searchFilter.addEventListener('input', filterTable);
+    }
+});
+
+// Toggle featured status for procedures
+function toggleFeatured(procedureId, isFeatured) {
+    fetch('/admin/procedures/toggle-featured', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            procedure_id: procedureId,
+            is_featured: isFeatured
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the label
+            const label = document.querySelector(`label[for="featured-${procedureId}"]`);
+            if (isFeatured) {
+                label.innerHTML = '<span class="badge bg-warning"><i class="fas fa-star"></i> Featured</span>';
+            } else {
+                label.innerHTML = '<span class="text-muted">Not Featured</span>';
+            }
+            
+            // Refresh the page to update the featured procedures section
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            alert('Error updating featured status: ' + data.message);
+            // Revert the checkbox
+            document.getElementById(`featured-${procedureId}`).checked = !isFeatured;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating featured status');
+        // Revert the checkbox
+        document.getElementById(`featured-${procedureId}`).checked = !isFeatured;
+    });
+}
+</script>
+{% endblock %}

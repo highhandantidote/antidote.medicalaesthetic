@@ -1,0 +1,52 @@
+{
+  "table": "doctor_availability",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "doctor_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "day_of_week",
+      "type": "character varying",
+      "nullable": true
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "date",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "slots",
+      "type": "json",
+      "nullable": true
+    },
+    {
+      "name": "booked_slots",
+      "type": "json",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

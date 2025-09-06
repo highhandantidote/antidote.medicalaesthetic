@@ -1,0 +1,33 @@
+/* Custom styles for all search input placeholders */
+
+/* Navbar search inputs */
+#searchInput::placeholder,
+#mobileSearchInput::placeholder {
+    font-size: 13px !important;
+}
+
+/* Ensure the input text itself is also 13px for consistency */
+#searchInput,
+#mobileSearchInput {
+    font-size: 13px !important;
+}
+
+/* Homepage hero search inputs */
+#doctorSearch::placeholder,
+#procedureSearch::placeholder,
+#discussionSearch::placeholder,
+input[name="location"]::placeholder {
+    font-size: 13px !important;
+}
+
+/* AI recommendation inputs */
+#concerns::placeholder,
+#city::placeholder {
+    font-size: 13px !important;
+}
+
+/* Apply to all inputs that might have typewriter animations */
+input.hero-search-input::placeholder,
+textarea.form-control::placeholder {
+    font-size: 13px !important;
+}

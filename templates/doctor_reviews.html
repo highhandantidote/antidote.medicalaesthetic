@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviews | Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Patient Reviews</h3>
+                    <div>
+                        <span class="badge bg-primary">{{ reviews|length }} Review(s)</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="card bg-dark border mb-3" id="review-{{ review.id }}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title">{{ review.user.name if review.user else 'Anonymous User' }}</h5>
+                                            <p class="text-muted">{{ review.created_at.strftime('%B %d, %Y') }}</p>
+                                        </div>
+                                        <div class="rating">
+                                            {% for i in range(1, 6) %}
+                                                {% if i <= review.rating %}
+                                                    <span class="star text-warning">★</span>
+                                                {% else %}
+                                                    <span class="star">☆</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="card-text"><span class="badge bg-secondary">{{ review.procedure_name }}</span></p>
+                                    <p class="card-text">{{ review.review_text }}</p>
+                                    
+                                    <div class="review-replies">
+                                        {% if review.replies %}
+                                            <div class="mt-3 p-3 border-start border-primary" style="border-width: 3px !important;">
+                                                <h6>Your Replies</h6>
+                                                {% for reply in review.replies %}
+                                                    <div class="mb-2">
+                                                        <p class="mb-1"><strong>Dr. {{ reply.doctor.name }}:</strong></p>
+                                                        <p class="mb-1">{{ reply.reply_text }}</p>
+                                                        <small class="text-muted">{{ reply.created_at.strftime('%B %d, %Y at %H:%M') }}</small>
+                                                    </div>
+                                                    {% if not loop.last %}<hr class="my-2">{% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <form method="POST" action="{{ url_for('web.reply_review', review_id=review.id) }}" class="reply-review-form" data-review-id="{{ review.id }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <div class="mb-3">
+                                                <label for="reply_text" class="form-label">Your Reply</label>
+                                                <textarea name="reply_text" class="form-control bg-dark text-white" rows="3" required></textarea>
+                                                <div class="form-text">Your response will be visible to the patient and other users viewing this review.</div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Submit Reply</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You don't have any reviews yet. Reviews will appear here when patients rate their experience with you.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reviews.js') }}"></script>
+{% endblock %}

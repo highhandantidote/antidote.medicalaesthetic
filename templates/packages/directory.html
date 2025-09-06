@@ -1,0 +1,754 @@
+{% extends "base.html" %}
+
+{% block title %}Treatment Packages{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/package-filters.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-filters.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-search-ultra-compact.css') }}">
+{% endblock %}
+
+{% block content %}
+
+
+<!-- Enhanced Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="GET" id="filterForm">
+                    <!-- Basic Filters Row -->
+                    <div class="row g-3 mb-3">
+                        <!-- Search Input -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="search" class="form-control" placeholder="Search packages, treatments..." 
+                                           value="{{ filter_params.search or '' }}" id="searchInput">
+                                </div>
+                                <div id="searchSuggestions" class="dropdown-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Location Filter -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" name="location" class="form-control" placeholder="Select location..." 
+                                           value="{{ filter_params.location or '' }}" id="locationInput" autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary" id="useLocationBtn">
+                                        <i class="fas fa-location-arrow"></i>
+                                    </button>
+                                </div>
+                                <div id="locationDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" type="submit">
+                                <i class="fas fa-search me-2"></i>Search Packages
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Toggle -->
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-link p-0 text-decoration-none" id="advancedFiltersToggle">
+                                <i class="fas fa-chevron-down me-1"></i>
+                                <span>Advanced Filters</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Section (Hidden by default) -->
+                    <div id="advancedFiltersSection" style="display: none;" class="mt-3">
+                        <div class="row g-3">
+                            <!-- Category Filter -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label mb-1">Category</label>
+                                <div class="position-relative">
+                                    <input type="text" name="category" class="form-control" placeholder="Select category..." 
+                                           value="{{ filter_params.category or '' }}" id="categoryInput" autocomplete="off">
+                                    <div class="dropdown-arrow"><i class="fas fa-chevron-down"></i></div>
+                                    <div id="categoryDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Price Filter -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label mb-1">Price Range</label>
+                                <div class="row g-2">
+                                    <div class="col-5">
+                                        <input type="number" name="min_price" class="form-control" placeholder="Min ₹" 
+                                               value="{{ filter_params.min_price or '' }}" id="minPriceInput">
+                                    </div>
+                                    <div class="col-2 text-center">
+                                        <span class="form-control-plaintext small">to</span>
+                                    </div>
+                                    <div class="col-5">
+                                        <input type="number" name="max_price" class="form-control" placeholder="Max ₹" 
+                                               value="{{ filter_params.max_price or '' }}" id="maxPriceInput">
+                                    </div>
+                                </div>
+                                <!-- Quick price presets -->
+                                <div class="mt-2">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-secondary quick-price" data-min="0" data-max="50000">Under ₹50K</button>
+                                        <button type="button" class="btn btn-outline-secondary quick-price" data-min="50000" data-max="100000">₹50K-₹1L</button>
+                                        <button type="button" class="btn btn-outline-secondary quick-price" data-min="100000" data-max="200000">₹1L-₹2L</button>
+                                        <button type="button" class="btn btn-outline-secondary quick-price" data-min="200000" data-max="">Above ₹2L</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sort Filter -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label mb-1">Sort by</label>
+                                <select name="sort" class="form-select">
+                                    <option value="mixed" {% if filter_params.sort == 'mixed' or not filter_params.sort %}selected{% endif %}>Mixed Variety (Default)</option>
+                                    <option value="newest" {% if filter_params.sort == 'newest' %}selected{% endif %}>Newest First</option>
+                                    <option value="price_low" {% if filter_params.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_high" {% if filter_params.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                    <option value="rating" {% if filter_params.sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                                    <option value="popularity" {% if filter_params.sort == 'popularity' %}selected{% endif %}>Most Popular</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter me-1"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="clearFilters">
+                                        <i class="fas fa-times me-1"></i>Clear All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Active Filters Display -->
+                <div id="activeFilters" class="mt-3" style="display: none;">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <small class="text-muted">Active filters:</small>
+                        <div id="filterTags"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Packages List -->
+<div class="row">
+    <div class="col-12">
+        {% if packages %}
+        <!-- Include reusable package cards component -->
+        <div id="packagesList">
+            {% include 'packages/includes/package_cards.html' %}
+        </div>
+
+        <!-- Show More Button -->
+        {% if has_more %}
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button id="showMorePackages" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    Show More Packages
+                    <span class="badge bg-primary ms-2">{{ total_count - showing_count }} more</span>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Loading State -->
+        <div id="loadingMorePackages" class="row mt-4" style="display: none;">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading more packages...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading more packages...</p>
+            </div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <p class="text-muted mb-0">
+                    <span id="showingPackagesCount">{{ showing_count }}</span> of <span id="totalPackagesCount">{{ total_count }}</span> packages
+                </p>
+            </div>
+        </div>
+
+        <!-- Pagination (hidden for show more functionality) -->
+        {% if total_pages > 1 %}
+        <div class="mt-4" style="display: none;">
+            <nav aria-label="Package pagination">
+                <ul class="pagination justify-content-center">
+                    {% if has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('enhanced_package.package_directory', page=page-1, **filter_params) }}">
+                            <i class="fas fa-chevron-left me-1"></i>Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in range(max(1, page-2), min(total_pages+1, page+3)) %}
+                    {% if page_num == page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('enhanced_package.package_directory', page=page_num, **filter_params) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('enhanced_package.package_directory', page=page+1, **filter_params) }}">
+                            Next<i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Packages Found -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-search fa-3x text-muted"></i>
+            </div>
+            <h3 class="h4 mb-3">No packages found</h3>
+            <p class="text-muted mb-4">Get started by adjusting your search filters or browse all available treatments.</p>
+            <a href="{{ url_for('enhanced_package.package_directory') }}" class="btn btn-primary">
+                <i class="fas fa-eye me-2"></i>View All Packages
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.package-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.package-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.results-section {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 10px;
+}
+
+.results-carousel {
+    overflow-x: auto;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px;
+    padding: 10px 0;
+    scroll-behavior: smooth;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+}
+
+.results-carousel::-webkit-scrollbar {
+    height: 4px;
+}
+
+.results-carousel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.results-carousel::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.results-carousel::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.result-item {
+    min-width: 180px;
+    max-width: 180px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    flex-shrink: 0 !important;
+    margin-bottom: 0;
+    display: inline-block;
+    white-space: normal;
+}
+
+.procedure-header {
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.procedure-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.result-pair {
+    justify-content: center;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.result-image {
+    flex-shrink: 0;
+}
+
+.result-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    display: block;
+}
+
+.image-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    line-height: 18px;
+    border-radius: 0 0 8px 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Mobile price display styling */
+.title-price-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.mobile-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.mobile-price .text-decoration-line-through {
+    font-size: 12px !important;
+    margin-bottom: 2px;
+}
+
+.mobile-price .h6 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.mobile-price .h4 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.mobile-price .badge {
+    font-size: 10px;
+    padding: 3px 6px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .result-item {
+        min-width: 200px;
+        max-width: 200px;
+    }
+    
+    .result-img {
+        width: 85px !important;
+        height: 85px !important;
+    }
+    
+    .results-carousel {
+        padding: 10px 5px;
+        gap: 10px;
+    }
+    
+    .package-card .row {
+        margin: 0;
+    }
+    
+    .package-card .col-md-8,
+    .package-card .col-md-4 {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .package-card .col-md-4 {
+        text-align: right !important;
+        margin-top: 10px;
+    }
+    
+    .title-price-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    
+    .card-title {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+}
+
+/* Font size optimization for better hierarchy */
+.package-card .card-text.text-muted.small {
+    font-size: 13px !important;
+}
+
+.package-card small.text-muted {
+    font-size: 12px !important;
+}
+
+/* Address text differentiation - darker color for better visual hierarchy */
+.package-card small.text-muted:has(.fa-map-marker-alt) {
+    color: #666 !important;
+}
+
+/* Fallback for browsers that don't support :has() */
+.package-card .fas.fa-map-marker-alt {
+    color: #666;
+}
+
+.package-card .fas.fa-map-marker-alt + * {
+    color: #666;
+}
+
+@media (max-width: 576px) {
+    .result-item {
+        min-width: 240px;
+        max-width: 240px;
+        padding: 12px;
+    }
+    
+    .result-img {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .results-carousel {
+        gap: 15px;
+    }
+    
+    .procedure-name {
+        font-size: 13px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple price formatting for package cards
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply comma fixes for price displays
+    const priceElements = document.querySelectorAll('.price-display');
+    priceElements.forEach(element => {
+        const text = element.textContent;
+        if (text.includes('₹')) {
+            const price = text.replace('₹', '').replace(/,/g, '');
+            if (!isNaN(price)) {
+                element.textContent = '₹' + parseInt(price).toLocaleString('en-IN');
+            }
+        }
+    });
+
+    // Show More functionality for packages - SINGLE IMPLEMENTATION
+    const showMorePackagesBtn = document.getElementById('showMorePackages');
+    const loadingPackagesDiv = document.getElementById('loadingMorePackages');
+    const packagesList = document.getElementById('packagesList');
+    let currentPackagesOffset = parseInt('{{ showing_count }}') || 20;
+    let isLoading = false; // Prevent duplicate requests
+
+    function handleShowMoreClick() {
+        if (isLoading) {
+            console.log('Already loading, ignoring click');
+            return;
+        }
+        isLoading = true;
+        console.log('=== SHOW MORE CLICKED ===');
+        console.log('Current offset at start:', currentPackagesOffset);
+        console.log('Button before hiding:', showMorePackagesBtn.innerHTML);
+        
+        // Double-check our offset variable
+        const actualShowing = document.getElementById('showingPackagesCount');
+        if (actualShowing) {
+            const displayedCount = parseInt(actualShowing.textContent) || 0;
+            console.log('Displayed count on page:', displayedCount);
+            if (displayedCount !== currentPackagesOffset) {
+                console.warn('Offset mismatch! Fixing...', {current: currentPackagesOffset, displayed: displayedCount});
+                currentPackagesOffset = displayedCount;
+            }
+        }
+        
+        // Hide show more button and show loading
+        showMorePackagesBtn.style.display = 'none';
+        loadingPackagesDiv.style.display = 'block';
+
+        // Build current filter parameters
+        const params = new URLSearchParams();
+        params.append('offset', currentPackagesOffset);
+        params.append('limit', 20);
+        
+        // Add current filters from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        ['search', 'location', 'category', 'sort', 'min_price', 'max_price'].forEach(param => {
+            if (urlParams.get(param)) params.append(param, urlParams.get(param));
+        });
+
+        console.log('Loading more packages with offset:', currentPackagesOffset);
+
+        // Make AJAX request
+        fetch(`/api/packages/load-more?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API Response:', data);
+                
+                if (data.success && data.packages) {
+                    // Add new packages to the list
+                    const packagesContainer = packagesList.querySelector('.d-flex.flex-column.gap-3');
+                    
+                    if (!packagesContainer) {
+                        console.error('Could not find packages container');
+                        showMorePackagesBtn.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Add each package to the container
+                    data.packages.forEach(package => {
+                        try {
+                            const packageHTML = createPackageCard(package);
+                            packagesContainer.insertAdjacentHTML('beforeend', packageHTML);
+                        } catch (error) {
+                            console.error('Error creating package card:', error, package);
+                        }
+                    });
+
+                    // Update counts
+                    currentPackagesOffset += data.packages.length;
+                    console.log('Updated currentPackagesOffset to:', currentPackagesOffset);
+                    
+                    const showingCountElement = document.getElementById('showingPackagesCount');
+                    if (showingCountElement) {
+                        showingCountElement.textContent = currentPackagesOffset;
+                        console.log('Updated display count to:', currentPackagesOffset);
+                    }
+
+                    // Show or hide show more button based on has_more
+                    if (data.has_more && data.packages.length > 0) {
+                        const remainingCount = data.total_count - currentPackagesOffset;
+                        
+                        console.log('=== UPDATING BUTTON ===');
+                        console.log('Button content before update:', showMorePackagesBtn.innerHTML);
+                        console.log('Remaining count:', remainingCount);
+                        
+                        // Update only the badge text to preserve event listeners
+                        const badgeElement = showMorePackagesBtn.querySelector('.badge');
+                        if (badgeElement) {
+                            badgeElement.textContent = `${remainingCount} more`;
+                            console.log('Badge updated successfully');
+                        } else {
+                            console.error('Badge element not found! Button HTML:', showMorePackagesBtn.innerHTML);
+                            // If badge is missing, restore the full button content
+                            showMorePackagesBtn.innerHTML = `
+                                <i class="fas fa-plus me-2"></i>
+                                Show More Packages
+                                <span class="badge bg-primary ms-2">${remainingCount} more</span>
+                            `;
+                            console.log('Button content restored (event delegation handles clicks)');
+                        }
+                        
+                        showMorePackagesBtn.style.display = 'block';
+                        console.log('Button after update:', showMorePackagesBtn.innerHTML);
+                        console.log(`Showing ${currentPackagesOffset} of ${data.total_count} packages, ${remainingCount} more available`);
+                    } else {
+                        showMorePackagesBtn.style.display = 'none';
+                        console.log('No more packages to load');
+                    }
+                } else {
+                    console.error('Error loading more packages:', data.message || 'Unknown error');
+                    showMorePackagesBtn.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading more packages:', error);
+                showMorePackagesBtn.style.display = 'block';
+            })
+            .finally(() => {
+                loadingPackagesDiv.style.display = 'none';
+                isLoading = false; // Reset loading flag
+            });
+    }
+
+    // SINGLE clean event listener - no conflicts
+    if (showMorePackagesBtn) {
+        // Remove any existing listeners by cloning the element
+        const newBtn = showMorePackagesBtn.cloneNode(true);
+        showMorePackagesBtn.parentNode.replaceChild(newBtn, showMorePackagesBtn);
+        
+        // Add single click handler to the clean button
+        newBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('✅ CLEAN CLICK HANDLER - No conflicts!');
+            handleShowMoreClick();
+        });
+    }
+
+    /**
+     * Creates HTML for a package card when loading more packages via AJAX
+     * This function must match the design and functionality of the static template
+     * in templates/packages/includes/package_cards.html
+     * 
+     * @param {Object} package - Package data from API response
+     * @returns {string} HTML string for the package card
+     * 
+     * Key considerations:
+     * - Price formatting must be consistent (rounded, no decimals)
+     * - Treatment names should appear in brackets when available
+     * - City information should be displayed with location icon
+     * - URLs should use slugs for SEO-friendly links
+     * - Fallback values should be provided for all optional fields
+     */
+    function createPackageCard(package) {
+        // Safely parse price values and handle null/undefined cases
+        // Using parseFloat to convert string prices from API to numbers
+        const priceActual = parseFloat(package.price_actual) || 0;
+        const priceDiscounted = parseFloat(package.price_discounted) || 0;
+        
+        // Calculate discount information
+        // Only show discount if discounted price exists and is less than actual price
+        const hasDiscount = priceDiscounted > 0 && priceDiscounted < priceActual;
+        const discountPercentage = hasDiscount ? Math.round(((priceActual - priceDiscounted) / priceActual) * 100) : 0;
+        
+        const discountBadge = hasDiscount 
+            ? `<span class="badge bg-success">${discountPercentage}% OFF</span>`
+            : '';
+        
+        // CRITICAL: Always use Math.round() before toLocaleString() to avoid decimal prices
+        // This ensures prices display as ₹7,104 instead of ₹7,104.3
+        // The toLocaleString('en-IN') formats with Indian comma system
+        const priceHTML = hasDiscount
+            ? `<div class="text-muted text-decoration-line-through small">₹${Math.round(priceActual).toLocaleString('en-IN')}</div>
+               <div class="h4 text-primary fw-bold mb-1 price-display">₹${Math.round(priceDiscounted).toLocaleString('en-IN')}</div>
+               ${discountBadge}`
+            : `<div class="h4 text-primary fw-bold price-display">₹${Math.round(priceActual).toLocaleString('en-IN')}</div>`;
+
+        // Build optional information sections with proper fallbacks
+        // Each section includes appropriate Font Awesome icons and handles null values
+        
+        // Duration information (e.g., "45-60 minutes")
+        const duration = package.duration ? `<small class="text-muted">
+            <i class="fas fa-clock me-1"></i>${package.duration}
+        </small>` : '';
+        
+        // Recovery/downtime information (e.g., "Minimal (24-48 hours) recovery")
+        const downtime = package.downtime ? `<small class="text-muted">
+            <i class="fas fa-calendar me-1"></i>${package.downtime} recovery
+        </small>` : '';
+        
+        // City information with location icon - matches design pattern from static template
+        // This displays the clinic location (e.g., "Hyderabad")
+        const location = package.clinic_city ? `<small class="text-muted">
+            <i class="fas fa-map-marker-alt me-1"></i>${package.clinic_city}
+        </small>` : '';
+
+        return `
+            <div class="card shadow-sm package-card" 
+                 style="cursor: pointer;" 
+                 onclick="window.location.href='/packages/${package.slug || package.id}'">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="package-info">
+                                <div class="title-price-container">
+                                    <h5 class="card-title mb-1">
+                                        ${package.title || 'Treatment Package'}
+                                        ${package.actual_treatment_name ? `<span class="text-muted" style="font-weight: 400; font-size: 0.9em;">
+                                            (${package.actual_treatment_name})
+                                        </span>` : ''}
+                                    </h5>
+                                    <!-- Treatment name in brackets (e.g., "Hydra Radiance Facial (Hydrafacial)")
+                                         This provides clarity about the actual medical procedure being performed
+                                         Styling: lighter weight and smaller font to keep focus on main title -->
+                                    <div class="mobile-price d-md-none">
+                                        ${priceHTML}
+                                    </div>
+                                </div>
+                                <h6 class="text-primary mb-2">${package.clinic_name || 'Medical Clinic'}</h6>
+                                <p class="card-text text-muted small">${package.description || 'Professional medical treatment'}</p>
+                                
+                                <div class="d-flex gap-3 mt-2">
+                                    ${duration}
+                                    ${downtime}
+                                    ${location}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 text-end d-none d-md-block">
+                            ${priceHTML}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Initialize package filters
+    if (typeof PackageFilters === 'undefined') {
+        console.log('Package filters initialized successfully');
+    } else {
+        console.log('PackageFilters already loaded');
+    }
+});
+</script>
+<script src="{{ url_for('static', filename='js/package-filters.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,117 @@
+Billing Model: Prepaid Credit System
+
+Core Billing System
+Prepaid Credits: 1 credit = ₹1, clinics top-up in advance
+Dynamic Lead Pricing: Cost varies by package price range (₹100-500 credits)
+Instant Deduction: Credits deducted when user clicks chat/call
+Dispute System: Clinics can request refunds for invalid leads
+Promotional Bonuses: Extra credits on high-value top-ups
+Lead Pricing Tiers (Your Model)
+< ₹5,000 packages → 100 credits per lead
+₹5,000-₹10,000 → 180 credits per lead
+₹10,000-₹20,000 → 250 credits per lead
+₹20,000-₹50,000 → 320 credits per lead
+₹50,000-₹100,000 → 400 credits per lead
+₹100,000+ → 500 credits per lead
+Implementation Plan
+Phase 1: Database Schema Updates
+Credit Transactions Table
+
+credit_transactions (id, clinic_id, transaction_type, amount, description, created_at)
+Track top-ups, deductions, refunds
+Lead Disputes Table
+
+lead_disputes (id, lead_id, clinic_id, reason, status, admin_notes, created_at)
+Clinic Credits Field
+
+Add credit_balance to existing clinics table
+Phase 2: Payment Integration
+Razorpay Integration
+
+Top-up flow with promotional bonus logic
+Webhook handling for successful payments
+Support for promo codes
+Credit Management System
+
+Real-time balance updates
+Transaction history display
+Automatic deduction on lead generation
+Phase 3: Dynamic Lead Pricing
+Pricing Logic
+
+Calculate lead cost based on package price range
+Pre-validate credit balance before allowing leads
+Block lead generation if insufficient credits
+Lead Generation Updates
+
+Modify existing lead creation to deduct credits
+Add pricing display before user action
+Transaction logging
+Phase 4: Dispute System
+Clinic Interface
+
+"Dispute Lead" button in dashboard
+Reason selection and notes
+Track dispute status
+Admin Interface
+
+Review disputed leads
+Approve/reject with admin notes
+Automatic credit refund on approval
+Phase 5: Dashboard Enhancements
+Credit Widget
+
+Prominent balance display
+Monthly usage summary
+Quick top-up access
+Enhanced Lead Table
+
+Show credit cost per lead
+Dispute status and actions
+Better filtering and export
+Compatibility Considerations
+✅ Preserves Existing Features
+
+Current lead generation flow remains intact
+Package creation system unaffected
+Admin verification workflows preserved
+⚠️ Required Updates
+
+Lead generation routes need credit validation
+Dashboard templates need credit display
+Admin routes need dispute management
+
+
+
+
+Implementation Timeline:
+Database schema + basic credit system
+Razorpay integration + top-up flow
+Dynamic pricing + lead generation updates
+Dispute system + admin interface
+Dashboard enhancements + testing
+
+
+I've reviewed the plan thoroughly and it looks comprehensive. However, I want to highlight a few considerations before we proceed:
+
+Missing Elements to Consider:
+Credit Balance Validation: allow lead generation when credits are insufficient, with negative balance with alerts
+
+Minimum Top-up Amount:  ₹1000 minimum
+
+Admin Credit Adjustment:  admins should  be able to manually add/deduct credits for special cases and promotions
+
+
+Payment gateway: razorpay
+
+
+Current Implementation Compatibility:
+The plan preserves all existing functionality:
+
+Package creation and display remains unchanged
+Current lead generation flow gets enhanced (not replaced)
+Admin dashboard gains new credit management features
+Clinic dashboard gets credit widgets added
+
+The implementation should be done incrementally, so existing features continue working while we add the billing layer on top.
+

@@ -1,0 +1,30 @@
+/* Mobile Footer Logo Size Fix */
+/* Fixes the oversized Antidote logo in footer on mobile devices */
+
+@media (max-width: 768px) {
+    .footer-brand img {
+        height: 40px !important; /* Reduce from 80px to 40px on mobile */
+        max-width: 200px; /* Ensure it doesn't get too wide */
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-brand img {
+        height: 32px !important; /* Even smaller on very small screens */
+        max-width: 160px;
+    }
+}
+
+/* Additional footer mobile optimizations */
+@media (max-width: 768px) {
+    .footer-description {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    
+    .footer-social .social-icon {
+        margin-right: 0.75rem;
+        width: 24px;
+        height: 24px;
+    }
+}

@@ -1,0 +1,31 @@
+I’m building a Flask web app for an online medical marketplace that allows users to search for plastic surgery procedures, doctors, and community threads. I’ve implemented a global search feature with a search form in templates/base.html, a search route in routes.py, and a search_results.html template that displays results for procedures, doctors, and threads. Now, I want to add an autocomplete dropdown to the search form that suggests relevant items when a user types a query like “Rhinoplasty.”
+
+Please implement an autocomplete dropdown with the following requirements:
+1. **Trigger**: The dropdown appears when the user types 3 or more characters in the search input field.
+2. **Suggestions**:
+   - **Procedures**: Suggest up to 3 procedures matching the query (e.g., “Rhinoplasty,” “Septoplasty,” “Non-Surgical Rhinoplasty”). Use the Procedure model with fields: name, category (e.g., Nose/Facial Surgery), type (Surgical/Non-Surgical).
+   - **Doctors**: Suggest up to 2 doctors who perform the procedure or match the query by name or specialty (e.g., “Dr. Jane Smith – Plastic Surgeon”). Use the Doctor model with fields: name, specialty, city, state.
+   - **Community Threads**: Suggest up to 2 threads with titles matching the query (e.g., “Rhinoplasty Recovery Tips”). Use the Thread model with fields: title, created_at.
+   - For “Rhinoplasty,” prioritize exact matches, then related procedures (e.g., Septoplasty), doctors specializing in Rhinoplasty, and relevant threads.
+3. **Format**: Each suggestion shows the item name and category in brackets (e.g., “Rhinoplasty [Procedure]”, “Dr. Jane Smith – Plastic Surgeon [Doctor]”).
+4. **Limit**: Show up to 8 suggestions total, sorted by relevance (exact matches first).
+5. **Behavior**:
+   - Clicking a suggestion populates the search input with the item’s name and hides the dropdown.
+   - The dropdown hides if no suggestions are found or the query is too short.
+6. **Implementation**:
+   - Add JavaScript to base.html to fetch suggestions via an AJAX request to a new /autocomplete route.
+   - Create the /autocomplete route in routes.py to query the database and return JSON.
+   - Style the dropdown with CSS to appear below the search input, with a white background, border, and hover effects.
+7. **Database**: Assume SQLAlchemy models (Procedure, Doctor, Thread) are set up. Use case-insensitive searches (ilike) for name, specialty, and title fields.
+8. **Example**:
+   - Query: “Rhinoplasty”
+   - Dropdown:
+     - Rhinoplasty [Procedure]
+     - Septoplasty [Procedure]
+     - Non-Surgical Rhinoplasty [Procedure]
+     - Dr. Jane Smith – Plastic Surgeon [Doctor]
+     - Dr. John Doe – ENT, Los Angeles, CA [Doctor]
+     - Rhinoplasty Recovery Tips [Community Thread]
+     - My Rhinoplasty Experience [Community Thread]
+
+Please generate the necessary code for base.html (form, JavaScript, CSS), routes.py (autocomplete route), and any additional files. Ensure the dropdown is responsive and matches the app’s existing style. Test the feature with the query “Rhinoplasty” and confirm the suggestions match the example above.

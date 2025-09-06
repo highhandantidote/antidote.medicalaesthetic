@@ -1,0 +1,53 @@
+Verify Current Implementation:
+Banner Display: Confirm that all 4 banners are displaying correctly on the homepage (templates/index.html):
+Banner 1 (position: between_hero_stats): A slider with 3 slides (Botox, Rhinoplasty, Facelift).
+Banner 2 (position: between_procedures_specialists): A single slide (Dr. Doctor Test).
+Banner 3 (position: between_categories_community): A single slide (Lip Fillers, using a provided image).
+Banner 4 (position: before_footer): A single slide (Hair Transplant).
+Slider Functionality: For Banner 1, verify that the slider (controlled by static/js/slider.js) auto-cycles every 3 seconds with a smooth fade transition, and includes navigation dots below the banner (clickable to jump to a specific slide).
+Banner Dimensions and Styling: Ensure all banners are 900x450 pixels, with a light blue-to-white gradient background (linear-gradient(to right, #e0f7fa, #b2ebf2)), rounded corners (8px), centered text with a CTA button, and navigation dots (for sliders) 10px below the banner. Check static/css/banner-slider.css for these styles.
+Lip Filler Banner (Banner 3): Verify that Banner 3 uses the provided lip filler image ([PROVIDED_LIP_FILLER_IMAGE_URL]—replace with the actual URL once uploaded), with a text overlay: subtitle 'Get fuller, plumper lips with a quick and safe procedure.' and a CTA button 'Learn More' linking to /learn/lip-fillers. The title ('Experience the Transformation with Our Lip Fillers') is already on the image.
+Database Data: Confirm the database matches the specified data:
+Banner 1 (Slider, position: between_hero_stats): 3 slides:
+Slide 1: image_url='https://via.placeholder.com/900x450', title='Smooth Away Wrinkles with Botox – See the Difference!', subtitle='Rejuvenate your skin with a quick and effective treatment.', redirect_url='/learn/botox'.
+Slide 2: image_url='https://via.placeholder.com/900x450', title='Transform Your Look with Rhinoplasty – Explore Now!', subtitle='Nose reshaping surgery to enhance appearance and function.', redirect_url='/learn/rhinoplasty'.
+Slide 3: image_url='https://via.placeholder.com/900x450', title='Youthful Glow with a Facelift – Learn More!', subtitle='Tighten and lift for a rejuvenated appearance.', redirect_url='/learn/facelift'.
+Banner 2 (Single Image, position: between_procedures_specialists): 1 slide: image_url='https://via.placeholder.com/900x450', title='Meet Dr. Doctor Test – Mumbai’s Top Plastic Surgeon!', subtitle='Specializing in Rhinoplasty, Facelifts, and more.', redirect_url='/doctors/1'.
+Banner 3 (Single Image, position: between_categories_community): 1 slide: image_url='[PROVIDED_LIP_FILLER_IMAGE_URL]', title='Experience the Transformation with Our Lip Fillers', subtitle='Get fuller, plumper lips with a quick and safe procedure.', redirect_url='/learn/lip-fillers'.
+Banner 4 (Single Image, position: before_footer): 1 slide: image_url='https://via.placeholder.com/900x450', title='Restore Your Hair with a Transplant – See the Results!', subtitle='Regain a fuller head of hair with a proven procedure.', redirect_url='/learn/hair-transplant'.
+All banners should have is_visible=True, no scheduling (start_date and end_date as NULL), and click_count=0.
+Check for JavaScript Errors:
+Open the browser console and check for any JavaScript errors related to banner-loader.js or slider.js. Common issues might include:
+Failed DOM manipulation (e.g., trying to access elements that don’t exist).
+Issues with the slider functionality (e.g., navigation dots not working).
+Errors in handling AJAX responses.
+If errors are found, update static/js/banner-loader.js and static/js/slider.js to fix them. For example, ensure that banner-loader.js correctly parses the JSON response from /api/banners/<position> and that slider.js properly initializes the slider for banners with multiple slides.
+Verify Functionality:
+Slider Functionality: Confirm that Banner 1’s slider auto-cycles every 3 seconds, navigation dots work, and clicking a slide redirects to the correct URL (e.g., /learn/botox).
+Click Tracking: Click on each banner slide and verify that the click_count in the banner_slides table increments. This should be handled via a POST request to /api/banners/click/<slide_id> in banner_routes.py. If not implemented, add this endpoint to increment the click_count and redirect to the slide’s redirect_url.
+Visibility and Scheduling: Ensure that only banners with is_visible=True and within their scheduled date range (compare with May 03, 2025) are displayed. This should be handled in the /api/banners/<position> endpoint in banner_routes.py.
+Redirects: Confirm that clicking each banner slide redirects to the specified URL (e.g., /learn/lip-fillers for Banner 3).
+Admin Dashboard Verification:
+Access the admin dashboard (/admin/banners), log in (username: admin, password: admin123), and verify:
+All 4 banners are listed with their slides (image URL, title, subtitle, redirect URL, click count).
+You can add a new slide to a banner (e.g., add a fourth slide to Banner 1).
+You can edit/delete existing slides (using templates/admin_edit_slide.html).
+Visibility toggle (is_visible checkbox) works and updates the homepage accordingly.
+Scheduling (start/end dates) works and affects banner visibility.
+Preview feature shows a scaled-down version of each slide (e.g., 300x150 pixels).
+Reset to default reverts the banner to its initial state.
+Click count is displayed and can be reset to 0.
+Ensure the dashboard has a clean, tabular layout, light theme (white background, subtle borders, readable fonts), and is mobile-responsive.
+Fix Any Issues:
+If the slider isn’t working, update static/js/slider.js to ensure it correctly initializes the slider for banners with multiple slides, handles auto-cycling, and manages navigation dots.
+If click tracking isn’t working, implement the /api/banners/click/<slide_id> endpoint in banner_routes.py to increment the click_count and redirect to the redirect_url.
+If the admin dashboard isn’t fully functional, update banner_routes.py, templates/admin_banners.html, and templates/admin_edit_slide.html to implement all required features (add/edit/delete slides, visibility toggle, scheduling, preview, reset).
+Testing:
+Restart the application, navigate to the homepage (/), and verify:
+Banner 1 displays as a slider with 3 slides, auto-cycling every 3 seconds, with navigation dots and correct redirects.
+Banner 2 displays as a single-image banner (Dr. Doctor Test) at 900x450 pixels.
+Banner 3 displays the provided lip filler image at 900x450 pixels with the correct text overlay and CTA.
+Banner 4 displays as a single-image banner (Hair Transplant) at 900x450 pixels.
+Click each banner slide and verify the click_count increments in the database.
+Access the admin dashboard (/admin/banners) and test all features (add/edit/delete slides, visibility toggle, scheduling, preview, reset).
+Check the browser console to confirm there are no JavaScript errors."

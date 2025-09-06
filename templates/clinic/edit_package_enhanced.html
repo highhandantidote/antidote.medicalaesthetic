@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Package - {{ package.title }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+.form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.section-title {
+    color: #4A90E2;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.procedure-breakdown-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.result-gallery-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.highlight-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.btn-add-item {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.btn-remove-item {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.file-upload-area:hover {
+    border-color: #4A90E2;
+}
+
+.sticky-form-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Edit Package: {{ package.title }}</h2>
+        <a href="/clinic/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <form id="packageForm" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <!-- 1. Basic Package Information -->
+        <div class="form-section">
+            <h4 class="section-title">1. Basic Package Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="title" class="form-label">Package Name *</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ package.title or '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="category" class="form-label">Category *</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Rhinoplasty" {% if package.category == 'Rhinoplasty' %}selected{% endif %}>Rhinoplasty</option>
+                        <option value="Fillers" {% if package.category == 'Fillers' %}selected{% endif %}>Fillers & Injectables</option>
+                        <option value="Facial Rejuvenation" {% if package.category == 'Facial Rejuvenation' %}selected{% endif %}>Facial Rejuvenation</option>
+                        <option value="Body Contouring" {% if package.category == 'Body Contouring' %}selected{% endif %}>Body Contouring</option>
+                        <option value="Skin Treatments" {% if package.category == 'Skin Treatments' %}selected{% endif %}>Skin Treatments</option>
+                        <option value="Hair Treatments" {% if package.category == 'Hair Treatments' %}selected{% endif %}>Hair Treatments</option>
+                        <option value="Other" {% if package.category == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <label for="actual_treatment_name" class="form-label">Actual Treatment Name</label>
+                    <input type="text" class="form-control" id="actual_treatment_name" name="actual_treatment_name" value="{{ package.actual_treatment_name or '' }}" placeholder="e.g., Hyaluronic Acid Filler, Surgical Rhinoplasty, CO2 Laser Resurfacing">
+                    <small class="text-muted">The specific medical treatment or procedure (optional - will be auto-generated if not provided)</small>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Package Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{{ package.description or '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="clinic_address" class="form-label">Clinic Address</label>
+                <textarea class="form-control" id="clinic_address" name="clinic_address" rows="2" readonly>{{ package.clinic_address or clinic.address or '' }}</textarea>
+                <small class="text-muted">Automatically fetched from clinic profile.</small>
+            </div>
+        </div>
+
+        <!-- 2. Pricing Information -->
+        <div class="form-section">
+            <h4 class="section-title">2. Pricing Information</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="price_actual" class="form-label">Actual Price (₹) *</label>
+                    <input type="number" class="form-control" id="price_actual" name="price_actual" step="0.01" value="{{ package.price_actual or '' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="price_discounted" class="form-label">Discounted Price (₹)</label>
+                    <input type="number" class="form-control" id="price_discounted" name="price_discounted" step="0.01" value="{{ package.price_discounted or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="discount_percentage" class="form-label">Discount Percentage (%)</label>
+                    <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" min="0" max="100" value="{{ package.discount_percentage or '' }}">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label for="vat_amount" class="form-label">VAT Amount (₹)</label>
+                    <input type="number" class="form-control" id="vat_amount" name="vat_amount" step="0.01" value="{{ package.vat_amount or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="anesthetic_type" class="form-label">Anesthetic Type</label>
+                    <input type="text" class="form-control" id="anesthetic_type" name="anesthetic_type" value="{{ package.anesthetic_type or '' }}" placeholder="e.g., Local, Topical numbing">
+                </div>
+                <div class="col-md-4">
+                    <label for="aftercare_kit" class="form-label">After Care Kit</label>
+                    <input type="text" class="form-control" id="aftercare_kit" name="aftercare_kit" value="{{ package.aftercare_kit or '' }}" placeholder="e.g., Healing balm, Instructions">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. About the Procedure -->
+        <div class="form-section">
+            <h4 class="section-title">3. About the Procedure</h4>
+            <div class="mb-3">
+                <label for="about_procedure" class="form-label">Detailed Procedure Information</label>
+                <textarea class="form-control" id="about_procedure" name="about_procedure" rows="5" placeholder="Comprehensive description of the procedure, techniques used, technology, etc.">{{ package.about_procedure or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- 4. Key Highlights -->
+        <div class="form-section">
+            <h4 class="section-title">4. Key Highlights</h4>
+            <button type="button" class="btn-add-item" onclick="addHighlight()">
+                <i class="fas fa-plus me-2"></i>Add Highlight
+            </button>
+            <div id="highlights-container">
+                <!-- Dynamic highlights will be populated from package data -->
+            </div>
+        </div>
+
+        <!-- 5. Results Gallery (Before/After) -->
+        <div class="form-section">
+            <h4 class="section-title">5. Results Gallery (Before/After)</h4>
+            <button type="button" class="btn-add-item" onclick="addResultGalleryItem()">
+                <i class="fas fa-plus me-2"></i>Add Result Case
+            </button>
+            <div id="results-gallery-container">
+                <!-- Dynamic results will be populated from package data -->
+            </div>
+        </div>
+
+        <!-- 6. Procedure Breakdown & Pricing -->
+        <div class="form-section">
+            <h4 class="section-title">6. Procedure Breakdown & Pricing</h4>
+            <button type="button" class="btn-add-item" onclick="addProcedureBreakdown()">
+                <i class="fas fa-plus me-2"></i>Add Procedure
+            </button>
+            <div id="procedure-breakdown-container">
+                <!-- Dynamic procedures will be populated from package data -->
+            </div>
+        </div>
+
+        <!-- 7. Additional Information -->
+        <div class="form-section">
+            <h4 class="section-title">7. Additional Information</h4>
+            <div class="mb-3">
+                <label for="recommended_for" class="form-label">Recommended For</label>
+                <textarea class="form-control" id="recommended_for" name="recommended_for" rows="3" placeholder="Who is this procedure suitable for? Patient criteria, ideal candidates, etc.">{{ package.recommended_for or '' }}</textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="downtime" class="form-label">Downtime</label>
+                    <input type="text" class="form-control" id="downtime" name="downtime" value="{{ package.downtime or '' }}" placeholder="e.g., 2-3 days, 1 week">
+                </div>
+                <div class="col-md-6">
+                    <label for="duration" class="form-label">Procedure Duration</label>
+                    <input type="text" class="form-control" id="duration" name="duration" value="{{ package.duration or '' }}" placeholder="e.g., 45 minutes, 2 hours">
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="downtime_description" class="form-label">Downtime Description</label>
+                <textarea class="form-control" id="downtime_description" name="downtime_description" rows="2" placeholder="Detailed description of recovery period, restrictions, etc.">{{ package.downtime_description or '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="precautions" class="form-label">Precautions & Side Effects</label>
+                <textarea class="form-control" id="precautions" name="precautions" rows="3" placeholder="Precautions to take, potential side effects, warnings, etc.">{{ package.precautions or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- 8. Contact & Communication -->
+        <div class="form-section">
+            <h4 class="section-title">8. Contact & Communication</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                    <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ package.whatsapp_number or '' }}" placeholder="e.g., +919876543210">
+                    <small class="text-muted">Leave blank to use clinic's default number</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="custom_phone_number" class="form-label">Custom Phone Number</label>
+                    <input type="tel" class="form-control" id="custom_phone_number" name="custom_phone_number" value="{{ package.custom_phone_number or '' }}" placeholder="e.g., +919876543210">
+                    <small class="text-muted">Leave blank to use clinic's default number</small>
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="chat_message_template" class="form-label">WhatsApp Message Template</label>
+                <textarea class="form-control" id="chat_message_template" name="chat_message_template" rows="2" placeholder="Default message when patients click WhatsApp button">{{ package.chat_message_template or '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="call_message_template" class="form-label">Call Message Template</label>
+                <textarea class="form-control" id="call_message_template" name="call_message_template" rows="2" placeholder="Information for call inquiries">{{ package.call_message_template or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- 9. Location Information -->
+        <div class="form-section">
+            <h4 class="section-title">9. Location Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="clinic_latitude" class="form-label">Latitude</label>
+                    <input type="number" class="form-control" id="clinic_latitude" name="clinic_latitude" step="0.000001" value="{{ package.clinic_latitude or clinic.latitude or '' }}" placeholder="e.g., 28.7041">
+                </div>
+                <div class="col-md-6">
+                    <label for="clinic_longitude" class="form-label">Longitude</label>
+                    <input type="number" class="form-control" id="clinic_longitude" name="clinic_longitude" step="0.000001" value="{{ package.clinic_longitude or clinic.longitude or '' }}" placeholder="e.g., 77.1025">
+                </div>
+            </div>
+            <div class="mt-3">
+                <div id="clinic-map" style="height: 300px; border: 1px solid #dee2e6; border-radius: 8px;"></div>
+                <small class="text-muted">Auto-populated from clinic profile. Map shows current location or you can click to update coordinates.</small>
+            </div>
+        </div>
+
+        <!-- Add padding for sticky footer -->
+        <div style="height: 80px;"></div>
+    </form>
+</div>
+
+<!-- Sticky Form Footer -->
+<div class="sticky-form-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <button type="button" class="btn btn-outline-danger w-100" onclick="deletePackage()">
+                    <i class="fas fa-trash me-2"></i>Delete Package
+                </button>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="saveDraft()">
+                    <i class="fas fa-save me-2"></i>Save as Draft
+                </button>
+            </div>
+            <div class="col-4">
+                <button type="submit" form="packageForm" class="btn btn-primary w-100">
+                    <i class="fas fa-check me-2"></i>Update Package
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script>
+let highlightCount = 0;
+let procedureCount = 0;
+let resultCount = 0;
+let map = null;
+
+// Package data from server
+const packageData = {
+    key_highlights: {{ (package.key_highlights | tojson) if package.key_highlights else '{}' }},
+    procedure_breakdown: {{ (package.procedure_breakdown | tojson) if package.procedure_breakdown else '[]' }},
+    results_gallery: {{ (package.results_gallery | tojson) if package.results_gallery else '[]' }}
+};
+
+// Add highlight functionality
+function addHighlight(name = '', value = '') {
+    highlightCount++;
+    const container = document.getElementById('highlights-container');
+    const highlightHtml = `
+        <div class="highlight-item" id="highlight-${highlightCount}">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Highlight Name</label>
+                    <input type="text" class="form-control" name="highlight_name_${highlightCount}" value="${name}" placeholder="e.g., Dosage, Recovery">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Highlight Value</label>
+                    <input type="text" class="form-control" name="highlight_value_${highlightCount}" value="${value}" placeholder="e.g., 1ml Premium HA, 2-3 days">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeHighlight(${highlightCount})">Remove</button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', highlightHtml);
+}
+
+function removeHighlight(id) {
+    document.getElementById(`highlight-${id}`).remove();
+}
+
+// Add procedure breakdown functionality
+function addProcedureBreakdown(name = '', priceActual = '', priceDiscounted = '', discount = '', description = '') {
+    procedureCount++;
+    const container = document.getElementById('procedure-breakdown-container');
+    const procedureHtml = `
+        <div class="procedure-breakdown-item" id="procedure-${procedureCount}">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Procedure Name</label>
+                    <input type="text" class="form-control" name="procedure_name_${procedureCount}" value="${name}" placeholder="e.g., Main Surgery">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Actual Price (₹)</label>
+                    <input type="number" class="form-control" name="procedure_price_actual_${procedureCount}" value="${priceActual}" step="0.01">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Discounted Price (₹)</label>
+                    <input type="number" class="form-control" name="procedure_price_discounted_${procedureCount}" value="${priceDiscounted}" step="0.01">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Discount %</label>
+                    <input type="number" class="form-control" name="procedure_discount_${procedureCount}" value="${discount}" min="0" max="100">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeProcedure(${procedureCount})">Remove</button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="procedure_description_${procedureCount}" rows="2" placeholder="Detailed description of this procedure">${description}</textarea>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', procedureHtml);
+}
+
+function removeProcedure(id) {
+    document.getElementById(`procedure-${id}`).remove();
+}
+
+// Add result gallery functionality  
+function addResultGalleryItem(title = '', doctor = '', description = '') {
+    resultCount++;
+    const container = document.getElementById('results-gallery-container');
+    const resultHtml = `
+        <div class="result-gallery-item" id="result-${resultCount}">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Result Title</label>
+                    <input type="text" class="form-control" name="result_title_${resultCount}" value="${title}" placeholder="e.g., Amazing Transformation">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Doctor Name</label>
+                    <input type="text" class="form-control" name="result_doctor_${resultCount}" value="${doctor}" placeholder="e.g., Dr. Lee Min-ho">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeResult(${resultCount})">Remove Result</button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="result_description_${resultCount}" rows="2" placeholder="Description of the result or patient feedback">${description}</textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label">Before & After Images</label>
+                    <div class="d-flex gap-3">
+                        <div class="flex-fill">
+                            <div class="file-upload-area" onclick="document.getElementById('before_image_${resultCount}').click()">
+                                <i class="fas fa-camera"></i><br>
+                                <small>Before Image</small>
+                            </div>
+                            <input type="file" id="before_image_${resultCount}" name="before_image_${resultCount}" accept="image/*" style="display: none;" onchange="previewImage(this, 'before_preview_${resultCount}')">
+                            <div id="before_preview_${resultCount}" class="image-preview mt-2" style="display: none;">
+                                <img src="" alt="Before preview" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
+                            </div>
+                        </div>
+                        <div class="flex-fill">
+                            <div class="file-upload-area" onclick="document.getElementById('after_image_${resultCount}').click()">
+                                <i class="fas fa-camera"></i><br>
+                                <small>After Image</small>
+                            </div>
+                            <input type="file" id="after_image_${resultCount}" name="after_image_${resultCount}" accept="image/*" style="display: none;" onchange="previewImage(this, 'after_preview_${resultCount}')">
+                            <div id="after_preview_${resultCount}" class="image-preview mt-2" style="display: none;">
+                                <img src="" alt="After preview" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Both images will be displayed side by side in the same result card</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Before Video (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('before_video_${resultCount}').click()">
+                        <i class="fas fa-video"></i><br>
+                        <small>Click to upload</small>
+                    </div>
+                    <input type="file" id="before_video_${resultCount}" name="before_video_${resultCount}" accept="video/*" style="display: none;">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">After Video (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('after_video_${resultCount}').click()">
+                        <i class="fas fa-video"></i><br>
+                        <small>Click to upload</small>
+                    </div>
+                    <input type="file" id="after_video_${resultCount}" name="after_video_${resultCount}" accept="video/*" style="display: none;">
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', resultHtml);
+}
+
+function removeResult(id) {
+    document.getElementById(`result-${id}`).remove();
+}
+
+// Auto-calculate discount percentage
+document.getElementById('price_actual').addEventListener('input', calculateDiscount);
+document.getElementById('price_discounted').addEventListener('input', calculateDiscount);
+
+function calculateDiscount() {
+    const actual = parseFloat(document.getElementById('price_actual').value) || 0;
+    const discounted = parseFloat(document.getElementById('price_discounted').value) || 0;
+    
+    if (actual > 0 && discounted > 0 && discounted < actual) {
+        const percentage = Math.round(((actual - discounted) / actual) * 100);
+        document.getElementById('discount_percentage').value = percentage;
+    }
+}
+
+// Form submission
+document.getElementById('packageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Collect all form data including dynamic fields
+    const formData = new FormData(this);
+    
+    // Collect highlights
+    const highlights = {};
+    for (let i = 1; i <= highlightCount; i++) {
+        const nameField = document.querySelector(`input[name="highlight_name_${i}"]`);
+        const valueField = document.querySelector(`input[name="highlight_value_${i}"]`);
+        if (nameField && valueField && nameField.value && valueField.value) {
+            highlights[nameField.value] = valueField.value;
+        }
+    }
+    formData.append('key_highlights', JSON.stringify(highlights));
+    
+    // Collect procedure breakdown
+    const procedures = [];
+    for (let i = 1; i <= procedureCount; i++) {
+        const nameField = document.querySelector(`input[name="procedure_name_${i}"]`);
+        if (nameField && nameField.value) {
+            procedures.push({
+                name: nameField.value,
+                price_actual: parseFloat(document.querySelector(`input[name="procedure_price_actual_${i}"]`).value) || 0,
+                price_discounted: parseFloat(document.querySelector(`input[name="procedure_price_discounted_${i}"]`).value) || 0,
+                discount_percentage: parseInt(document.querySelector(`input[name="procedure_discount_${i}"]`).value) || 0,
+                description: document.querySelector(`textarea[name="procedure_description_${i}"]`).value || ''
+            });
+        }
+    }
+    formData.append('procedure_breakdown', JSON.stringify(procedures));
+    
+    // Collect results gallery
+    const results = [];
+    for (let i = 1; i <= resultCount; i++) {
+        const titleField = document.querySelector(`input[name="result_title_${i}"]`);
+        if (titleField && titleField.value) {
+            results.push({
+                title: titleField.value,
+                doctor_name: document.querySelector(`input[name="result_doctor_${i}"]`).value || '',
+                description: document.querySelector(`textarea[name="result_description_${i}"]`).value || ''
+            });
+        }
+    }
+    formData.append('results_gallery', JSON.stringify(results));
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    formData.append('csrf_token', csrfToken);
+    
+    // Submit form
+    fetch(window.location.pathname, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Package updated successfully!');
+            window.location.href = '/clinic/dashboard';
+        } else {
+            alert('Error updating package: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating package. Please try again.');
+    });
+});
+
+function saveDraft() {
+    alert('Draft functionality will be implemented in the next update.');
+}
+
+function deletePackage() {
+    if (confirm('Are you sure you want to delete this package? This action cannot be undone.')) {
+        const packageId = window.location.pathname.split('/')[3];
+        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        
+        fetch(`/clinic/packages/${packageId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Package deleted successfully!');
+                window.location.href = '/clinic/dashboard';
+            } else {
+                alert('Error deleting package: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting package. Please try again.');
+        });
+    }
+}
+
+// Image preview functionality
+function previewImage(input, previewId) {
+    const file = input.files[0];
+    const previewDiv = document.getElementById(previewId);
+    const img = previewDiv.querySelector('img');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            previewDiv.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewDiv.style.display = 'none';
+    }
+}
+
+// Initialize OpenStreetMap
+function initializeMap() {
+    const lat = parseFloat(document.getElementById('clinic_latitude').value) || 28.7041;
+    const lng = parseFloat(document.getElementById('clinic_longitude').value) || 77.1025;
+    
+    if (map) {
+        map.remove();
+    }
+    
+    map = L.map('clinic-map').setView([lat, lng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    const marker = L.marker([lat, lng]).addTo(map);
+    
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        document.getElementById('clinic_latitude').value = lat.toFixed(6);
+        document.getElementById('clinic_longitude').value = lng.toFixed(6);
+        
+        marker.setLatLng([lat, lng]);
+    });
+}
+
+// Initialize with existing data
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map
+    setTimeout(initializeMap, 100);
+    // Load existing highlights
+    if (packageData.key_highlights) {
+        const highlights = typeof packageData.key_highlights === 'string' ? 
+            JSON.parse(packageData.key_highlights) : packageData.key_highlights;
+        
+        Object.entries(highlights).forEach(([name, value]) => {
+            addHighlight(name, value);
+        });
+    }
+    
+    // Load existing procedure breakdown
+    if (packageData.procedure_breakdown) {
+        try {
+            const procedures = typeof packageData.procedure_breakdown === 'string' ? 
+                JSON.parse(packageData.procedure_breakdown) : packageData.procedure_breakdown;
+            
+            if (Array.isArray(procedures)) {
+                procedures.forEach(proc => {
+                    addProcedureBreakdown(
+                        proc.name || '',
+                        proc.price_actual || '',
+                        proc.price_discounted || '',
+                        proc.discount_percentage || '',
+                        proc.description || ''
+                    );
+                });
+            }
+        } catch (error) {
+            console.error('Error parsing procedure breakdown data:', error);
+            // Add one empty procedure if parsing fails
+            addProcedureBreakdown();
+        }
+    }
+    
+    // Load existing results gallery
+    if (packageData.results_gallery) {
+        const results = typeof packageData.results_gallery === 'string' ? 
+            JSON.parse(packageData.results_gallery) : packageData.results_gallery;
+        
+        results.forEach(result => {
+            addResultGalleryItem(
+                result.title || '',
+                result.doctor_name || '',
+                result.description || ''
+            );
+        });
+    }
+    
+    // If no existing data, add one empty item in each section
+    if (!packageData.key_highlights || Object.keys(packageData.key_highlights).length === 0) {
+        addHighlight();
+    }
+    if (!packageData.procedure_breakdown || packageData.procedure_breakdown.length === 0) {
+        addProcedureBreakdown();
+    }
+    if (!packageData.results_gallery || packageData.results_gallery.length === 0) {
+        addResultGalleryItem();
+    }
+});
+</script>
+{% endblock %}

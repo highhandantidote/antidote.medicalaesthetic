@@ -1,0 +1,18 @@
+
+/* Minimal Layout Fix - Non-blocking */
+.hero-banner-container {
+    min-height: 300px;
+}
+
+.hero-search-section {
+    min-height: 150px;
+}
+
+.navbar {
+    min-height: 60px;
+}
+
+/* Prevent major layout shifts */
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+}

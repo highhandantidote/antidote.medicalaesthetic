@@ -1,0 +1,854 @@
+{% extends "base.html" %}
+
+{% block title %}Treatment Packages - Clinic Marketplace{% endblock %}
+
+{% block content %}
+<style>
+/* Package Marketplace Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.4;
+}
+
+.packages-marketplace {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Filter Section */
+.filter-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 200px 200px 150px;
+    gap: 16px;
+    align-items: center;
+}
+
+.search-input, .filter-select {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.search-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+/* Package Cards */
+.packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+.package-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.package-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.package-header {
+    position: relative;
+    padding: 16px;
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #ff4757;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.package-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.clinic-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.clinic-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 12px;
+    color: rgba(255,255,255,0.9);
+}
+
+.clinic-address {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+}
+
+.pricing-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.original-price {
+    font-size: 14px;
+    text-decoration: line-through;
+    color: rgba(255,255,255,0.7);
+}
+
+.discounted-price {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.package-content {
+    padding: 16px;
+}
+
+/* Before/After Photos */
+.before-after-section {
+    margin-bottom: 16px;
+}
+
+.before-after-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.before-after-photos {
+    display: flex;
+    gap: 8px;
+}
+
+.photo-container {
+    flex: 1;
+    text-align: center;
+}
+
+.photo-label {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.photo-placeholder {
+    width: 100%;
+    height: 80px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+}
+
+/* About Procedure */
+.about-section {
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.about-text {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.procedure-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.detail-item {
+    font-size: 12px;
+    color: #666;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Procedure Info */
+.procedure-info {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.procedures-list {
+    list-style: none;
+    margin-bottom: 8px;
+}
+
+.procedure-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.procedure-name {
+    font-weight: 500;
+}
+
+.procedure-price {
+    font-weight: 600;
+    color: #2196F3;
+}
+
+.additional-costs {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+    font-size: 11px;
+    color: #666;
+}
+
+/* Recommended Section */
+.recommended-section {
+    margin-bottom: 16px;
+}
+
+.recommended-text {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.3;
+}
+
+/* Warning Sections */
+.warning-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.warning-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #856404;
+    margin-bottom: 6px;
+}
+
+.warning-text {
+    font-size: 12px;
+    color: #856404;
+    line-height: 1.3;
+}
+
+/* Action Button */
+.action-section {
+    border-top: 1px solid #e0e0e0;
+    padding: 16px;
+    background: #fafafa;
+}
+
+.chat-button {
+    width: 100%;
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.chat-button:hover {
+    background: #22c55e;
+}
+
+/* Map Section */
+.map-section {
+    margin-top: 12px;
+}
+
+.map-placeholder {
+    width: 100%;
+    height: 100px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Disclaimer */
+.disclaimer-section {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 16px;
+}
+
+.disclaimer-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1976d2;
+    margin-bottom: 4px;
+}
+
+.disclaimer-text {
+    font-size: 11px;
+    color: #1976d2;
+    line-height: 1.3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .packages-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .procedure-details {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="packages-marketplace">
+    <div class="page-header">
+        <h1 class="page-title">Treatment Packages</h1>
+        <p class="page-subtitle">Discover exclusive treatment packages from verified clinics</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-grid">
+            <input type="text" class="search-input" placeholder="Search packages..." onkeyup="searchPackages(this.value)">
+            <select class="filter-select" onchange="filterByCategory(this.value)">
+                <option value="all">All Categories</option>
+                <option value="facial">Facial Treatments</option>
+                <option value="body">Body Treatments</option>
+                <option value="dental">Dental Treatments</option>
+                <option value="hair">Hair Treatments</option>
+            </select>
+            <select class="filter-select" onchange="filterByPrice(this.value)">
+                <option value="all">All Prices</option>
+                <option value="0-10000">Under ₹10,000</option>
+                <option value="10000-25000">₹10,000 - ₹25,000</option>
+                <option value="25000-50000">₹25,000 - ₹50,000</option>
+                <option value="50000+">Above ₹50,000</option>
+            </select>
+            <select class="filter-select" onchange="filterByLocation(this.value)">
+                <option value="all">All Locations</option>
+                <option value="mumbai">Mumbai</option>
+                <option value="delhi">Delhi</option>
+                <option value="bangalore">Bangalore</option>
+                <option value="chennai">Chennai</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Packages Grid -->
+    <div class="packages-grid" id="packagesGrid">
+        <!-- Package 1: Full Lip Enhancement -->
+        <div class="package-card" data-category="facial" data-price="5999" data-location="mumbai">
+            <div class="package-header">
+                <div class="discount-badge">30% OFF</div>
+                <h3 class="package-name">Full Lip Enhancement Package</h3>
+                <div class="clinic-info">
+                    <span class="clinic-name" onclick="goToClinic(3)">Lilavati Cosmetic Surgery</span>
+                </div>
+                <div class="clinic-address">Bandra West, Mumbai</div>
+                <div class="pricing-section">
+                    <span class="original-price">₹8,570</span>
+                    <span class="discounted-price">₹5,999</span>
+                </div>
+            </div>
+
+            <div class="package-content">
+                <div class="before-after-section">
+                    <div class="before-after-title">Lip Enhancement Results</div>
+                    <div class="before-after-photos">
+                        <div class="photo-container">
+                            <div class="photo-label">BEFORE</div>
+                            <div class="photo-placeholder">Before Photo</div>
+                        </div>
+                        <div class="photo-container">
+                            <div class="photo-label">AFTER</div>
+                            <div class="photo-placeholder">After Photo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <div class="section-title">About the Procedure</div>
+                    <div class="about-text">
+                        Comprehensive lip enhancement using premium hyaluronic acid fillers to create fuller, more defined lips. The treatment includes precise injection technique for natural-looking volume enhancement. Our expert practitioners use advanced cannula techniques to minimize bruising and ensure optimal results. The procedure focuses on enhancing both upper and lower lips while maintaining facial harmony. Results are visible immediately with full effects seen within 2 weeks. Treatment includes complementary lip balm and aftercare kit.
+                    </div>
+                    <div class="procedure-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Dosage:</span> 1ml Premium HA Filler
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recovery:</span> 2-3 days
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span> 45 minutes
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Results:</span> 8-12 months
+                        </div>
+                    </div>
+                </div>
+
+                <div class="procedure-info">
+                    <div class="section-title">Procedure Information</div>
+                    <ul class="procedures-list">
+                        <li class="procedure-item">
+                            <span class="procedure-name">Lip Filler (1ml)</span>
+                            <span class="procedure-price">₹4,500</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">Lip Contour Enhancement</span>
+                            <span class="procedure-price">₹2,500</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">Lip Hydration Treatment</span>
+                            <span class="procedure-price">₹1,570</span>
+                        </li>
+                    </ul>
+                    <div class="additional-costs">
+                        <div>VAT: Included in package price</div>
+                        <div>Anesthetic: Topical numbing included</div>
+                        <div>Aftercare Kit: Complimentary healing balm</div>
+                    </div>
+                </div>
+
+                <div class="recommended-section">
+                    <div class="section-title">Recommended For</div>
+                    <div class="recommended-text">
+                        Individuals seeking natural lip volume enhancement. Those with thin lips wanting more definition. People looking to correct lip asymmetry. Candidates who desire subtle, natural-looking results. Suitable for first-time filler patients seeking conservative enhancement.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Downtime: Minimal (24-48 hours)</div>
+                    <div class="warning-text">
+                        Minor swelling and tenderness for 1-2 days. Avoid strenuous exercise for 24 hours. No hot beverages for 6 hours post-treatment.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Precautions & Side Effects</div>
+                    <div class="warning-text">
+                        Temporary swelling, bruising, or redness may occur. Avoid blood-thinning medications 1 week prior. Rare risks include infection or allergic reaction. Do not massage lips for 48 hours. Avoid extreme temperatures for 24 hours.
+                    </div>
+                </div>
+
+                <div class="map-section">
+                    <div class="map-placeholder">
+                        📍 Lilavati Hospital, Bandra West, Mumbai - View on Map
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="chat-button" onclick="chatWithClinic(3, 'lip-enhancement')">
+                    💬 Chat with Clinic - FREE
+                </button>
+                
+                <div class="disclaimer-section">
+                    <div class="disclaimer-title">Antidote Disclaimer</div>
+                    <div class="disclaimer-text">
+                        Antidote is a technology platform connecting patients with healthcare providers. We do not provide medical advice or endorse specific treatments. All medical decisions should be made in consultation with qualified healthcare professionals. Results may vary between individuals.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Package 2: Anti-Aging Combo -->
+        <div class="package-card" data-category="facial" data-price="15999" data-location="mumbai">
+            <div class="package-header">
+                <div class="discount-badge">25% OFF</div>
+                <h3 class="package-name">Complete Anti-Aging Package</h3>
+                <div class="clinic-info">
+                    <span class="clinic-name" onclick="goToClinic(3)">Lilavati Cosmetic Surgery</span>
+                </div>
+                <div class="clinic-address">Bandra West, Mumbai</div>
+                <div class="pricing-section">
+                    <span class="original-price">₹21,332</span>
+                    <span class="discounted-price">₹15,999</span>
+                </div>
+            </div>
+
+            <div class="package-content">
+                <div class="before-after-section">
+                    <div class="before-after-title">Anti-Aging Results</div>
+                    <div class="before-after-photos">
+                        <div class="photo-container">
+                            <div class="photo-label">BEFORE</div>
+                            <div class="photo-placeholder">Before Photo</div>
+                        </div>
+                        <div class="photo-container">
+                            <div class="photo-label">AFTER</div>
+                            <div class="photo-placeholder">After Photo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <div class="section-title">About the Procedure</div>
+                    <div class="about-text">
+                        Comprehensive anti-aging treatment combining Botox and dermal fillers for complete facial rejuvenation. Targets forehead lines, crow's feet, and nasolabial folds. Uses premium Botox and hyaluronic acid fillers for natural-looking results. Treatment includes professional skin assessment and personalized injection plan. Advanced techniques ensure minimal discomfort and optimal outcomes. Package includes post-treatment skincare regimen and follow-up consultation.
+                    </div>
+                    <div class="procedure-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Botox Units:</span> 40-60 units
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recovery:</span> 3-5 days
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span> 90 minutes
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Results:</span> 6-8 months
+                        </div>
+                    </div>
+                </div>
+
+                <div class="procedure-info">
+                    <div class="section-title">Procedure Information</div>
+                    <ul class="procedures-list">
+                        <li class="procedure-item">
+                            <span class="procedure-name">Botox Treatment (50 units)</span>
+                            <span class="procedure-price">₹12,500</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">Dermal Fillers (1ml)</span>
+                            <span class="procedure-price">₹6,000</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">Skin Consultation</span>
+                            <span class="procedure-price">₹2,832</span>
+                        </li>
+                    </ul>
+                    <div class="additional-costs">
+                        <div>VAT: Included in package price</div>
+                        <div>Anesthetic: Topical numbing included</div>
+                        <div>Aftercare: Premium skincare kit included</div>
+                    </div>
+                </div>
+
+                <div class="recommended-section">
+                    <div class="section-title">Recommended For</div>
+                    <div class="recommended-text">
+                        Adults aged 30-65 with visible signs of aging. Those with dynamic wrinkles and volume loss. Candidates seeking comprehensive facial rejuvenation. People wanting preventative anti-aging treatment. Suitable for experienced cosmetic treatment patients.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Downtime: Moderate (3-5 days)</div>
+                    <div class="warning-text">
+                        Mild swelling and possible bruising for 3-5 days. Avoid lying flat for 4 hours post-Botox. Results develop gradually over 2 weeks.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Precautions & Side Effects</div>
+                    <div class="warning-text">
+                        Temporary redness, swelling, or bruising may occur. Avoid alcohol 24 hours before treatment. Do not exercise for 24 hours post-treatment. Rare risks include asymmetry or allergic reaction. Follow post-care instructions carefully.
+                    </div>
+                </div>
+
+                <div class="map-section">
+                    <div class="map-placeholder">
+                        📍 Lilavati Hospital, Bandra West, Mumbai - View on Map
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="chat-button" onclick="chatWithClinic(3, 'anti-aging')">
+                    💬 Chat with Clinic - FREE
+                </button>
+                
+                <div class="disclaimer-section">
+                    <div class="disclaimer-title">Antidote Disclaimer</div>
+                    <div class="disclaimer-text">
+                        Antidote is a technology platform connecting patients with healthcare providers. We do not provide medical advice or endorse specific treatments. All medical decisions should be made in consultation with qualified healthcare professionals. Results may vary between individuals.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Package 3: Body Contouring -->
+        <div class="package-card" data-category="body" data-price="45999" data-location="mumbai">
+            <div class="package-header">
+                <div class="discount-badge">40% OFF</div>
+                <h3 class="package-name">Advanced Body Sculpting Package</h3>
+                <div class="clinic-info">
+                    <span class="clinic-name" onclick="goToClinic(2)">Fortis Aesthetics</span>
+                </div>
+                <div class="clinic-address">Mulund West, Mumbai</div>
+                <div class="pricing-section">
+                    <span class="original-price">₹76,665</span>
+                    <span class="discounted-price">₹45,999</span>
+                </div>
+            </div>
+
+            <div class="package-content">
+                <div class="before-after-section">
+                    <div class="before-after-title">Body Sculpting Results</div>
+                    <div class="before-after-photos">
+                        <div class="photo-container">
+                            <div class="photo-label">BEFORE</div>
+                            <div class="photo-placeholder">Before Photo</div>
+                        </div>
+                        <div class="photo-container">
+                            <div class="photo-label">AFTER</div>
+                            <div class="photo-placeholder">After Photo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-section">
+                    <div class="section-title">About the Procedure</div>
+                    <div class="about-text">
+                        Advanced non-surgical body contouring using CoolSculpting and radiofrequency technology. Targets stubborn fat deposits in abdomen, flanks, and thighs. FDA-approved cryolipolysis safely freezes and eliminates fat cells permanently. Combined with skin tightening treatment for optimal results. Each session customized to patient's specific needs and goals. Package includes multiple treatment areas and follow-up sessions for maximum effectiveness.
+                    </div>
+                    <div class="procedure-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Sessions:</span> 3 treatments
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recovery:</span> None required
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span> 2-3 hours per session
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Results:</span> 3-6 months
+                        </div>
+                    </div>
+                </div>
+
+                <div class="procedure-info">
+                    <div class="section-title">Procedure Information</div>
+                    <ul class="procedures-list">
+                        <li class="procedure-item">
+                            <span class="procedure-name">CoolSculpting (3 areas)</span>
+                            <span class="procedure-price">₹60,000</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">RF Skin Tightening</span>
+                            <span class="procedure-price">₹12,000</span>
+                        </li>
+                        <li class="procedure-item">
+                            <span class="procedure-name">Body Assessment & Planning</span>
+                            <span class="procedure-price">₹4,665</span>
+                        </li>
+                    </ul>
+                    <div class="additional-costs">
+                        <div>VAT: Included in package price</div>
+                        <div>Consultation: Complimentary assessment</div>
+                        <div>Aftercare: Compression garments included</div>
+                    </div>
+                </div>
+
+                <div class="recommended-section">
+                    <div class="section-title">Recommended For</div>
+                    <div class="recommended-text">
+                        Adults with stubborn fat deposits resistant to diet and exercise. BMI under 30 with good skin elasticity. Those seeking non-surgical fat reduction. Candidates with realistic expectations about gradual results. Suitable for busy professionals wanting no-downtime treatment.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Downtime: None</div>
+                    <div class="warning-text">
+                        No recovery time required. Mild redness and numbness may occur for 1-2 hours. Normal activities can be resumed immediately.
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <div class="warning-title">Precautions & Side Effects</div>
+                    <div class="warning-text">
+                        Temporary numbness, redness, or tingling in treated areas. Rare risks include paradoxical adipose hyperplasia. Maintain healthy lifestyle for optimal results. Avoid extreme temperature exposure immediately after treatment.
+                    </div>
+                </div>
+
+                <div class="map-section">
+                    <div class="map-placeholder">
+                        📍 Fortis Hospital, Mulund West, Mumbai - View on Map
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="chat-button" onclick="chatWithClinic(2, 'body-sculpting')">
+                    💬 Chat with Clinic - FREE
+                </button>
+                
+                <div class="disclaimer-section">
+                    <div class="disclaimer-title">Antidote Disclaimer</div>
+                    <div class="disclaimer-text">
+                        Antidote is a technology platform connecting patients with healthcare providers. We do not provide medical advice or endorse specific treatments. All medical decisions should be made in consultation with qualified healthcare professionals. Results may vary between individuals.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function searchPackages(query) {
+    const cards = document.querySelectorAll('.package-card');
+    const searchTerm = query.toLowerCase();
+    
+    cards.forEach(card => {
+        const packageName = card.querySelector('.package-name').textContent.toLowerCase();
+        const clinicName = card.querySelector('.clinic-name').textContent.toLowerCase();
+        
+        if (packageName.includes(searchTerm) || clinicName.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByCategory(category) {
+    const cards = document.querySelectorAll('.package-card');
+    
+    cards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByPrice(range) {
+    const cards = document.querySelectorAll('.package-card');
+    
+    cards.forEach(card => {
+        const price = parseInt(card.dataset.price);
+        let show = true;
+        
+        switch(range) {
+            case '0-10000':
+                show = price <= 10000;
+                break;
+            case '10000-25000':
+                show = price > 10000 && price <= 25000;
+                break;
+            case '25000-50000':
+                show = price > 25000 && price <= 50000;
+                break;
+            case '50000+':
+                show = price > 50000;
+                break;
+            default:
+                show = true;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function filterByLocation(location) {
+    const cards = document.querySelectorAll('.package-card');
+    
+    cards.forEach(card => {
+        if (location === 'all' || card.dataset.location === location) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function goToClinic(clinicId) {
+    window.location.href = '/clinic/' + clinicId;
+}
+
+function chatWithClinic(clinicId, packageType) {
+    // Integrate with WhatsApp or clinic chat system
+    const message = `Hi, I'm interested in the ${packageType} package. Can you provide more details?`;
+    const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+</script>
+{% endblock %}

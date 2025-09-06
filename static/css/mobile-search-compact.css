@@ -1,0 +1,147 @@
+/* Mobile Search Section Compact Styling */
+/* Reduce mobile search section size from taking half the screen */
+
+@media (max-width: 768px) {
+    /* Reduce search section vertical padding */
+    .hero-search-section {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        margin-top: -150px !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Compact search container */
+    .hero-search-container {
+        padding: 0.75rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Reduce search card padding */
+    .hero-search-container .card {
+        padding: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Compact search inputs with proper icon spacing */
+    .hero-search-input,
+    .ultra-search-input,
+    .form-control {
+        padding: 0.5rem 0.75rem !important;
+        padding-left: 2.5rem !important;
+        font-size: 0.9rem !important;
+        height: 2.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Reduce tab buttons size */
+    .nav-pills .nav-link {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    /* Compact search button */
+    .btn-primary {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.875rem !important;
+        height: 2.5rem !important;
+    }
+    
+    /* Reduce spacing between form elements */
+    .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .mb-2 {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    /* Compact advanced filters toggle */
+    #advancedFiltersToggle,
+    .advanced-filters-toggle {
+        padding: 0.25rem 0 !important;
+        font-size: 0.8rem !important;
+        margin-top: 0.25rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    /* Reduce row spacing */
+    .row {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    /* Compact form groups */
+    .form-group {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Reduce hero search section overall height */
+    .hero-search-section .container {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+    }
+    
+    /* Compact icon positioning */
+    .position-absolute.end-0.translate-middle-y.pe-2 {
+        padding-right: 0.5rem !important;
+    }
+    
+    /* Reduce search input left padding when icons are present */
+    .hero-search-input {
+        padding-left: 2rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra small mobile - even more compact */
+    .hero-search-section {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+        margin-top: -150px !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .hero-search-container {
+        padding: 0.5rem !important;
+    }
+    
+    .hero-search-container .card {
+        padding: 0.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .hero-search-input,
+    .ultra-search-input,
+    .form-control {
+        padding: 0.375rem 0.5rem !important;
+        padding-left: 2.25rem !important;
+        font-size: 0.85rem !important;
+        height: 2.25rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .nav-pills .nav-link {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        margin-bottom: 0.125rem !important;
+    }
+    
+    .btn-primary {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        height: 2.25rem !important;
+    }
+    
+    /* Minimize all margins */
+    .mb-3 {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .mb-2 {
+        margin-bottom: 0.125rem !important;
+    }
+    
+    .mb-1 {
+        margin-bottom: 0.0625rem !important;
+    }
+}

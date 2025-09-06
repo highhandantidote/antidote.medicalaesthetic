@@ -1,0 +1,32 @@
+{
+  "table": "doctor_photos",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "doctor_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "photo_url",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

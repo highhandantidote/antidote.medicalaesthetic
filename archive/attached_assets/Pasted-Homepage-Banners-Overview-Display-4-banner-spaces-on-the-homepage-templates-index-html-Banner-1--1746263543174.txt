@@ -1,0 +1,69 @@
+Homepage Banners Overview:
+Display 4 banner spaces on the homepage (templates/index.html): Banner 1 (between Hero and Stats sections), Banner 2 (between Popular Procedures and Top Specialists), Banner 3 (between Explore by Category and Join Our Support Community), and Banner 4 (before Footer).
+Each banner space should support multiple slides, where each slide includes an image (900x450 pixels), a title, a subtitle, and a redirect URL (clicking the slide redirects to the specified URL or form, e.g., /learn/botox or a contact form).
+For banners with multiple slides, display them as a slider (carousel) that auto-cycles every 3 seconds with a smooth fade transition, including navigation dots below the banner to indicate the number of slides and the current slide (clickable to jump to a specific slide).
+For banners with a single slide, display them as a static banner without a slider.
+For this implementation:
+Banner 1: A slider with 3 slides (Botox, Rhinoplasty, Facelift).
+Banner 2: A single slide (Dr. Doctor Test).
+Banner 3: A single slide (Lip Fillers, using a provided image).
+Banner 4: A single slide (Hair Transplant).
+Style all banners consistently: 900x450 pixels, light blue-to-white gradient background (linear-gradient(to right, #e0f7fa, #b2ebf2)), rounded corners (8px), centered text with a CTA button. Ensure the navigation dots for sliders are positioned 10px below the banner without overlapping content.
+Lip Filler Banner (Banner 3):
+For Banner 3, use a provided lip filler 'before and after' image (already edited to show 'Before' on the left and 'After' on the right, with text 'Experience the Transformation with Our Lip Fillers' at the top).
+The image is 900x450 pixels and includes the 'Before' and 'After' labels. Display this image as a single slide (no slider since it’s one image).
+Add a text overlay on the banner: a subtitle 'Get fuller, plumper lips with a quick and safe procedure.' and a CTA button 'Learn More' linking to /learn/lip-fillers.
+Style the text overlay to match the banner style: title in #1a3c34, centered, with the CTA button styled as .btn-primary.
+Database Setup:
+Use SQLite to store banner data with two tables:
+banners: id (integer, primary key), is_visible (boolean, default True), start_date (text, format YYYY-MM-DD), end_date (text, format YYYY-MM-DD).
+banner_slides: id (integer, primary key), banner_id (integer, foreign key linking to banners), image_url (text), title (text), subtitle (text), redirect_url (text), click_count (integer, default 0).
+Initialize the database with 4 banners:
+Banner 1 (Slider): 3 slides:
+Slide 1: image_url='https://via.placeholder.com/900x450', title='Smooth Away Wrinkles with Botox – See the Difference!', subtitle='Rejuvenate your skin with a quick and effective treatment.', redirect_url='/learn/botox'.
+Slide 2: image_url='https://via.placeholder.com/900x450', title='Transform Your Look with Rhinoplasty – Explore Now!', subtitle='Nose reshaping surgery to enhance appearance and function.', redirect_url='/learn/rhinoplasty'.
+Slide 3: image_url='https://via.placeholder.com/900x450', title='Youthful Glow with a Facelift – Learn More!', subtitle='Tighten and lift for a rejuvenated appearance.', redirect_url='/learn/facelift'.
+Banner 2 (Single Image): 1 slide: image_url='https://via.placeholder.com/900x450', title='Meet Dr. Doctor Test – Mumbai’s Top Plastic Surgeon!', subtitle='Specializing in Rhinoplasty, Facelifts, and more.', redirect_url='/doctors/1'.
+Banner 3 (Single Image, Lip Fillers): 1 slide: image_url='[PROVIDED_LIP_FILLER_IMAGE_URL]' (replace with the actual URL once uploaded), title='Experience the Transformation with Our Lip Fillers', subtitle='Get fuller, plumper lips with a quick and safe procedure.', redirect_url='/learn/lip-fillers'.
+Banner 4 (Single Image): 1 slide: image_url='https://via.placeholder.com/900x450', title='Restore Your Hair with a Transplant – See the Results!', subtitle='Regain a fuller head of hair with a proven procedure.', redirect_url='/learn/hair-transplant'.
+Set all banners to is_visible=True, with no scheduling (start_date and end_date as NULL), and click_count=0.
+Admin Dashboard:
+Create an admin dashboard route (/admin/banners) accessible only to authenticated admin users (use Flask-Login; hardcode a single admin user: username admin, password admin123).
+The dashboard should list all 4 banners with their slides (image URL, title, subtitle, redirect URL, click count).
+Provide forms to manage each banner:
+Add a new slide (inputs: image URL, title, subtitle, redirect URL).
+Edit/delete existing slides.
+Toggle visibility (is_visible checkbox).
+Set scheduling (start/end dates with date inputs).
+Reset to default (reverts banner to initial state).
+Include a preview feature: show a scaled-down preview of each slide (e.g., 300x150 pixels) when editing.
+Display the click count for each slide and allow resetting it to 0.
+Style the dashboard with a clean, tabular layout, using a light theme (white background, subtle borders, readable fonts) and mobile-first responsiveness.
+Functionality:
+On the homepage, dynamically render banners from the database:
+Show only banners that are is_visible=True and within their scheduled date range (compare with the current date, May 03, 2025).
+For banners with multiple slides, render as a slider with auto-cycling and navigation dots.
+For banners with one slide, render as a single-image banner.
+Track clicks: increment the click_count in the database when a slide is clicked.
+Ensure slides redirect to their specified URL or form when clicked.
+Add basic input validation in the dashboard (e.g., ensure the image URL is valid, redirect URL is a proper link, and dates are in the correct format).
+Files to Update/Create:
+Update app.py to include routes for the admin dashboard, banner/slide editing, click tracking, and database interactions.
+Update templates/index.html to dynamically render banners (Banner 1 as a slider, Banners 2, 3, 4 as single-image banners) at 900x450 pixels.
+Create templates/admin_banners.html for the admin dashboard, with forms for managing banners and slides.
+Create a database initialization script to set up the banners and banner_slides tables with default data.
+Create static/styles.css to include styles for the slider (fade transition, navigation dots) and banners at 900x450 pixels.
+Create static/slider.js to handle the slider functionality (auto-cycling, navigation dots, click handling).
+Testing:
+Restart the application, navigate to the homepage (/), and verify:
+Banner 1 displays as a slider with 3 slides (Botox, Rhinoplasty, Facelift) at 900x450 pixels, auto-cycling every 3 seconds, with navigation dots and redirect functionality.
+Banner 2 displays as a single-image banner (Dr. Doctor Test) at 900x450 pixels.
+Banner 3 displays the provided lip filler image at 900x450 pixels with the correct text overlay and CTA.
+Banner 4 displays as a single-image banner (Hair Transplant) at 900x450 pixels.
+Access the admin dashboard (/admin/banners), log in (username: admin, password: admin123), and test:
+Adding a new slide to Banner 1.
+Editing/deleting a slide in Banner 1.
+Toggling visibility for Banner 2.
+Setting a schedule for Banner 3.
+Checking the click counter after clicking a slide on the homepage.
+Resetting a banner to its default state."

@@ -1,0 +1,84 @@
+Fix Dashboard Interactivity:
+Open templates/dashboard_community.html and verify the "Create Thread" button and action buttons have the correct classes:
+html
+
+Copy
+<button class="create-thread">Create Thread</button>
+<tr data-thread-id="{{ thread.id }}">
+    <td>{{ thread.title }}</td>
+    <td>{{ thread.author }}</td>
+    <td>{{ thread.category }}</td>
+    <td>{{ thread.created }}</td>
+    <td>{{ thread.replies }}</td>
+    <td class="actions">
+        <button>View</button>
+        <button>Edit</button>
+        <button>Delete</button>
+    </td>
+</tr>
+Ensure the script is included:
+html
+
+Copy
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+In static/js/main.js, enhance the debug logging and handle potential null cases:
+javascript
+
+Copy
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    const createButton = document.querySelector('.create-thread');
+    if (createButton) {
+        createButton.addEventListener('click', () => {
+            console.log('Create Thread clicked');
+            window.location.href = '/dashboard/community/create';
+        });
+    } else {
+        console.log('Create Thread button not found');
+    }
+
+    const actionButtons = document.querySelectorAll('.actions button');
+    if (actionButtons.length > 0) {
+        actionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                console.log('Action clicked:', e.target.textContent);
+                const action = e.target.textContent.toLowerCase();
+                const threadId = button.closest('tr')?.dataset.threadId;
+                if (threadId) {
+                    if (action === 'view') window.location.href = `/community/thread/${threadId}`;
+                    else if (action === 'edit') window.location.href = `/dashboard/community/edit/${threadId}`;
+                    else if (action === 'delete') {
+                        if (confirm('Are you sure?')) {
+                            fetch(`/api/community/${threadId}`, { method: 'DELETE' })
+                                .then(response => response.json())
+                                .then(data => location.reload());
+                        }
+                    }
+                } else {
+                    console.log('Thread ID not found for action:', action);
+                }
+            });
+        });
+    } else {
+        console.log('No action buttons found');
+    }
+});
+Debug Errors:
+Restart the application.
+Navigate to /dashboard/community, open the browser console (F12), and click buttons. Note any errors or logs (e.g., "Create Thread button not found").
+Take a screenshot of the console output alongside the dashboard.
+Validate Media Preview:
+Navigate to /community/thread/3:
+Confirm sample.jpg displays and the Media Preview modal opens/closes without freezing.
+Take a screenshot of the thread with the modal open.
+Verify Backend Routes:
+Ensure routes.py has the action routes (as previously provided). Test with curl:
+bash
+
+Copy
+curl -I http://localhost:5000/dashboard/community/create
+curl -I http://localhost:5000/dashboard/community/edit/3
+Log the results.
+Provide Output:
+Share updated dashboard_community.html, static/js/main.js, routes.py (if modified), logs, console output, and screenshots.
+Respond to Replit’s question and your feedback: "I tested /dashboard/community, and the browser console shows [insert logs/errors]. The media preview on /community/thread/3 works correctly with sample.jpg and no freezing. Please review the console logs to fix the non-working buttons and errors."

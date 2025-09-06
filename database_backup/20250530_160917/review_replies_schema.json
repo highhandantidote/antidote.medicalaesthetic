@@ -1,0 +1,32 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('review_replies_id_seq'::regclass)"
+  },
+  {
+    "name": "review_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "reply_text",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

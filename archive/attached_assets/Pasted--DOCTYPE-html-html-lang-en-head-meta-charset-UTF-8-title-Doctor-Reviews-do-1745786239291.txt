@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Reviews - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Patient Reviews</h3>
+                {% for review in reviews %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ review.user.name }}</h5>
+                            <p class="card-text">{{ review.created_at.strftime('%B %d, %Y') }}</p>
+                            <p class="card-text">{{ review.procedure_name }}</p>
+                            <p class="card-text">{{ review.review_text }}</p>
+                            <div class="rating">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= review.rating %}
+                                        <span class="star">★</span>
+                                    {% else %}
+                                        <span class="star">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <form method="POST" action="{{ url_for('web.reply_review', review_id=review.id) }}">
+                                <div class="mb-3">
+                                    <label for="reply_text" class="form-label">Your Reply</label>
+                                    <textarea name="reply_text" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Reply</button>
+                            </form>
+                            {% if review.replies %}
+                                <h6 class="mt-3">Replies</h6>
+                                {% for reply in review.replies %}
+                                    <p class="card-text"><strong>Dr. {{ reply.doctor.name }}:</strong> {{ reply.reply_text }} ({{ reply.created_at.strftime('%B %d, %Y') }})</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

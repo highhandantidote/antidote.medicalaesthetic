@@ -1,0 +1,115 @@
+Antidote Platform Community Development Plan (Revised)
+Overview
+Develop and deploy an enhanced community page for the Antidote plastic surgery marketplace in Replit, integrating advanced social features inspired by Twitter and Reddit. The plan includes schema design, frontend and backend updates, testing, deployment, and maintenance instructions, ensuring scalability for low initial traffic. Track completion by verifying each step in the browser and database.
+Implementation Details
+Schema Level Updates
+Database Structure
+users Table:
+Columns: id (SERIAL PRIMARY KEY), phoneNumber (TEXT NOT NULL UNIQUE), firebaseUid (TEXT UNIQUE), name (TEXT NOT NULL), email (TEXT UNIQUE), role (TEXT NOT NULL DEFAULT 'user'), username (TEXT UNIQUE NOT NULL), roleType (TEXT CHECK (roleType IN ('user', 'doctor', 'expert'))), bio (TEXT), badge (TEXT[]), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), lastLoginAt (TIMESTAMP), isVerified (BOOLEAN DEFAULT FALSE), savedItems (JSONB), points (INTEGER DEFAULT 0).
+Purpose: Store user details with usernames, profiles, and roles for doctors/experts.
+community Table:
+Columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), title (TEXT NOT NULL), content (TEXT NOT NULL), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), updatedAt (TIMESTAMP), viewCount (INTEGER DEFAULT 0), replyCount (INTEGER DEFAULT 0), featured (BOOLEAN DEFAULT FALSE), tags (TEXT[]), categoryId (INTEGER REFERENCES categories(id)), procedureId (INTEGER REFERENCES procedures(id)), parentId (INTEGER REFERENCES community(id)), photoUrl (TEXT), videoUrl (TEXT).
+Purpose: Manage threads with nesting, metrics, and multimedia.
+community_replies Table:
+Columns: id (SERIAL PRIMARY KEY), threadId (INTEGER NOT NULL REFERENCES community(id)), userId (INTEGER NOT NULL REFERENCES users(id)), content (TEXT NOT NULL), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), upvoteCount (INTEGER DEFAULT 0), parentReplyId (INTEGER REFERENCES community_replies(id)), isDoctorResponse (BOOLEAN DEFAULT FALSE), isExpertAdvice (BOOLEAN DEFAULT FALSE), isAIResponse (BOOLEAN DEFAULT FALSE), photoUrl (TEXT), videoUrl (TEXT).
+Purpose: Handle replies with role tags, voting, and multimedia.
+notifications Table:
+Columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), message (TEXT NOT NULL), type (TEXT NOT NULL), isRead (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), mentionedUsername (TEXT REFERENCES users(username)), responseType (TEXT CHECK (responseType IN ('doctor', 'expert', 'ai'))).
+Purpose: Track mentions and response notifications.
+community_moderation Table:
+Columns: id (SERIAL PRIMARY KEY), communityId (INTEGER REFERENCES community(id)), replyId (INTEGER REFERENCES community_replies(id)), moderatorId (INTEGER REFERENCES users(id)), action (TEXT CHECK (action IN ('approve', 'reject', 'flag'))), reason (TEXT), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Purpose: Manage content moderation.
+messages Table:
+Columns: id (SERIAL PRIMARY KEY), senderId (INTEGER NOT NULL REFERENCES users(id)), receiverId (INTEGER NOT NULL REFERENCES users(id)), content (TEXT NOT NULL), isRead (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Purpose: Support private messaging.
+Migration Steps
+Update migrations/schema.ts with the above tables and columns.
+Run npx drizzle-kit push:pg in Replit to apply changes.
+Verify with psql $DATABASE_URL -c "\dt" and psql $DATABASE_URL -c "\d <table_name>" for each table.
+Indexes
+Add CREATE INDEX idx_community_content ON community(content);, CREATE INDEX idx_community_replies_content ON community_replies(content);, CREATE INDEX idx_users_username ON users(username); in migrations/schema.ts.
+Run npx drizzle-kit push:pg and verify with psql $DATABASE_URL -c "\d community".
+Frontend Level Updates
+Component Development
+Navbar (src/components/Navbar.jsx):
+Add username input or auto-generation during Firebase OTP signup, validated via /api/users/check-username.
+Include “Messages” and “Notifications” tabs with bell icons.
+Community Page (src/pages/Community.jsx):
+Implement nested reply tree using parentId and parentReplyId, with upvote/downvote buttons.
+Enhance “Search discussions...” with advanced filters (username, category, date, response type) and sort options, using /api/community/search.
+Add file inputs for photoUrl and videoUrl, displaying a media carousel.
+Tag isDoctorResponse as “(Doctor Response)” and isExpertAdvice as “(Expert Advice)”.
+Include “Ask AI” button, hashtag input, “Report” button, and “Pin” option for admins.
+Profile Page (src/pages/Profile.jsx):
+Create with react-router-dom, displaying username, bio, badge, threads, replies, and upvotes. Link from “Top Contributors”.
+Messages Component (src/components/Messages.jsx):
+Build chat interface with “Message” button on profiles/replies, fetching from /api/messages.
+Admin Dashboard (src/pages/AdminDashboard.jsx):
+Add Moderation tab for community_moderation actions and media preview.
+User Dashboard (src/pages/UserDashboard.jsx):
+Add username and bio customization forms.
+Dependencies
+Install npm install react-router-dom axios @tanstack/react-query socket.io-client multer.
+Use Tailwind CSS or CSS modules for styling and responsiveness.
+Real-Time Integration
+Use socket.io-client for live updates in src/pages/Community.jsx, syncing with backend.
+Backend Level Updates
+API Endpoints
+Users (server/routes/users.js):
+GET /api/users/:username: Fetch profile data.
+POST /api/users/signup: Assign username.
+POST /api/users/check-username: Validate username.
+POST /api/users/update-profile: Update bio, badge.
+Community (server/routes/community.js):
+GET /api/community: Fetch threads with nesting.
+GET /api/community/search: Handle advanced search with filters.
+POST /api/community: Create thread with photoUrl, videoUrl.
+PATCH /api/community/:id: Update featured, viewCount, replyCount.
+Community Replies (server/routes/communityReplies.js):
+GET /api/community-replies/:threadId: Fetch replies.
+POST /api/community-replies: Add reply with photoUrl, videoUrl, role tags.
+PATCH /api/community-replies/:id: Update upvoteCount.
+Messages (server/routes/messages.js):
+GET /api/messages: Fetch messages by userId.
+POST /api/messages: Send message.
+Moderation (server/routes/communityModeration.js):
+POST /api/community-moderation: Report or moderate content.
+Notifications (server/routes/notifications.js):
+POST /api/notifications: Trigger mentions and response alerts.
+AI Replies (server/routes/aiReplies.js):
+POST /api/ai-replies: Generate AI responses using Replit’s Agent.
+Dependencies
+Install npm install express pg cors multer socket.io firebase-admin node-cache.
+Configure multer for file uploads, storing URLs in photoUrl/videoUrl.
+Real-Time Setup
+Install socket.io in server.
+Update server/index.js to emit events for replies, upvotes, and notifications.
+Username Generation
+Create server/utils/username.js with a function generating unique names (e.g., “CosmicWave_123”) from universe/nature themes, checking users.username.
+Additional Implementation Details for Replit
+Environment Configuration
+Set Secrets in Replit for DATABASE_URL, FIREBASE_CONFIG, and any API keys.
+Ensure PORT=3000 for backend, VITE_API_URL=http://localhost:3000 for frontend.
+File Upload Handling
+Use Replit’s file storage or a cloud service (e.g., Firebase Storage) for photoUrl and videoUrl. Configure multer to upload to a temporary directory or external bucket.
+Performance Optimization
+Add node-cache for caching frequent queries (e.g., /api/community/search).
+Use EXPLAIN in PostgreSQL to optimize slow queries.
+Security
+Implement authentication middleware with Firebase JWT for all endpoints.
+Add CAPTCHA (e.g., hcaptcha) for new thread/reply submissions to prevent spam.
+Testing
+Test with 10 users, 20 threads, and sample media uploads.
+Verify end-to-end flow: signup, post, search, message, upload, notify.
+Deployment
+Push changes to Replit, run npm run dev (frontend) and node server/index.js (backend).
+Verify at your Replit URL (e.g., https://antidote.ch.worf.replit.dev).
+Maintenance
+Add logging with winston in server/index.js to track usage.
+Create a feedback form in src/pages/Community.jsx for user input.
+Iterate based on feedback (e.g., add localization if requested).
+Notes
+Prioritize schema updates, core APIs (users, community, replies), and frontend community page for initial rollout.
+Use Replit’s collaborative environment for team testing if applicable.
+Monitor database size and scale storage as media uploads increase.
+

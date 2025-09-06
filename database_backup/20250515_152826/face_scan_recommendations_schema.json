@@ -1,0 +1,50 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('face_scan_recommendations_id_seq'::regclass)"
+  },
+  {
+    "name": "analysis_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "procedure_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "relevance_score",
+    "type": "double precision",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "area_of_concern",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "recommendation_reason",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "recommendation_type",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

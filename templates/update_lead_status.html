@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Lead Status | Doctor Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Update Lead Status</h3>
+                    <div>
+                        <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Leads
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Patient Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Name:</strong> {{ lead.patient_name }}</p>
+                                    <p><strong>Contact:</strong> {{ lead.mobile_number }}</p>
+                                    <p><strong>Email:</strong> {{ lead.email if lead.email else 'Not provided' }}</p>
+                                    <p><strong>Location:</strong> {{ lead.city if lead.city else 'Not specified' }}</p>
+                                    <p><strong>Procedure:</strong> {{ lead.procedure_name }}</p>
+                                    <p><strong>Current Status:</strong> 
+                                        <span class="badge 
+                                            {% if lead.status == 'pending' %}bg-warning
+                                            {% elif lead.status == 'contacted' %}bg-info
+                                            {% elif lead.status == 'scheduled' %}bg-primary
+                                            {% elif lead.status == 'completed' %}bg-success
+                                            {% elif lead.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ lead.status|capitalize }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Created:</strong> {{ lead.created_at.strftime('%d %b %Y, %H:%M') if lead.created_at else 'Unknown' }}</p>
+                                    {% if lead.appointment_date %}
+                                    <p><strong>Appointment:</strong> {{ lead.appointment_date.strftime('%d %b %Y, %H:%M') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Lead Message</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ lead.message if lead.message else 'No message provided' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="update-status-form" action="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Update Status</label>
+                            <div class="btn-group-vertical w-100" role="group" aria-label="Status options">
+                                <input type="radio" class="btn-check" name="status" id="status-pending" value="pending" {% if lead.status == 'pending' %}checked{% endif %}>
+                                <label class="btn btn-outline-warning text-start mb-2" for="status-pending">
+                                    <i class="fas fa-clock"></i> Pending
+                                    <small class="d-block">Patient has made an inquiry but no contact has been initiated.</small>
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="status" id="status-contacted" value="contacted" {% if lead.status == 'contacted' %}checked{% endif %}>
+                                <label class="btn btn-outline-info text-start mb-2" for="status-contacted">
+                                    <i class="fas fa-phone-alt"></i> Contacted
+                                    <small class="d-block">Initial communication sent to patient.</small>
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="status" id="status-scheduled" value="scheduled" {% if lead.status == 'scheduled' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary text-start mb-2" for="status-scheduled">
+                                    <i class="fas fa-calendar-check"></i> Scheduled
+                                    <small class="d-block">Consultation appointment has been set.</small>
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="status" id="status-completed" value="completed" {% if lead.status == 'completed' %}checked{% endif %}>
+                                <label class="btn btn-outline-success text-start mb-2" for="status-completed">
+                                    <i class="fas fa-check-circle"></i> Completed
+                                    <small class="d-block">Consultation has been completed.</small>
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="status" id="status-rejected" value="rejected" {% if lead.status == 'rejected' %}checked{% endif %}>
+                                <label class="btn btn-outline-danger text-start" for="status-rejected">
+                                    <i class="fas fa-ban"></i> Rejected
+                                    <small class="d-block">You have declined to proceed with this lead.</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="appointment-date-container" class="mb-3" {% if lead.status != 'scheduled' and not (lead.status == 'pending' or lead.status == 'contacted') %}style="display: none;"{% endif %}>
+                            <label for="appointment_date" class="form-label">Appointment Date</label>
+                            <input type="datetime-local" class="form-control bg-dark text-white" id="appointment_date" name="appointment_date" 
+                                  value="{{ lead.appointment_date.strftime('%Y-%m-%dT%H:%M') if lead.appointment_date else '' }}">
+                            <div class="form-text text-muted">Required when status is 'Scheduled'</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes (Internal Only)</label>
+                            <textarea class="form-control bg-dark text-white" id="notes" name="notes" rows="3">{{ lead.notes if lead.notes else '' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="update-status-btn">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-darker {
+    background-color: #1a1e21;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide appointment date based on selected status
+    const statusRadios = document.querySelectorAll('input[name="status"]');
+    const appointmentDateContainer = document.getElementById('appointment-date-container');
+    
+    statusRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'scheduled') {
+                appointmentDateContainer.style.display = 'block';
+                document.getElementById('appointment_date').required = true;
+            } else {
+                if (this.value !== 'pending' && this.value !== 'contacted') {
+                    appointmentDateContainer.style.display = 'none';
+                    document.getElementById('appointment_date').required = false;
+                } else {
+                    // For pending and contacted, show but don't require
+                    appointmentDateContainer.style.display = 'block';
+                    document.getElementById('appointment_date').required = false;
+                }
+            }
+        });
+    });
+    
+    // Add AJAX support for form submission
+    document.getElementById('update-status-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const formData = new FormData(form);
+        const submitButton = document.getElementById('update-status-btn');
+        
+        // Validate appointment date for scheduled status
+        if (formData.get('status') === 'scheduled' && !formData.get('appointment_date')) {
+            alert('Please set an appointment date when changing status to Scheduled.');
+            return;
+        }
+        
+        // Disable the button to prevent multiple submissions
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lead status updated successfully!');
+                window.location.href = "{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}";
+            } else {
+                alert('Error: ' + (data.message || 'Failed to update lead status. Please try again.'));
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Update Status';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the lead status. Please try again.');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Update Status';
+        });
+    });
+});
+</script>
+{% endblock %}

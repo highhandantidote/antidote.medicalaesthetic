@@ -1,0 +1,36 @@
+Test User-Facing Pages with Existing Data and Assess Admin Procedures Page:
+
+1. Review Current State:
+   - Update `test_report.md` with current seeding: 5 procedures (4 Face, 1 Breast), 6 threads, no doctors.
+   - Log in `antidote_full_test_20250421_234956.log` the test plan for user-facing pages and admin procedures page.
+
+2. Test User-Facing Pages:
+   - **Main Page (`/`)**:
+     - Verify doctor section (e.g., “Top Doctors” or search)—expect it to be empty or erroring due to no doctor data.
+     - Check featured procedures (should show 5) and recent threads (should show up to 6).
+     - Test any search/filter functionality for doctors or procedures, note failures.
+   - **Procedures (`/procedures`)**:
+     - Confirm listing shows 5 procedures, check if surgical/non-surgical filter exists and works.
+     - Test load time (<2s) and filter responsiveness (<100ms).
+   - **Doctors (`/doctors`)**:
+     - Verify page renders—expect it to be empty or erroring due to no doctor data.
+     - Test search/filter functionality (e.g., by specialty)—expect failure.
+   - **Community (`/community`)**:
+     - Confirm 6 threads display, test body part filter (5 threads for “Face,” 1 for “Breast”), check filter lag (<100ms) with timestamp logs.
+     - Test search bar with keywords (e.g., “cost”).
+   - **New Thread (`/community/new`)**:
+     - Verify procedure dropdown shows 5 procedures, test thread creation (submit a test thread: “Testing thread creation” for Rhinoplasty), confirm it saves to the database.
+     - Check if analytics update (e.g., thread count, trending topics).
+
+3. Assess Admin Procedures Page:
+   - Navigate to the admin procedures page (likely `/dashboard/procedures`):
+     - Confirm it shows 5 procedures, note if editing or analytics features (e.g., most discussed procedures) exist.
+     - Test load time (<2s) and any filtering/sorting functionality.
+     - Note any errors (e.g., Internal Server Error) or UI issues due to limited data.
+
+4. Respond:
+   - Summarize: “Tested user-facing pages with 5 procedures, 6 threads, no doctors. Main page doctor section is [empty/erroring], procedures page shows 5 but filters [work/fail], doctors page is [empty/erroring], community page filter [works/fails], thread creation [works/fails]. Admin procedures page shows 5 procedures, [editing/analytics] features [work/fail]. Ready to seed doctors and remaining procedures if confirmed.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `doctors.html`, `procedures.html`, `community_new.html`, `index.html`, `dashboard_procedures.html`, console output, and screenshots of all tested pages.
+
+5. Next Steps:
+   - Await confirmation to seed doctors and remaining 112 procedures.

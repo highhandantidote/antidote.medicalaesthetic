@@ -1,0 +1,103 @@
+In my Flask app Antidote, the user dashboard at /dashboard/user/1 for testuser@antidote.com isn’t reflecting reviews and saved items, despite testuser having written reviews (e.g., on /procedures/detail/2 and /doctors/detail/3) and saved items (e.g., Dr. John Smith). Fix this so the dashboard displays these actions:
+
+1. Verify testuser’s data in the database:
+   - Confirm testuser’s user_id:
+     SELECT * FROM users WHERE email = 'testuser@antidote.com';
+   - Check existing reviews for user_id (assuming user_id = 1):
+     SELECT * FROM reviews WHERE user_id = 1;
+   - Check saved items (favorites) for user_id:
+     SELECT * FROM favorites WHERE user_id = 1;
+   - If reviews or favorites are missing, repopulate for testing:
+     INSERT INTO reviews (user_id, procedure_id, doctor_id, rating, content) VALUES 
+     (1, 2, NULL, 4, 'Amazing procedure!'),
+     (1, NULL, 3, 4, 'Highly recommend this doctor!') ON CONFLICT DO NOTHING;
+     INSERT INTO favorites (user_id, doctor_id) VALUES 
+     (1, 3) ON CONFLICT DO NOTHING;
+
+2. Update the dashboard route to fetch reviews and favorites:
+   - Open routes/web.py
+   - Update the route for /dashboard/user/<id> to query reviews and favorites:
+     @app.route('/dashboard/user/<int:id>')
+     def user_dashboard(id):
+         user = db.execute("SELECT * FROM users WHERE id = %s", (id,)).fetchone()
+         if not user:
+             return "User not found", 404
+         reviews = db.execute("SELECT r.*, p.procedure_name, d.name AS doctor_name FROM reviews r "
+                             "LEFT JOIN procedures p ON r.procedure_id = p.id "
+                             "LEFT JOIN doctors d ON r.doctor_id = d.id "
+                             "WHERE r.user_id = %s", (id,)).fetchall()
+         favorites = db.execute("SELECT f.*, d.name AS doctor_name FROM favorites f "
+                               "JOIN doctors d ON f.doctor_id = d.id "
+                               "WHERE f.user_id = %s", (id,)).fetchall()
+         return render_template('dashboard/user.html', user=user, reviews=reviews, favorites=favorites)
+   - Save the file.
+
+3. Update the user.html template to display reviews and favorites:
+   - Open templates/dashboard/user.html
+   - Update the "My Reviews" section (tab-pane with id="reviews"):
+     <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+         <h3>My Reviews</h3>
+         {% if reviews %}
+             {% for review in reviews %}
+                 <div class="review-card mb-3 p-3 border rounded">
+                     {% if review.procedure_name %}
+                         <p><strong>Procedure:</strong> {{ review.procedure_name }}</p>
+                     {% endif %}
+                     {% if review.doctor_name %}
+                         <p><strong>Doctor:</strong> {{ review.doctor_name }}</p>
+                     {% endif %}
+                     <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+                     <p><strong>Comment:</strong> {{ review.content }}</p>
+                 </div>
+             {% endfor %}
+         {% else %}
+             <div class="text-center">
+                 <img src="{{ url_for('static', filename='images/no-reviews-icon.png') }}" alt="No reviews" class="mb-3" style="width: 50px;">
+                 <p>You haven't written any reviews yet</p>
+                 <a href="{{ url_for('web.procedures') }}" class="btn btn-outline-primary">Browse Procedures</a>
+             </div>
+         {% endif %}
+     </div>
+   - Update the "Saved Items" section (tab-pane with id="saved"):
+     <div class="tab-pane fade" id="saved" role="tabpanel" aria-labelledby="saved-tab">
+         <h3>Saved Items</h3>
+         {% if favorites %}
+             {% for favorite in favorites %}
+                 <div class="saved-item-card mb-3 p-3 border rounded">
+                     <p><strong>Doctor:</strong> {{ favorite.doctor_name }}</p>
+                     <a href="{{ url_for('web.doctor_detail', id=favorite.doctor_id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                 </div>
+             {% endfor %}
+         {% else %}
+             <div class="text-center">
+                 <img src="{{ url_for('static', filename='images/no-saved-icon.png') }}" alt="No saved items" class="mb-3" style="width: 50px;">
+                 <p>You haven't saved any items yet</p>
+                 <a href="{{ url_for('web.procedures') }}" class="btn btn-outline-primary">Browse Procedures</a>
+             </div>
+         {% endif %}
+     </div>
+   - Save the file.
+
+4. Test the updated dashboard:
+   - Restart the application:
+     Restarted Start application
+   - Log in as `testuser@antidote.com` with password "password123".
+   - Navigate to /dashboard/user/1:
+     - Switch to the "My Reviews" tab, confirm reviews for the procedure (e.g., "Amazing procedure!") and doctor (e.g., "Highly recommend this doctor!") are displayed.
+     - Switch to the "Saved Items" tab, confirm saved doctors (e.g., Dr. John Smith) are displayed.
+     - Take a screenshot of /dashboard/user/1 showing both tabs.
+   - Navigate to /doctors/detail/3:
+     - Save another doctor (if not already saved) and write another review (rating 4, comment "Excellent service!").
+     - Return to /dashboard/user/1 and confirm the new review and saved item appear.
+
+5. Check for errors:
+   - F12 > Console and Network tabs on /dashboard/user/1 (screenshot if errors remain).
+   - Run: tail -n 50 /tmp/replit-nix-errors.log and report issues.
+
+6. Provide a summary:
+   - Confirm reviews and saved items are now visible on testuser’s dashboard.
+   - Include the screenshot from step 4.
+   - Note any errors from step 5.
+   - Suggest next steps (e.g., address validation visibility issue, star rating animations).
+
+Run this prompt and share the summary with the screenshot. Let’s get the dashboard reflecting testuser’s actions!

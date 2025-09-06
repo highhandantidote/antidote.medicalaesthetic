@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Leads | Doctor Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">New Patient Leads</h3>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Filter
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                <li><a class="dropdown-item" href="#">All Leads</a></li>
+                                <li><a class="dropdown-item" href="#">New</a></li>
+                                <li><a class="dropdown-item" href="#">Contacted</a></li>
+                                <li><a class="dropdown-item" href="#">Scheduled</a></li>
+                                <li><a class="dropdown-item" href="#">Completed</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if leads %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Procedure</th>
+                                        <th>Preferred Date</th>
+                                        <th>Contact</th>
+                                        <th>City</th>
+                                        <th>Message</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lead in leads %}
+                                        <tr class="doctor-lead-row" data-lead-id="{{ lead.id }}">
+                                            <td>{{ lead.patient_name }}</td>
+                                            <td>{{ lead.procedure_name }}</td>
+                                            <td>{{ lead.preferred_date.strftime('%d %b %Y') if lead.preferred_date else 'Not specified' }}</td>
+                                            <td>{{ lead.mobile_number }}</td>
+                                            <td>{{ lead.city }}</td>
+                                            <td>{{ lead.message|truncate(30) if lead.message else 'No message' }}</td>
+                                            <td>
+                                                <span class="badge {% if lead.status == 'pending' %}bg-warning{% elif lead.status == 'contacted' %}bg-info{% elif lead.status == 'scheduled' %}bg-primary{% elif lead.status == 'completed' %}bg-success{% elif lead.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    {{ lead.status|capitalize }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{{ url_for('web.view_lead', lead_id=lead.id) }}" class="btn btn-sm btn-outline-primary lead-action-btn" data-lead-id="{{ lead.id }}" data-action="view">View</a>
+                                                    <a href="{{ url_for('web.contact_lead', lead_id=lead.id) }}" class="btn btn-sm btn-outline-primary lead-action-btn" data-lead-id="{{ lead.id }}" data-action="contact">Contact</a>
+                                                    <a href="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" class="btn btn-sm btn-outline-primary lead-action-btn" data-lead-id="{{ lead.id }}" data-action="update_status">Update Status</a>
+                                                </div>
+                                                <div class="btn-group mt-1">
+                                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        More Actions
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <form class="update-lead-status-form" data-lead-id="{{ lead.id }}">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="status" value="contacted">
+                                                                <button type="submit" class="dropdown-item">Mark as Contacted</button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form class="update-lead-status-form" data-lead-id="{{ lead.id }}">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="status" value="scheduled">
+                                                                <button type="submit" class="dropdown-item">Schedule Appointment</button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form class="update-lead-status-form" data-lead-id="{{ lead.id }}">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="status" value="completed">
+                                                                <button type="submit" class="dropdown-item">Mark as Completed</button>
+                                                            </form>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <form class="update-lead-status-form" data-lead-id="{{ lead.id }}">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="status" value="rejected">
+                                                                <button type="submit" class="dropdown-item text-danger">Reject Lead</button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-info view-lead-details mt-1" data-bs-toggle="modal" data-bs-target="#leadDetailsModal" data-lead-id="{{ lead.id }}">
+                                                    <i class="fas fa-eye"></i> Quick View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You don't have any new patient leads yet. Leads will appear here when patients request consultations with you.
+                        </div>
+                        <div class="text-center mt-4">
+                            <p>Improve your profile to attract more patient leads:</p>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="card bg-dark text-white mb-2">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-image fa-2x mb-2"></i>
+                                            <h5>Add Photos</h5>
+                                            <p class="small">Upload before/after photos to showcase your work</p>
+                                            <a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-light">Manage Gallery</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-dark text-white mb-2">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                                            <h5>Update Procedures</h5>
+                                            <p class="small">Add procedures you perform to appear in searches</p>
+                                            <a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-light">Edit Procedures</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-dark text-white mb-2">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-certificate fa-2x mb-2"></i>
+                                            <h5>Complete Verification</h5>
+                                            <p class="small">Verified profiles receive more leads</p>
+                                            <a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-light">Get Verified</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lead Details Modal -->
+<div class="modal fade" id="leadDetailsModal" tabindex="-1" aria-labelledby="leadDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leadDetailsModalLabel">Lead Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="leadDetailsContent">
+                    <!-- Content will be loaded via JavaScript -->
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Message Patient</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">Export Leads</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm">
+                    <div class="mb-3">
+                        <label for="exportFormat" class="form-label">Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dateRange" class="form-label">Date Range</label>
+                        <select class="form-select" id="dateRange">
+                            <option value="all">All Time</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                            <option value="180">Last 6 Months</option>
+                            <option value="365">Last Year</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Include Fields</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="includePatientName" checked>
+                            <label class="form-check-label" for="includePatientName">
+                                Patient Name
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="includeContact" checked>
+                            <label class="form-check-label" for="includeContact">
+                                Contact Information
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="includeProcedure" checked>
+                            <label class="form-check-label" for="includeProcedure">
+                                Procedure Details
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="includeStatus" checked>
+                            <label class="form-check-label" for="includeStatus">
+                                Status
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="includeMessages">
+                            <label class="form-check-label" for="includeMessages">
+                                Messages
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="exportButton">Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/leads.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View lead details
+        document.querySelectorAll('.view-lead-details').forEach(button => {
+            button.addEventListener('click', function() {
+                const leadId = this.getAttribute('data-lead-id');
+                const detailsContent = document.getElementById('leadDetailsContent');
+                
+                // In a real implementation, this would be an AJAX call to fetch lead details
+                // For now, we'll simulate the content
+                setTimeout(() => {
+                    const lead = {
+                        id: leadId,
+                        patientName: "Simulated Patient",
+                        procedure: "Rhinoplasty",
+                        contact: "+91 9876543210",
+                        email: "patient@example.com",
+                        status: "Pending",
+                        message: "I'm interested in learning more about this procedure and would like to schedule a consultation.",
+                        preferredDate: "2025-05-15",
+                        city: "Mumbai",
+                        source: "Procedure Page",
+                        created: "2025-04-20"
+                    };
+                    
+                    detailsContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Patient Information</h5>
+                                <table class="table table-dark">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>${lead.patientName}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact:</th>
+                                        <td>${lead.contact}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>${lead.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>City:</th>
+                                        <td>${lead.city}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Lead Details</h5>
+                                <table class="table table-dark">
+                                    <tr>
+                                        <th>Procedure:</th>
+                                        <td>${lead.procedure}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Preferred Date:</th>
+                                        <td>${lead.preferredDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td><span class="badge bg-warning">${lead.status}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Source:</th>
+                                        <td>${lead.source}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Created:</th>
+                                        <td>${lead.created}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h5>Message</h5>
+                                <div class="p-3 bg-darker rounded">
+                                    ${lead.message}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h5>Actions</h5>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary">Send Message</button>
+                                    <button type="button" class="btn btn-outline-success">Schedule Appointment</button>
+                                    <button type="button" class="btn btn-outline-warning">Mark as Contacted</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }, 500);
+            });
+        });
+        
+        // Export button functionality
+        document.getElementById('exportButton').addEventListener('click', function() {
+            // In a real implementation, this would trigger an actual export
+            // For now, we'll just show a notification
+            alert('Export functionality would download your leads in the selected format.');
+            $('#exportModal').modal('hide');
+        });
+    });
+</script>
+{% endblock %}

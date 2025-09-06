@@ -1,0 +1,40 @@
+Golden Ratio Analysis:
+
+Implement mathematical measurements of facial proportions based on the golden ratio (1:1.618)
+Show visual overlay guides highlighting how specific facial measurements compare to ideal proportions
+Provide a numerical score or percentage of how closely different facial features align with these ratios
+Honest Facial Assessment:
+
+Provide more detailed and specific descriptions of facial features without sugar-coating
+Include clear explanations of facial asymmetries, disproportions, or structural characteristics
+Balance honesty with constructive language about potential improvements
+Geometric Facial Mapping:
+
+Create a more detailed facial map showing key measurement points and angles
+Include specific measurements between facial landmarks (eye width to intercanthal distance, etc.)
+Compare these measurements to established aesthetic ideals in medical literature
+Facial Thirds/Fifths Analysis:
+
+Add detailed vertical and horizontal proportion analysis using classical facial division methods
+Evaluate if the face properly divides into equal thirds vertically and fifths horizontally
+Highlight where proportions deviate from classical ideals
+Neoclassical Canons Assessment:
+
+Incorporate the established neoclassical canons of facial beauty
+Measure specific ratios like eye separation equal to eye width
+Show how the user's face compares to these established standards
+Ogee Curve Evaluation:
+
+Analyze the presence and quality of the "Ogee curve" (S-shaped curve from cheek to jaw)
+Show how prominent this aesthetically desirable feature is in the user's face
+Provide recommendations for enhancing this feature if underdeveloped
+Profile Assessment:
+
+Add specific analysis of the facial profile view
+Measure angles like nasofrontal, nasolabial, and mentolabial angles
+Compare to established aesthetic ideals for these measurements
+Facial Harmony Score:
+
+Create a numerical scoring system based on multiple facial measurements
+Show which features are most harmonious and which could be improved
+Provide an overall facial harmony percentage based on objective measurements

@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}AI-Powered Treatment Recommendations{% endblock %}
+
+{% block head %}
+<style>
+.recommendation-form {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.contact-section {
+    background: rgba(40, 167, 69, 0.1);
+    border: 2px dashed rgba(40, 167, 69, 0.3);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.file-upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.file-upload-area:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-ai {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-ai:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+.form-control, .form-select {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.ai-benefits {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.benefit-icon {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Main Form -->
+            <div class="recommendation-form">
+                <div class="text-center mb-4">
+                    <h1><i class="fas fa-brain"></i> AI-Powered Treatment Recommendations</h1>
+                    <p class="lead">Get personalized cosmetic treatment recommendations using advanced AI analysis</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('enhanced_ai.submit_ai_recommendation') }}" enctype="multipart/form-data" id="aiRecommendationForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <!-- Health Concerns Section -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-comments"></i> Describe Your Concerns</h4>
+                        <p class="mb-3">Tell us about your aesthetic goals, concerns, or areas you'd like to improve</p>
+                        
+                        <div class="mb-3">
+                            <label for="query_text" class="form-label">Your Health & Aesthetic Concerns</label>
+                            <textarea class="form-control" id="query_text" name="query_text" rows="4" 
+                                    placeholder="Example: I'm interested in improving the shape of my nose and reducing facial wrinkles. I've been considering rhinoplasty and some anti-aging treatments..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Media Upload Section -->
+                    <div class="form-section">
+                        <h4><i class="fas fa-upload"></i> Additional Information (Optional)</h4>
+                        <p class="mb-3">Upload photos or voice recordings for more accurate AI analysis</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="image_file" class="form-label">Upload Photo</label>
+                                <div class="file-upload-area">
+                                    <i class="fas fa-camera fa-2x mb-2"></i>
+                                    <p>Drag & drop or click to upload</p>
+                                    <input type="file" class="form-control" id="image_file" name="image_file" accept="image/*">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="audio_file" class="form-label">Voice Recording</label>
+                                <div class="file-upload-area">
+                                    <i class="fas fa-microphone fa-2x mb-2"></i>
+                                    <p>Upload voice description</p>
+                                    <input type="file" class="form-control" id="audio_file" name="audio_file" accept="audio/*">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="contact-section" id="contactSection">
+                        <h4><i class="fas fa-user-check"></i> Get Personalized Consultation (Optional)</h4>
+                        <p class="mb-3">Provide your contact information to receive detailed recommendations and schedule a consultation</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                       placeholder="Your full name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                       placeholder="+91 9876543210">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Email (Optional)</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                       placeholder="your.email@example.com">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="contact_city" name="contact_city" 
+                                       placeholder="Your city">
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Benefits of providing contact info:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Detailed procedure recommendations with pricing</li>
+                                <li>Direct consultation with certified specialists</li>
+                                <li>Personalized treatment timeline and planning</li>
+                                <li>Access to exclusive offers and packages</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-ai btn-lg">
+                            <i class="fas fa-magic"></i> Generate AI Recommendations
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- AI Benefits Section -->
+            <div class="ai-benefits">
+                <h3 class="text-center mb-4">Why Choose AI-Powered Recommendations?</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div>
+                                <h5>Advanced AI Analysis</h5>
+                                <p class="mb-0">Our AI analyzes thousands of cases to provide accurate recommendations</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h5>Instant Results</h5>
+                                <p class="mb-0">Get personalized recommendations in seconds, not days</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h5>Privacy Protected</h5>
+                                <p class="mb-0">Your data is encrypted and handled with complete confidentiality</p>
+                            </div>
+                        </div>
+                        
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div>
+                                <h5>Expert Verified</h5>
+                                <p class="mb-0">All recommendations are reviewed by certified plastic surgeons</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload preview functionality
+    const imageInput = document.getElementById('image_file');
+    const audioInput = document.getElementById('audio_file');
+    
+    imageInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const fileName = e.target.files[0].name;
+            e.target.closest('.file-upload-area').innerHTML = `
+                <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                <p>Image uploaded: ${fileName}</p>
+            `;
+        }
+    });
+    
+    audioInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const fileName = e.target.files[0].name;
+            e.target.closest('.file-upload-area').innerHTML = `
+                <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                <p>Audio uploaded: ${fileName}</p>
+            `;
+        }
+    });
+    
+    // Form validation
+    const form = document.getElementById('aiRecommendationForm');
+    form.addEventListener('submit', function(e) {
+        const queryText = document.getElementById('query_text').value.trim();
+        const imageFile = document.getElementById('image_file').files.length > 0;
+        const audioFile = document.getElementById('audio_file').files.length > 0;
+        
+        if (!queryText && !imageFile && !audioFile) {
+            e.preventDefault();
+            alert('Please provide your concerns through text, image, or audio before submitting.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

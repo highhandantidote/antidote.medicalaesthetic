@@ -1,0 +1,81 @@
+1. Core Marketplace Features
+Booking/Lead Submission Flow:
+Status: You simplified the login purpose to focus on lead submissions for doctors, with signup for consent. However, the full booking or inquiry process (e.g., users contacting doctors for consultations) may not be fully implemented.
+Tasks:
+Build a form for users to submit inquiries to doctors (e.g., for Rhinoplasty consultations), including fields like procedure, preferred date, and contact info.
+Create a doctor dashboard to view and respond to leads.
+Implement email/SMS notifications for lead submissions.
+Ensure consent checkboxes for legal compliance (per your privacy policy needs).
+Why: Lead generation is core to monetization, connecting users with doctors.
+Procedure Detail Pages: procedure detail page exists but procedures are not linked to doctor who perform them. Check screenshots and revise the plan
+Status: Doctor detail pages exist, but procedure pages (e.g., for Rhinoplasty) may be incomplete.
+Tasks:
+Create templates (e.g., procedure_detail.html) to display procedure details (name, category, type, description, risks, recovery time).
+Link procedures to doctors who perform them and relevant threads.
+Add user reviews/ratings for procedures.
+Favorites/Saved Items:
+Tasks:
+Allow logged-in users to save procedures, doctors, or threads to a “Favorites” list.
+Create a user profile page to view saved items.
+Add UI elements (e.g., heart icons) on procedure/doctor/thread pages.
+After implementing logins, how can i see the flow without implementing google firebase, google auth logins? 
+
+
+2. Enhanced Search and AI Features
+Search Refinements:
+Status: Global search and autocomplete are working, but advanced features may be missing.
+Tasks:
+Add filters to search results (e.g., by location, specialty, procedure type, or thread recency).
+Implement sorting (e.g., by relevance, doctor rating, or thread activity).
+Support synonyms (e.g., “Nose Job” for Rhinoplasty) in autocomplete.
+Why: Improves usability, especially for a global audience with diverse queries.
+AI Recommendations:
+Status: You planned AI tools like face scan analysis and procedure simulation, but it’s unclear if these are implemented beyond search autocomplete.
+Tasks:
+Integrate AI-based procedure recommendations (e.g., suggest Septoplasty for Rhinoplasty users based on query patterns).
+Add AI-driven doctor matching (e.g., recommend doctors based on user location, procedure, and doctor ratings).
+3. Admin Panel and Moderation
+Admin Dashboard:
+Status: admin dashboard with full authority, and some admin sidebar features exist, but the full dashboard (user/doctor management, metrics, moderation) may not be complete.
+Tasks:
+Build a dashboard with: we already have a exising admin dashboard. Will how many of the features is it having as per the plan.  Check screenshot
+User management (view, edit, ban users; track activity like reviews).
+Doctor management (approve profiles, monitor leads).
+Content moderation (review/flag threads, comments, or reviews).
+Platform metrics (e.g., user signups, search queries, lead conversions).
+All leads generated on platform from all different lead sources within the website, like users from submissions on popups, enquiry on procedure pages, enquiries on doctor pages, enquiries on landing pages etc. 
+Implement search-based activity tracking for specific users/doctors 
+Why: Critical for platform oversight, especially for a global marketplace.
+Doctor Verification:
+Status: You planned surgeon verification but haven’t confirmed implementation.. Check screenshot of dashboard.
+Tasks:
+Create an admin interface to review doctor credentials (e.g., licenses, qualifications).
+Automate initial checks (e.g., API calls to medical boards, if available).
+Notify doctors of verification status via email.
+Why: Ensures trust and compliance, as discussed for global operations.
+4. Community Enhancements
+Thread Interactions:
+Status: Community threads exist, but features like commenting, upvoting, or tagging may be incomplete.
+Tasks:
+Add reply/comment functionality to threads.
+Implement upvote/downvote for threads and comments.
+Support tags (e.g., “Rhinoplasty,” “Recovery”) for better discoverability.
+Allow users to follow threads or topics.
+Why: Drives engagement, similar to RealSelf’s Q&A and forums.
+Moderation Tools:
+Tasks:
+Add flagging/reporting for inappropriate content.
+Create admin tools to review flagged threads/comments.
+Why: Maintains community quality and safety.
+5. Legal and Compliance
+Privacy Policy Implementation:
+Status: You requested a privacy policy draft, but it’s unclear if it’s integrated into the platform.
+Tasks:
+Add a privacy policy page linked in the footer.
+Include consent pop-ups for data collection (e.g., during signup).
+
+Disclaimers and Terms:
+Tasks:
+Add medical disclaimers (e.g., “Consult a doctor before procedures”) on procedure pages.
+Create terms of service and user agreements.
+Why: Protects the platform legally, per your ethical considerations.

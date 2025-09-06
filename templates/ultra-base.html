@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antidote - {% block title %}Plastic Surgery Marketplace{% endblock %}</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Antidote - India's premier medical marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures.">
+    <meta name="keywords" content="medical marketplace, plastic surgery, cosmetic procedures, India, doctors, healthcare">
+    <meta name="author" content="Antidote Healthcare">
+    <!-- AI Recommendation URLs -->
+    <meta name="recommendation-form-url" content="/ai-recommendation">
+    <meta name="analyze-query-url" content="/api/analyze-query">
+    <meta name="recommendation-results-url" content="/recommendations">
+    <!-- Preconnect & Preload Key Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Fonts - Poppins & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Feather Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Ultra-Modern Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ultra-modern.css') }}">
+    <!-- Legacy CSS (for compatibility with existing code) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Search Placeholder Styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search-placeholder.css') }}">
+    <!-- AOS Animation Library - DISABLED -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" /> -->
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    {% block extra_css %}{% endblock %}
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .search-autocomplete {
+            position: absolute;
+            width: 100%;
+            background: var(--antidote-glass);
+            backdrop-filter: blur(var(--glass-blur));
+            border: var(--glass-border);
+            border-radius: 0 0 var(--radius-medium) var(--radius-medium);
+            z-index: 1000;
+            max-height: 350px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .search-autocomplete-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-medium);
+            color: var(--antidote-text-secondary);
+        }
+        
+        .search-autocomplete-item:hover, .search-autocomplete-item.active {
+            background: var(--gradient-primary-soft);
+            transform: translateX(5px);
+        }
+        
+        .search-autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-autocomplete-item .category-label {
+            background: var(--gradient-primary-soft);
+            padding: 3px 8px;
+            border-radius: var(--radius-small);
+            font-size: 0.75em;
+            margin-left: 6px;
+            color: var(--antidote-primary);
+            font-weight: 600;
+        }
+        
+        .search-autocomplete-category {
+            font-size: 0.85em;
+            color: var(--antidote-text-muted);
+            font-weight: 500;
+        }
+        
+        .search-form-container {
+            position: relative;
+        }
+        
+        .search-highlight {
+            color: var(--antidote-primary);
+            font-weight: 600;
+        }
+        
+        /* Page transition effect */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--antidote-primary);
+            z-index: 9999;
+            transform: translateY(100%);
+            pointer-events: none;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-primary);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--antidote-primary-dark);
+        }
+        
+        /* Cursor effects */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--antidote-primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease;
+        }
+        
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(58, 54, 224, 0.3);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Custom Cursor Effect (for desktop) -->
+    <div class="cursor-dot d-none d-lg-block"></div>
+    <div class="cursor-outline d-none d-lg-block"></div>
+    
+    <!-- Page Transition Effect -->
+    <div class="page-transition"></div>
+
+    <!-- Ultra-Modern Navigation -->
+    <nav class="ultra-navbar py-3 fixed-top">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Logo -->
+                <a class="ultra-navbar-brand d-flex align-items-center" href="{{ url_for('web.index') }}">
+                    <img src="{{ url_for('static', filename='images/svg/new-antidote-logo.svg') }}" alt="Antidote" height="60" class="me-2">
+                </a>
+                
+                <!-- Collapse Button (Mobile) -->
+                <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <!-- Desktop Navigation -->
+                <div class="d-none d-lg-flex align-items-center ultra-navbar-nav">
+                    <div class="dropdown me-4">
+                        <a class="ultra-nav-link dropdown-toggle" href="#" id="proceduresDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i data-feather="clipboard" class="feather-icon me-1"></i> Procedures
+                        </a>
+                        <ul class="dropdown-menu glass-card" aria-labelledby="proceduresDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('web.body_parts') }}">
+                                <i data-feather="user" class="feather-icon me-2"></i> Body Parts
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('web.categories') }}">
+                                <i data-feather="list" class="feather-icon me-2"></i> Categories
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('web.procedures') }}">
+                                <i data-feather="activity" class="feather-icon me-2"></i> All Procedures
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cost_calculator.cost_calculator') }}">
+                                <i class="fas fa-rupee-sign me-2"></i> Cost Calculator
+                            </a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="dropdown me-4">
+                        <a class="ultra-nav-link dropdown-toggle" href="#" id="aiToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i data-feather="cpu" class="feather-icon me-1"></i> AI Tools
+                        </a>
+                        <ul class="dropdown-menu glass-card" aria-labelledby="aiToolsDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('ai_recommendations.recommendation_form') }}">
+                                <i data-feather="zap" class="feather-icon me-2"></i> AI Health Recommendations
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('face_scan.index') }}">
+                                <i data-feather="camera" class="feather-icon me-2"></i> AI Face Scan Analysis
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ai_recommendations.recommendation_history') }}">
+                                <i data-feather="clock" class="feather-icon me-2"></i> Recommendation History
+                            </a></li>
+                        </ul>
+                    </div>
+                    
+                    
+                    <a class="ultra-nav-link me-4" href="{{ url_for('web.community') }}">
+                        <i data-feather="users" class="feather-icon me-1"></i> Community
+                    </a>
+                    
+                    <a class="ultra-nav-link me-4" href="{{ url_for('education.learn_home') }}">
+                        <i data-feather="book-open" class="feather-icon me-1"></i> Learn
+                    </a>
+                    
+                    <!-- Global Search Form with Autocomplete -->
+                    <div class="search-form-container me-4">
+                        <form action="{{ url_for('web.search') }}" method="GET" class="position-relative">
+                            <div class="ultra-search">
+                                <i data-feather="search" class="feather-icon ultra-search-icon"></i>
+                                <input type="text" 
+                                       class="ultra-search-input" 
+                                       placeholder="Search procedures, doctors..." 
+                                       name="q" 
+                                       id="searchInput" 
+                                       autocomplete="off"
+                                       required>
+                            </div>
+                            <!-- Autocomplete Dropdown -->
+                            <div class="search-autocomplete" id="searchAutocomplete"></div>
+                        </form>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <div class="ultra-switch me-4" id="theme-toggle">
+                        <span class="visually-hidden">Toggle theme</span>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="dropdown">
+                        {% if current_user.is_authenticated %}
+                            <button class="btn-ultra-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i data-feather="user" class="feather-icon me-1"></i> 
+                                {{ current_user.name }}
+                            </button>
+                            <ul class="dropdown-menu glass-card dropdown-menu-end" aria-labelledby="userDropdown">
+                                {% if current_user.role == 'doctor' %}
+                                    <li><a class="dropdown-item" href="{{ url_for('web.doctor_dashboard', doctor_id=1) }}">
+                                        <i data-feather="layout" class="feather-icon me-2"></i> My Dashboard
+                                    </a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="{{ url_for('web.user_dashboard', user_id=current_user.id) }}">
+                                        <i data-feather="layout" class="feather-icon me-2"></i> My Dashboard
+                                    </a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="#" id="profileLink">
+                                    <i data-feather="user" class="feather-icon me-2"></i> My Profile
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.favorites') }}">
+                                    <i data-feather="heart" class="feather-icon me-2"></i> My Favorites
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" id="settingsLink">
+                                    <i data-feather="settings" class="feather-icon me-2"></i> Settings
+                                </a></li>
+                                {% if current_user.role == 'admin' %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('web.admin_dashboard') }}">
+                                        <i data-feather="shield" class="feather-icon me-2"></i> Admin Dashboard
+                                    </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.logout') }}">
+                                    <i data-feather="log-out" class="feather-icon me-2"></i> Sign Out
+                                </a></li>
+                            </ul>
+                        {% else %}
+                            <div class="d-flex">
+                                <a href="{{ url_for('web.login') }}" class="btn-ultra-outline me-2">Login</a>
+                                <a href="{{ url_for('web.signup') }}" class="btn-ultra-primary">Sign Up</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Off-Canvas Menu -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileMenuLabel">
+                <img src="{{ url_for('static', filename='images/svg/new-antidote-logo.svg') }}" alt="Antidote" height="60">
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <!-- Mobile Search -->
+            <div class="search-form-container mb-4">
+                <form action="{{ url_for('web.search') }}" method="GET" class="position-relative">
+                    <div class="ultra-search">
+                        <i data-feather="search" class="feather-icon ultra-search-icon"></i>
+                        <input type="text" 
+                               class="ultra-search-input" 
+                               placeholder="Search procedures, doctors..." 
+                               name="q" 
+                               id="mobileSearchInput" 
+                               autocomplete="off"
+                               required>
+                    </div>
+                    <!-- Autocomplete Dropdown -->
+                    <div class="search-autocomplete" id="mobileSearchAutocomplete"></div>
+                </form>
+            </div>
+            
+            <!-- Mobile Navigation Menu -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#proceduresCollapse" role="button" aria-expanded="false" aria-controls="proceduresCollapse">
+                        <i data-feather="clipboard" class="feather-icon me-2"></i> Procedures <i data-feather="chevron-down" class="feather-icon float-end"></i>
+                    </a>
+                    <div class="collapse" id="proceduresCollapse">
+                        <ul class="nav flex-column ms-3 mt-2">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('web.body_parts') }}">
+                                    <i data-feather="user" class="feather-icon me-2"></i> Body Parts
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('web.categories') }}">
+                                    <i data-feather="list" class="feather-icon me-2"></i> Categories
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('web.procedures') }}">
+                                    <i data-feather="activity" class="feather-icon me-2"></i> All Procedures
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('cost_calculator.cost_calculator') }}">
+                                    <i class="fas fa-rupee-sign me-2"></i> Cost Calculator
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#aiToolsCollapse" role="button" aria-expanded="false" aria-controls="aiToolsCollapse">
+                        <i data-feather="cpu" class="feather-icon me-2"></i> AI Tools <i data-feather="chevron-down" class="feather-icon float-end"></i>
+                    </a>
+                    <div class="collapse" id="aiToolsCollapse">
+                        <ul class="nav flex-column ms-3 mt-2">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('ai_recommendations.recommendation_form') }}">
+                                    <i data-feather="zap" class="feather-icon me-2"></i> Unsure about your aesthetic goals?
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('face_scan.index') }}">
+                                    <i data-feather="camera" class="feather-icon me-2"></i> AI Face Scan Analysis
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('ai_recommendations.recommendation_history') }}">
+                                    <i data-feather="clock" class="feather-icon me-2"></i> Recommendation History
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <a class="nav-link" href="{{ url_for('web.doctors') }}">
+                    </a>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <a class="nav-link" href="{{ url_for('web.community') }}">
+                        <i data-feather="users" class="feather-icon me-2"></i> Community
+                    </a>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <a class="nav-link" href="{{ url_for('education.learn_home') }}">
+                        <i data-feather="book-open" class="feather-icon me-2"></i> Learn
+                    </a>
+                </li>
+                
+                <li class="nav-item mt-2">
+                    <hr>
+                </li>
+                
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="{{ url_for('web.user_dashboard', user_id=current_user.id) }}">
+                            <i data-feather="layout" class="feather-icon me-2"></i> My Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="{{ url_for('web.favorites') }}">
+                            <i data-feather="heart" class="feather-icon me-2"></i> My Favorites
+                        </a>
+                    </li>
+                    {% if current_user.role == 'admin' %}
+                        <li class="nav-item mt-2">
+                            <a class="nav-link" href="{{ url_for('web.admin_dashboard') }}">
+                                <i data-feather="shield" class="feather-icon me-2"></i> Admin Dashboard
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="{{ url_for('web.logout') }}">
+                            <i data-feather="log-out" class="feather-icon me-2"></i> Sign Out
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="nav-item mt-2 d-grid gap-2">
+                        <a href="{{ url_for('web.login') }}" class="btn-ultra-outline">Login</a>
+                    </li>
+                    <li class="nav-item mt-2 d-grid gap-2">
+                        <a href="{{ url_for('web.signup') }}" class="btn-ultra-primary">Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <main style="padding-top: 85px; min-height: calc(100vh - 350px);">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="ultra-footer mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <img src="{{ url_for('static', filename='images/svg/new-antidote-logo.svg') }}" alt="Antidote" height="60" class="mb-4">
+                    <p class="mb-4">
+                        India's No.1 platform connecting patients with verified specialists for plastic surgery and cosmetic procedures.
+                    </p>
+                    <div class="d-flex gap-3 mb-4">
+                        <a href="#" class="ultra-icon"><i data-feather="facebook" class="feather-icon"></i></a>
+                        <a href="#" class="ultra-icon"><i data-feather="twitter" class="feather-icon"></i></a>
+                        <a href="#" class="ultra-icon"><i data-feather="instagram" class="feather-icon"></i></a>
+                        <a href="#" class="ultra-icon"><i data-feather="linkedin" class="feather-icon"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="ultra-footer-title">Explore</h5>
+                    <a href="{{ url_for('web.body_parts') }}" class="ultra-footer-link">Body Parts</a>
+                    <a href="{{ url_for('web.categories') }}" class="ultra-footer-link">Categories</a>
+                    <a href="{{ url_for('web.procedures') }}" class="ultra-footer-link">Procedures</a>
+                    <a href="{{ url_for('web.community') }}" class="ultra-footer-link">Community</a>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="ultra-footer-title">AI Tools</h5>
+                    <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="ultra-footer-link">Unsure about your aesthetic goals?</a>
+                    <a href="{{ url_for('face_scan.index') }}" class="ultra-footer-link">Face Scan</a>
+                    <a href="{{ url_for('cost_calculator.cost_calculator') }}" class="ultra-footer-link">Cost Calculator</a>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="ultra-footer-title">Resources</h5>
+                    <a href="{{ url_for('education.learn_home') }}" class="ultra-footer-link">Learn</a>
+                    <a href="#" class="ultra-footer-link">Blog</a>
+                    <a href="#" class="ultra-footer-link">FAQ</a>
+                    <a href="#" class="ultra-footer-link">Contact</a>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="ultra-footer-title">Legal</h5>
+                    <a href="#" class="ultra-footer-link">Terms of Service</a>
+                    <a href="#" class="ultra-footer-link">Privacy Policy</a>
+                    <a href="#" class="ultra-footer-link">Cookie Policy</a>
+                </div>
+            </div>
+            
+            <div class="row mt-5 pt-4 border-top border-opacity-10">
+                <div class="col-md-6">
+                    <p class="mb-0">© 2025 Antidote Healthcare. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Made with <i class="fas fa-heart text-danger"></i> in India</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    {% block modals %}{% endblock %}
+    
+    <!-- Legacy Scripts for Compatibility -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stats-counter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search-autocomplete.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scrolling-categories.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-search-animation.js') }}"></script>
+    
+    <!-- AOS Animation Library - DISABLED -->
+    <!-- <script src="https://unpkg.com/aos@next/dist/aos.js"></script> -->
+    
+    <script>
+        // Initialize AOS - DISABLED
+        /*
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            mirror: false
+        });
+        */
+
+        // Feather icons handled by feather-fix.js
+        
+        // Custom cursor effect (desktop only)
+        if (window.innerWidth > 992) {
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+            
+            window.addEventListener('mousemove', (e) => {
+                if (cursorDot && cursorOutline) {
+                    const posX = e.clientX;
+                    const posY = e.clientY;
+                    
+                    cursorDot.style.left = `${posX}px`;
+                    cursorDot.style.top = `${posY}px`;
+                    
+                    // Delayed follow effect for outline
+                    setTimeout(() => {
+                        cursorOutline.style.left = `${posX}px`;
+                        cursorOutline.style.top = `${posY}px`;
+                    }, 80);
+                }
+            });
+            
+            // Add hover effect to interactive elements
+            document.querySelectorAll('a, button, .btn, .dropdown-toggle, input, .card, .ultra-card').forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    cursorOutline.style.width = '70px';
+                    cursorOutline.style.height = '70px';
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                });
+                
+                item.addEventListener('mouseleave', () => {
+                    cursorOutline.style.width = '40px';
+                    cursorOutline.style.height = '40px';
+                    cursorDot.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            });
+        } else {
+            // Hide custom cursor on mobile/tablet
+            document.querySelector('.cursor-dot')?.classList.add('d-none');
+            document.querySelector('.cursor-outline')?.classList.add('d-none');
+        }
+        
+        // Theme switcher
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                themeToggle.classList.toggle('active');
+                
+                if (htmlElement.getAttribute('data-bs-theme') === 'light') {
+                    htmlElement.setAttribute('data-bs-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    htmlElement.setAttribute('data-bs-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            // Check saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-bs-theme', 'dark');
+                themeToggle.classList.add('active');
+            }
+        }
+        
+        // Page transition effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const pageTransition = document.querySelector('.page-transition');
+            
+            // Entry animation
+            if (pageTransition) {
+                gsap.fromTo(pageTransition, {
+                    y: 0
+                }, {
+                    y: '-100%',
+                    duration: 0.8,
+                    ease: 'power3.inOut'
+                });
+            }
+            
+            // Exit animation for clicks on links
+            document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])').forEach(link => {
+                link.addEventListener('click', e => {
+                    if (link.hostname === window.location.hostname) {
+                        e.preventDefault();
+                        const href = link.getAttribute('href');
+                        
+                        if (pageTransition) {
+                            gsap.to(pageTransition, {
+                                y: 0,
+                                duration: 0.5,
+                                ease: 'power3.inOut',
+                                onComplete: () => {
+                                    window.location.href = href;
+                                }
+                            });
+                        } else {
+                            window.location.href = href;
+                        }
+                    }
+                });
+            });
+        });
+        
+        // GSAP animations for elements
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Stagger animations for cards and sections
+        gsap.utils.toArray('.fade-in-stagger').forEach((section, i) => {
+            const cards = section.querySelectorAll('.card, .ultra-card, .doctor-card, .procedure-card');
+            
+            gsap.from(cards, {
+                y: 100,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 80%',
+                }
+            });
+        });
+        
+        // Scroll animations for sections
+        gsap.utils.toArray('.scroll-animate').forEach(section => {
+            gsap.from(section, {
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 80%',
+                }
+            });
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

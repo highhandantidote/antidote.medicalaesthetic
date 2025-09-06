@@ -1,0 +1,77 @@
+{% macro render_replies(replies, parent_id, reply_map, depth=0) %}
+  {% if replies and replies|length > 0 %}
+    <div class="replies-container ml-{{ depth * 4 }}">
+      {% for reply_id in replies %}
+        {% set reply = reply_map[reply_id] %}
+        <div class="card mb-2 reply-card" id="reply-{{ reply.id }}" data-reply-id="{{ reply.id }}">
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="d-flex align-items-center mb-1">
+                  {% if not reply.is_anonymous and reply.user %}
+                    <strong class="mr-2">{{ reply.user.username }}</strong>
+                  {% else %}
+                    <strong class="mr-2">Anonymous</strong>
+                  {% endif %}
+                  <small class="text-muted">{{ reply.created_at.strftime('%b %d, %Y') }}</small>
+                </div>
+                <p class="mb-1">{{ reply.content }}</p>
+              </div>
+              
+              <div class="reply-actions">
+                {% if current_user.is_authenticated %}
+                  <button class="btn btn-sm btn-outline-primary upvote-reply-btn" 
+                          data-reply-id="{{ reply.id }}"
+                          data-upvoted="false">
+                    <i class="fas fa-thumbs-up"></i> 
+                    <span class="upvote-count">{{ reply.upvotes or 0 }}</span>
+                  </button>
+                  
+                  <button class="btn btn-sm btn-outline-secondary reply-to-btn" 
+                          data-reply-id="{{ reply.id }}" 
+                          data-username="{{ reply.user.username if not reply.is_anonymous and reply.user else 'Anonymous' }}">
+                    <i class="fas fa-reply"></i> Reply
+                  </button>
+                  
+                  {% if current_user.id == reply.user_id %}
+                    <button class="btn btn-sm btn-outline-warning edit-reply-btn" 
+                            data-reply-id="{{ reply.id }}">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-outline-danger delete-reply-btn" 
+                            data-reply-id="{{ reply.id }}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+            
+            <!-- Nested reply form (initially hidden) -->
+            <div class="nested-reply-form-container mt-2 d-none" id="reply-form-{{ reply.id }}">
+              <form class="nested-reply-form" data-parent-id="{{ reply.id }}">
+                <div class="form-group">
+                  <textarea class="form-control reply-content" rows="2" placeholder="Write your reply..."></textarea>
+                </div>
+                <div class="form-group form-check">
+                  <input type="checkbox" class="form-check-input reply-anonymous" id="reply-anon-{{ reply.id }}">
+                  <label class="form-check-label" for="reply-anon-{{ reply.id }}">Post anonymously</label>
+                </div>
+                <div class="d-flex justify-content-end">
+                  <button type="button" class="btn btn-sm btn-secondary mr-2 cancel-nested-reply-btn">Cancel</button>
+                  <button type="submit" class="btn btn-sm btn-primary submit-nested-reply-btn">Submit</button>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Child replies -->
+            {% if reply.child_replies %}
+              {{ render_replies(reply.child_replies, reply.id, reply_map, depth + 1) }}
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}

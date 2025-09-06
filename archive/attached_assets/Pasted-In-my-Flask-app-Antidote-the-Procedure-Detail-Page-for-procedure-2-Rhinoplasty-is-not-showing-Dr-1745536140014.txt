@@ -1,0 +1,53 @@
+In my Flask app Antidote, the Procedure Detail Page for /procedure/2 (Rhinoplasty) is not showing Dr. John Smith (ID 3) under "Doctors Performing This Procedure," despite a correct database association. Perform a comprehensive test to verify and fix the issue:
+1. Open templates/procedure_detail.html and confirm the doctors list section (around lines 270-296):
+   <h3>Doctors Who Perform This Procedure</h3>
+   {% if procedure_doctors %}
+       <ul>
+       {% for doctor in procedure_doctors %}
+           <li>{{ doctor.name }} (ID: {{ doctor.id }})</li>
+       {% endfor %}
+       </ul>
+   {% else %}
+       <p>No doctors found for this procedure.</p>
+   {% endif %}
+   - If incorrect, update to match the above structure.
+2. Verify the database association:
+   SELECT * FROM doctor_procedures WHERE doctor_id = 3 AND procedure_id = 2;
+   If missing, insert:
+   INSERT INTO doctor_procedures (doctor_id, procedure_id, created_at) VALUES (3, 2, CURRENT_TIMESTAMP) RETURNING id;
+3. Confirm the procedure name:
+   SELECT id, procedure_name FROM procedures WHERE id = 2;
+   If not "Rhinoplasty," update:
+   UPDATE procedures SET procedure_name = 'Rhinoplasty' WHERE id = 2;
+4. Restart the application:
+   Restarted Start application
+5. Log in as testuser@antidote.com (password: Test@1234) at http://localhost:5000/login, confirming "Test User" in the navigation bar.
+6. Navigate to http://localhost:5000/procedure/2 (Rhinoplasty).
+7. Check the "Doctors Performing This Procedure" section:
+   - Confirm if Dr. John Smith (ID 3) is listed.
+   - Note what is displayed instead (e.g., "No doctors found" or a different name).
+   - Confirm the procedure name is "Rhinoplasty."
+   - If Dr. John Smith is not listed, inspect the rendered HTML (F12 > Elements) around the doctors section and share the output.
+8. Click "Write a Review" on the Reviews tab, confirm the modal appears, enter rating 4 and comment "Great experience," submit the review, and verify it appears in the Reviews tab.
+9. Check the browser console (F12 > Console) for errors.
+10. Check the Network tab (F12 > Network) for a POST request to /submit-review with a 200 response.
+11. Verify server logs: tail -n 50 /tmp/replit-nix-errors.log.
+12. Verify the database for the submitted review:
+    SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND procedure_id = 2 LIMIT 5;
+13. Provide a screenshot of /procedure/2 showing the doctors list, review form modal, and submitted review.
+14. If doctors are still not appearing, debug the route in routes.py:
+    - Open routes.py and confirm:
+      @web.route('/procedures/detail/<int:procedure_id>')
+      @web.route('/procedure/<int:procedure_id>')
+      def procedure_detail(procedure_id):
+          procedure = Procedure.query.get_or_404(procedure_id)
+          procedure_doctors = Doctor.query.join(DoctorProcedure).filter(DoctorProcedure.procedure_id == procedure_id).all()
+          reviews = Review.query.filter_by(procedure_id=procedure_id).order_by(Review.created_at.desc()).all()
+          return render_template('procedure_detail.html', procedure=procedure, procedure_doctors=procedure_doctors, reviews=reviews)
+    - If incorrect, update and restart the application.
+15. Update models.py, routes.py, templates, or the database if any issues arise.
+16. Share observations for each step, including:
+   - Login success and "Test User" visibility.
+   - Doctors list content and procedure name.
+   - Review modal appearance and submission success.
+   - Any errors in the console, network, or server logs.

@@ -1,0 +1,171 @@
+/**
+ * Banner Slider CSS for Antidote Platform
+ * 
+ * Styling for the banner sliders with the teal medical color scheme.
+ */
+
+/* Banner Container */
+.banner-container {
+    margin: 30px 0;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Banner Slider */
+.banner-slider {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    background-color: #f9fafb;
+}
+
+/* Slides Container */
+.banner-slider .slides {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease;
+}
+
+/* Individual Slide */
+.banner-slider .slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.banner-slider .slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Slide Content (Images) */
+.banner-slider .slide-content {
+    width: 100%;
+    height: 100%;
+    background-size: 100%; /* Increased from 94% to 100% (6% zoom on desktop) */
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+/* Text overlay removed - banners display only images */
+
+/* Navigation buttons */
+.banner-slider .slide-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(139, 216, 210, 0.8);
+    color: white;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.banner-slider .slide-nav:hover {
+    background-color: rgba(91, 171, 163, 0.9);
+}
+
+.banner-slider .slide-nav.prev {
+    left: 15px;
+}
+
+.banner-slider .slide-nav.next {
+    right: 15px;
+}
+
+/* Slide dots navigation */
+.banner-slider .slide-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.banner-slider .slide-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.banner-slider .slide-dot.active {
+    background-color: #5baba3;
+    transform: scale(1.2);
+}
+
+/* Links */
+.banner-slider .banner-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: white;
+    text-decoration: none;
+}
+
+/* Loader */
+.banner-loader {
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .banner-slider {
+        height: 250px;
+    }
+    
+    .banner-slider .slide-nav {
+        width: 35px;
+        height: 35px;
+    }
+    
+    /* Mobile zoom: 20% increase from desktop (100% + 20% = 120%) */
+    .banner-slider .slide-content {
+        background-size: 120%;
+    }
+}
+
+@media (max-width: 576px) {
+    .banner-slider {
+        height: 200px;
+    }
+    
+    .banner-slider .slide-nav {
+        width: 30px;
+        height: 30px;
+    }
+    
+    /* Mobile zoom: 20% increase from desktop (100% + 20% = 120%) */
+    .banner-slider .slide-content {
+        background-size: 120%;
+    }
+}

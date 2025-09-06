@@ -1,0 +1,370 @@
+Antidote Platform Schema-Level Rebuild Plan
+Overview
+Rebuild the Antidote plastic surgery marketplace from scratch using PostgreSQL, with a focus on schema design and integration. The platform serves users, doctors, and admins, centering on a robust procedures structure with topical clustering in community and comprehensive doctor profiles. Use Firebase OTP authentication (to be implemented later). Track completion by verifying table creation and data integrity.
+
+Step-by-Step Schema Tasks
+Step 1: Initialize Replit Environment and Base Database
+Task: Set up a new Replit project with PostgreSQL enabled.
+Details: Configure DATABASE_URL environment variable for database access.
+Deliverable: Confirm PostgreSQL is running with psql $DATABASE_URL -c "SELECT version();".
+Priority: High (foundation for all schemas).
+Step 2: Create body_parts Table
+Task: Define the body_parts table to store anatomical areas.
+Details: Use schema migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), name (TEXT NOT NULL UNIQUE), description (TEXT), iconUrl (TEXT), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify table creation with psql $DATABASE_URL -c "\dt body_parts".
+Priority: High (base for category hierarchy).
+Step 3: Create categories Table
+Task: Define the categories table to group procedures by body part.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), name (TEXT NOT NULL UNIQUE), bodyPartId (INTEGER NOT NULL REFERENCES body_parts(id)), description (TEXT), popularityScore (INTEGER DEFAULT 0), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt categories".
+Priority: High (links to body_parts and procedures).
+Step 4: Create procedures Table
+Task: Define the procedures table as the platform core.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), procedureName (TEXT NOT NULL UNIQUE), shortDescription (TEXT NOT NULL), overview (TEXT NOT NULL), procedureDetails (TEXT NOT NULL), idealCandidates (TEXT NOT NULL), recoveryProcess (TEXT), recoveryTime (TEXT NOT NULL), resultsDuration (TEXT), minCost (INTEGER NOT NULL), maxCost (INTEGER NOT NULL), benefits (TEXT), benefitsDetailed (TEXT), risks (TEXT NOT NULL), procedureTypes (TEXT NOT NULL), alternativeProcedures (TEXT), comparisonToAlternatives (TEXT), scienceBehind (TEXT), successRate (TEXT), complicationsToWatch (TEXT), duration (TEXT), anesthesiaType (TEXT), detailedAftercare (TEXT), painManagement (TEXT), resultsLongevity (TEXT), maintenanceTips (TEXT), costRangeInIndia (JSONB), costBreakdown (JSONB), financingOptions (JSONB), preparationChecklist (JSONB), preOperativeTests (JSONB), consultationSteps (JSONB), categoryId (INTEGER NOT NULL REFERENCES categories(id)), availabilityStatus (TEXT DEFAULT 'limited' CHECK (availabilityStatus IN ('limited', 'widely', 'rare'))), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), doctorId (INTEGER REFERENCES doctors(id)), averageRating (REAL DEFAULT 0), popularityRank (INTEGER DEFAULT 0), beforeAfterPhotos (JSONB), isFeatured (BOOLEAN DEFAULT FALSE).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt procedures".
+Priority: High (central to platform).
+Step 5: Create doctor_categories Table
+Task: Define the doctor_categories table for doctor specializations.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), categoryId (INTEGER NOT NULL REFERENCES categories(id)), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), isVerified (BOOLEAN DEFAULT FALSE).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt doctor_categories".
+Priority: High (enables category-based expertise).
+Step 6: Create users Table
+Task: Define the users table for all accounts.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), phoneNumber (TEXT NOT NULL UNIQUE), firebaseUid (TEXT UNIQUE), name (TEXT NOT NULL), email (TEXT UNIQUE), role (TEXT NOT NULL DEFAULT 'user'), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), lastLoginAt (TIMESTAMP), isVerified (BOOLEAN DEFAULT FALSE), savedItems (JSONB), points (INTEGER DEFAULT 0).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt users".
+Priority: Medium (auth to be added later).
+Step 7: Create doctors Table
+Task: Define the doctors table for profiles.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), name (TEXT NOT NULL), specialty (TEXT NOT NULL), experience (INTEGER NOT NULL), city (TEXT NOT NULL), state (TEXT), hospital (TEXT), consultationFee (INTEGER), isVerified (BOOLEAN DEFAULT FALSE), rating (REAL DEFAULT 0), reviewCount (INTEGER DEFAULT 0), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), bio (TEXT), certifications (JSONB), videoUrl (TEXT), successStories (JSONB), chatStatus (TEXT CHECK ('online', 'offline')).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt doctors".
+Priority: Medium (profile enhancements).
+Step 8: Create doctor_procedures Table
+Task: Define the doctor_procedures junction table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), procedureId (INTEGER NOT NULL REFERENCES procedures(id)), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt doctor_procedures".
+Priority: Medium (supports doctor-procedure links).
+Step 9: Create reviews Table
+Task: Define the reviews table for feedback.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), doctorId (INTEGER REFERENCES doctors(id)), procedureId (INTEGER REFERENCES procedures(id)), rating (REAL NOT NULL), content (TEXT), photo (TEXT), verifiedPurchase (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt reviews".
+Priority: Medium (enhances trust).
+Step 10: Create community Table
+Task: Define the community table with topical clustering.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), title (TEXT NOT NULL), content (TEXT NOT NULL), isAnonymous (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), updatedAt (TIMESTAMP), viewCount (INTEGER DEFAULT 0), replyCount (INTEGER DEFAULT 0), featured (BOOLEAN DEFAULT FALSE), tags (TEXT[]), categoryId (INTEGER REFERENCES categories(id)), procedureId (INTEGER REFERENCES procedures(id)).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt community".
+Priority: Medium (supports engagement).
+Step 11: Create community_replies Table
+Task: Define the community_replies table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), threadId (INTEGER NOT NULL REFERENCES community(id)), userId (INTEGER NOT NULL REFERENCES users(id)), content (TEXT NOT NULL), isAnonymous (BOOLEAN DEFAULT FALSE), isDoctorResponse (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP), upvotes (INTEGER DEFAULT 0).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt community_replies".
+Priority: Medium (enables discussions).
+Step 12: Create community_tagging Table
+Task: Define the community_tagging table for AI clustering.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), communityId (INTEGER NOT NULL REFERENCES community(id)), categoryId (INTEGER REFERENCES categories(id)), procedureId (INTEGER REFERENCES procedures(id)), confidenceScore (REAL), userConfirmed (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt community_tagging".
+Priority: Medium (enables smart clustering).
+Step 13: Create user_preferences Table
+Task: Define the user_preferences table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), preferredProcedures (JSONB), bodyFocus (TEXT), budgetRange (JSONB), notificationPrefs (JSONB).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt user_preferences".
+Priority: Low (personalization to follow).
+Step 14: Create notifications Table
+Task: Define the notifications table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), message (TEXT NOT NULL), type (TEXT NOT NULL), isRead (BOOLEAN DEFAULT FALSE), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt notifications".
+Priority: Low (enhances engagement).
+Step 15: Create interactions Table
+Task: Define the interactions table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER NOT NULL REFERENCES users(id)), actionType (TEXT NOT NULL), targetId (INTEGER), timestamp (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt interactions".
+Priority: Low (supports analytics).
+Step 16: Create doctor_photos Table
+Task: Define the doctor_photos table for profile images.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), photoUrl (TEXT), description (TEXT), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt doctor_photos".
+Priority: Low (enhances profiles).
+Step 17: Create doctor_availability Table
+Task: Define the doctor_availability table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), date (DATE), slots (JSONB), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt doctor_availability".
+Priority: Low (supports scheduling).
+Step 18: Create leads Table
+Task: Define the leads table.
+Details: Use migrations/schema.ts with columns: id (SERIAL PRIMARY KEY), userId (INTEGER REFERENCES users(id)), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), message (TEXT), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Deliverable: Verify with psql $DATABASE_URL -c "\dt leads".
+Priority: Low (drives conversions).
+Step 19: Add Indexes for Performance
+Task: Optimize query performance with indexes.
+Details: Run CREATE INDEX idx_category_id ON procedures(categoryId);, CREATE INDEX idx_body_part_id ON categories(bodyPartId);, CREATE INDEX idx_doctor_id ON doctor_categories(doctorId);.
+Deliverable: Verify with psql $DATABASE_URL -c "\d procedures" showing indexes.
+Priority: Medium (ensures scalability).
+Step 20: Create Sample Data Script
+Task: Develop init-database-tables.ts to populate tables.
+Details: Insert sample data: 5 body_parts (e.g., "hair"), 10 categories (e.g., "hair transplant"), 20 procedures, 3 doctors, 5 users, 5 community threads with tagging.
+Deliverable: Run script and verify with SELECT COUNT(*) FROM procedures; (expect ~20).
+Priority: Medium (tests schema integrity).
+Step 21: Apply Migrations
+Task: Execute migrations to create all tables.
+
+Step 22: Update doctors Table with Indexes
+Task: Add performance indexes to doctors table.
+Details: Run CREATE INDEX idx_doctor_name ON doctors(name);, CREATE INDEX idx_doctor_specialty ON doctors(specialty);, CREATE INDEX idx_doctor_city ON doctors(city);.
+Deliverable: Verify with psql $DATABASE_URL -c "\d doctors" showing indexes.
+Priority: Medium.
+Step 23: Update leads Table
+Task: Modify leads table to include appointment details.
+Details: Update migrations/schema.ts with new columns appointmentDate and status, then run npx drizzle-kit push:pg.
+Deliverable: Verify with psql $DATABASE_URL -c "\d leads" showing updated structure.
+Priority: Medium.
+Step 24: Update doctor_availability Table
+Task: Modify doctor_availability table to track booked slots.
+Details: Update migrations/schema.ts with bookedSlots (JSONB), then run npx drizzle-kit push:pg.
+Deliverable: Verify with psql $DATABASE_URL -c "\d doctor_availability" showing new column.
+Priority: Medium.
+Step 25: Re-run Sample Data Script
+Task: Update init-database-tables.ts with new fields.
+Details: Add sample appointmentDate and status to leads, and bookedSlots to doctor_availability.
+Deliverable: Run script and verify with SELECT COUNT(*) FROM leads; (expect ~5).
+Notes
+Prioritize tasks 1-25 in sequence to ensure a stable foundation.
+Details: Run npx drizzle-kit push:pg to apply changes from migrations/schema.ts.
+Deliverable: Confirm all tables exist with psql $DATABASE_URL -c "\dt".
+Priority: High (finalizes schema).
+Track completion by running the provided SQL commands after each step.
+Schema is designed for later integration with React frontend and Firebase OTP auth.
+
+
+
+
+
+
+
+
+
+
+
+
+Antidote Platform Frontend Development Plan 
+Overview
+Develop the frontend for the Antidote plastic surgery marketplace using React with Vite in Replit, integrating with the PostgreSQL schemas from the previous phase. The focus is on user, doctor, and admin interfaces, featuring procedure navigation, community clustering, doctor profiles, and a "Find Doctors" feature. Track completion by verifying component rendering and API connectivity.
+
+Step-by-Step Frontend Tasks
+Step 1: Set Up React Environment
+Task: Initialize a React project with Vite in Replit.
+Details: Run npm create vite@latest antidote-frontend -- --template react and install dependencies with npm install.
+Deliverable: Confirm setup with npm run dev showing a default React app at http://localhost:5173.
+Priority: High (foundation for UI).
+Step 2: Install Dependencies
+Task: Add necessary libraries for frontend functionality.
+Details: Install react-router-dom for navigation, axios for API calls, and react-query (TanStack Query) for data fetching with npm install react-router-dom axios @tanstack/react-query.
+Deliverable: Verify installation with npm list showing all packages.
+Priority: High (enables routing and data management).
+Step 3: Create Navigation Component
+Task: Build a navbar with "Find Doctors" link alongside Home, Procedures, Community, and a "Login/Signup" modal.
+Details: Create src/components/Navbar.jsx with a navigation bar including links to Home (/), Procedures (/procedures), Community (/community), and Find Doctors (/find-doctors). Add a "Login/Signup" button triggering a modal (placeholder for OTP later). Include a search bar in the "Find Doctors" section to filter by name, specialty, or city (fetch from /api/doctors). Add a form within the "Find Doctors" page to book appointments, capturing userId, doctorId, date, and message, saving to leads table and savedItems in user_preferences (mock auth for now). Use basic CSS for styling in Navbar.css.
+Deliverable: Render navbar with all links, modal, search bar, and form on http://localhost:5173. Verify search returns sample doctors and form submission updates mock data.
+Priority: High (core navigation and doctor feature).
+Step 4: Develop Procedure Listing Page
+Task: Create a page to display procedures with filters.
+Details: Create src/pages/Procedures.jsx using react-router-dom to route to /procedures. Fetch data from /api/procedures with react-query, displaying procedureName, shortDescription, and hierarchy (bodyPart → category). Add filters for bodyPart and category with dropdowns, pulling options from /api/body-parts and /api/categories.
+Deliverable: Verify page renders 20 sample procedures (from Step 20 of schema plan) with working filters.
+Priority: High (central user feature).
+Step 5: Build Procedure Detail Page
+Task: Create a detailed view for each procedure.
+Details: Create src/pages/ProcedureDetail.jsx to route to /procedures/:id. Fetch specific procedure data, displaying all fields (e.g., procedureDetails, beforeAfterPhotos). Include a “Save” button to update savedItems in user_preferences (mock auth for now).
+Deliverable: Verify detail page for one procedure (e.g., ID 1) with save functionality.
+Priority: High (enhances procedure exploration).
+Step 6: Develop Community Page with Clustering
+Task: Build a community section with topical clustering.
+Details: Create src/pages/Community.jsx to route to /community. Fetch community threads from /api/community, displaying title, content, and auto-clustered categoryId/procedureId (mock AI for now). Add a “Quick Ask AI” button to re-tag threads and a “Related Procedures” section linking to procedures.
+Deliverable: Verify page shows 5 sample threads with clustering and button.
+Priority: Medium (engages users).
+Step 7: Create Doctor Profile Page
+Task: Build a comprehensive doctor profile.
+Details: Create src/pages/DoctorProfile.jsx to route to /doctors/:id. Fetch doctor data from /api/doctors/:id, displaying overview (name, bio, certifications), community answers from community_replies (where isDoctorResponse is TRUE), doctor_photos gallery, testimonials from reviews, availability from doctor_availability, and a leads form. Use 5 tabs: Overview, Portfolio, Availability, Certifications, Leads.
+Deliverable: Verify profile for one doctor (e.g., ID 1) with all sections.
+Priority: Medium (showcases doctors).
+Step 8: Develop User Dashboard
+Task: Create a user dashboard.
+Details: Create src/pages/UserDashboard.jsx to route to /user. Fetch user data, showing savedItems, points, and recommendations based on user_preferences (mock data). Include an Activity tab for community posts and notifications.
+Deliverable: Verify dashboard with sample user data.
+Priority: Medium (personalizes experience).
+Step 9: Develop Doctor Dashboard
+Task: Create a doctor dashboard.
+Details: Create src/pages/DoctorDashboard.jsx to route to /doctor. Fetch doctor data, showing a Specializations tab to update doctor_categories, Procedures tab for doctor_procedures, and Reviews tab for reviews. Add a Leads tab for leads.
+Deliverable: Verify dashboard with sample doctor data and editable specializations.
+Priority: Medium (empowers doctors).
+Step 10: Develop Admin Dashboard
+Task: Create an admin dashboard.
+Details: Create src/pages/AdminDashboard.jsx to route to /admin. Fetch data for Users tab (list users), Doctors tab (verify doctors), Categories tab (manage categories), Procedures tab (manage procedures), and Community tab (moderate community). Add an Analytics tab for interactions.
+Deliverable: Verify dashboard with sample data across all tabs.
+Priority: Medium (ensures oversight).
+Step 11: Implement Mock Authentication
+Task: Add temporary mock auth for testing.
+Details: Create src/contexts/AuthContext.jsx with a isAuthenticated state and login/logout functions. Wrap app with AuthProvider and protect routes (e.g., /user, /doctor, /admin) with a simple check.
+Deliverable: Verify login toggles access to protected routes.
+Priority: Medium (enables role-based testing).
+Step 12: Set Up API Endpoints (Mock)
+Task: Create mock API endpoints for frontend testing.
+Details: Use a simple Node.js server in server/index.js with express (npm install express) to mock /api/body-parts, /api/categories, /api/procedures, /api/doctors, /api/community, and /api/reviews. Return sample data matching schema tables.
+Deliverable: Verify endpoints return data with curl http://localhost:3000/api/procedures.
+Priority: Medium (bridges frontend and backend).
+Step 13: Apply Styling and Responsiveness
+Task: Style components and ensure mobile compatibility.
+Details: Use CSS modules or a library like Tailwind CSS (npm install tailwindcss) to style all pages. Ensure responsiveness with media queries or a framework.
+Deliverable: Verify pages render well on desktop and mobile (e.g., iPhone view in Replit).
+Priority: Low (polishes UI).
+Step 14: Test Frontend Integration
+Task: Test all components with sample data.
+Details: Navigate all routes, test filters, save functionality, search in "Find Doctors," appointment form, and dashboard tabs. Verify data consistency with mock APIs.
+Deliverable: Confirm no errors in browser console and all features work.
+Priority: High (ensures stability).
+Notes
+Prioritize tasks 1-14 in sequence to build a functional frontend.
+Track completion by running the provided commands and verifying outputs.
+Mock auth and APIs will be replaced with Firebase OTP and real backend later.
+Use Replit’s environment variables for API URLs (e.g., VITE_API_URL).
+
+
+
+
+
+
+
+Schema Review and Proposed Changes
+Existing Relevant Schema Components
+doctors Table: Already includes name, specialty, city, state, isVerified, etc., which support search by name, specialty, or city.
+leads Table: Defined with userId, doctorId, message, and createdAt, suitable for storing appointment requests.
+user_preferences Table: Has savedItems (JSONB) to store doctor or procedure IDs, supporting the "save to profile" feature.
+doctor_availability Table: Includes date and slots (JSONB), which can manage appointment scheduling.
+Analysis
+Search Functionality: The doctors table covers the search fields (name, specialty, city). No new columns are needed, but indexing these fields will improve performance for large datasets (e.g., scaling beyond your 64 doctors).
+Appointment Booking: The leads table captures basic booking data, but adding appointmentDate and status would better track scheduling status (e.g., "pending", "confirmed"). This aligns with the form in Step 3.
+Saving to Profile: savedItems in user_preferences can store doctor IDs, but we should ensure it’s flexible for both doctors and procedures, which it already is as a JSONB array.
+Doctor Availability: The doctor_availability table supports slot booking, but adding a bookedSlots field could track taken appointments, enhancing the form’s functionality.
+Proposed Schema Tweaks
+Update doctors Table with Index
+Why: Improve search performance on name, specialty, and city.
+Change: Add indexes in migrations/schema.ts with:
+sql
+
+Copy
+CREATE INDEX idx_doctor_name ON doctors(name);
+CREATE INDEX idx_doctor_specialty ON doctors(specialty);
+CREATE INDEX idx_doctor_city ON doctors(city);
+Impact: Faster queries, no new columns needed.
+Update leads Table
+Why: Enhance appointment tracking with date and status.
+Change: Modify migrations/schema.ts to add:
+appointmentDate (TIMESTAMP): Scheduled date/time.
+status (TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled'))): Booking status.
+Updated Columns: id (SERIAL PRIMARY KEY), userId (INTEGER REFERENCES users(id)), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), message (TEXT), appointmentDate (TIMESTAMP), status (TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled'))), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Impact: Better form integration and admin oversight.
+Update doctor_availability Table
+Why: Track booked slots to avoid double-booking.
+Change: Add bookedSlots (JSONB) to store taken time slots (e.g., {"10:00": "user1", "11:00": "user2"}).
+Updated Columns: id (SERIAL PRIMARY KEY), doctorId (INTEGER NOT NULL REFERENCES doctors(id)), date (DATE), slots (JSONB), bookedSlots (JSONB), createdAt (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).
+Impact: Improves appointment form accuracy.
+No Changes Needed
+user_preferences: The savedItems JSONB field is sufficient to store doctor IDs alongside procedure IDs, no tweak required.
+Other Tables: body_parts, categories, procedures, etc., are unaffected by this feature.
+Integration with Frontend Plan
+Step 3 (Navigation Component): The search bar will query /api/doctors with filters on name, specialty, city, benefiting from the new indexes. The appointment form will POST to /api/leads with appointmentDate and status, and update savedItems via /api/user-preferences.
+API Endpoints (Step 12): Update mock /api/doctors to include indexed fields, /api/leads to handle new fields, and /api/doctor-availability to manage bookedSlots.
+Execution Plan Adjustment
+Since the schema phase is complete, we’ll amend the schema migration script (migrations/schema.ts) and re-run the migration. Add these steps before proceeding with the frontend:
+
+Additional Schema Tasks
+
+Priority: Medium.
+
+
+
+
+
+
+Antidote Platform Backend Development Plan
+Overview
+Develop the backend for the Antidote plastic surgery marketplace using Node.js with Express in Replit, integrating with the PostgreSQL database from the schema phase and the React frontend. The focus is on API endpoints for procedures, doctors, community, and authentication, with mock data replaced by real database interactions. Track completion by verifying API responses and data persistence.
+
+Step-by-Step Backend Tasks
+Step 1: Set Up Node.js Environment
+Task: Initialize a Node.js project in Replit for the backend.
+Details: Create a server directory, run npm init -y, and install express, pg (PostgreSQL client), and cors with npm install express pg cors.
+Deliverable: Confirm setup with node server/index.js running on http://localhost:3000.
+Priority: High (foundation for API).
+Step 2: Configure Database Connection
+Task: Establish a connection to the PostgreSQL database.
+Details: Create server/db.js to connect using pg with the DATABASE_URL environment variable. Test the connection with a simple query.
+Deliverable: Verify connection with console.log output or a GET endpoint returning database version.
+Priority: High (enables data access).
+Step 3: Create Base Express Server
+Task: Set up a basic Express server.
+Details: In server/index.js, configure Express with cors to allow frontend requests, set port to 3000, and define a root endpoint (/) returning a status message.
+Deliverable: Verify with curl http://localhost:3000 returning {"message": "Antidote Backend Running"}.
+Priority: High (core server setup).
+Step 4: Implement /api/body-parts Endpoint
+Task: Create an endpoint to fetch all body parts.
+Details: In server/routes/bodyParts.js, define a GET /api/body-parts endpoint to query the body_parts table and return id, name, and iconUrl.
+Deliverable: Verify with curl http://localhost:3000/api/body-parts returning sample data (e.g., [{"id": 1, "name": "hair", "iconUrl": null}]).
+Priority: High (supports procedure hierarchy).
+Step 5: Implement /api/categories Endpoint
+Task: Create an endpoint to fetch all categories.
+Details: In server/routes/categories.js, define a GET /api/categories endpoint to query the categories table, joining with body_parts for bodyPartId details, returning id, name, bodyPartId, and popularityScore.
+Deliverable: Verify with curl http://localhost:3000/api/categories returning sample data.
+Priority: High (supports filtering).
+Step 6: Implement /api/procedures Endpoint
+Task: Create an endpoint to fetch procedures with filters.
+Details: In server/routes/procedures.js, define a GET /api/procedures endpoint to query the procedures table. Support query parameters for categoryId and bodyPartId, returning all fields. Add a POST endpoint to update savedItems in user_preferences.
+Deliverable: Verify with curl http://localhost:3000/api/procedures?categoryId=1 returning filtered procedures.
+Priority: High (core user feature).
+Step 7: Implement /api/doctors Endpoint
+Task: Create an endpoint to fetch and search doctors.
+Details: In server/routes/doctors.js, define a GET /api/doctors endpoint to query the doctors table, supporting search by name, specialty, or city. Include joins with doctor_categories and doctor_photos. Add a POST endpoint to update doctor_categories.
+Deliverable: Verify with curl "http://localhost:3000/api/doctors?specialty=hair" returning matching doctors.
+Priority: High (supports "Find Doctors").
+Step 8: Implement /api/community Endpoint
+Task: Create an endpoint to manage community threads.
+Details: In server/routes/community.js, define a GET /api/community endpoint to query the community table, joining with categories and procedures for clustering. Add a POST endpoint to create threads and update community_tagging.
+Deliverable: Verify with curl http://localhost:3000/api/community returning threaded data.
+Priority: Medium (engages users).
+Step 9: Implement /api/reviews Endpoint
+Task: Create an endpoint to manage reviews.
+Details: In server/routes/reviews.js, define a GET /api/reviews endpoint to query the reviews table, filtering by doctorId or procedureId. Add a POST endpoint to submit reviews.
+Deliverable: Verify with curl http://localhost:3000/api/reviews?doctorId=1 returning reviews.
+Priority: Medium (enhances trust).
+Step 10: Implement /api/leads Endpoint
+Task: Create an endpoint to handle appointment bookings.
+Details: In server/routes/leads.js, define a POST /api/leads endpoint to insert into the leads table with userId, doctorId, message, appointmentDate, and status. Update doctor_availability bookedSlots accordingly.
+Deliverable: Verify with a POST request (e.g., curl -X POST -H "Content-Type: application/json" -d '{"userId":1,"doctorId":1,"message":"Book me","appointmentDate":"2025-04-20 10:00","status":"pending"}' http://localhost:3000/api/leads) updating leads and doctor_availability.
+Priority: Medium (supports "Find Doctors" booking).
+Step 11: Implement /api/user-preferences Endpoint
+Task: Create an endpoint to manage user preferences.
+Details: In server/routes/userPreferences.js, define a GET /api/user-preferences/:userId endpoint to fetch preferences and a POST endpoint to update savedItems.
+Deliverable: Verify with curl http://localhost:3000/api/user-preferences/1 returning sample data.
+Priority: Medium (enables personalization).
+Step 12: Implement /api/notifications Endpoint
+Task: Create an endpoint to manage notifications.
+Details: In server/routes/notifications.js, define a GET /api/notifications/:userId endpoint to fetch notifications and a POST endpoint to create them.
+Deliverable: Verify with curl http://localhost:3000/api/notifications/1 returning sample notifications.
+Priority: Low (enhances engagement).
+Step 13: Implement /api/interactions Endpoint
+Task: Create an endpoint to log interactions.
+Details: In server/routes/interactions.js, define a POST /api/interactions endpoint to insert into the interactions table.
+Deliverable: Verify with a POST request updating interactions.
+Priority: Low (supports analytics).
+Step 14: Implement Error Handling
+Task: Add global error handling to the server.
+Details: In server/index.js, use Express middleware to catch and respond to errors with status codes and messages.
+Deliverable: Verify with an invalid endpoint (e.g., curl http://localhost:3000/invalid) returning a 404 error.
+Priority: Medium (ensures robustness).
+Step 15: Test Backend Integration
+Task: Test all endpoints with sample data.
+Details: Use curl or Postman to test GET and POST requests for all endpoints, verifying data consistency with the database.
+Deliverable: Confirm all endpoints return expected responses and update the database correctly.
+Priority: High (ensures stability).
+Notes
+Prioritize tasks 1-15 in sequence to build a functional backend.
+Track completion by running the provided commands and verifying outputs.
+Use Replit’s environment variables for DATABASE_URL.
+

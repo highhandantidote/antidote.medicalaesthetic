@@ -1,0 +1,122 @@
+Verify the Implementation:
+1. Confirm Doctor Model and Database:
+   - Ensure models.py reflects the updated Doctor model:
+     ```python
+     class Doctor(db.Model):
+         __tablename__ = 'doctors'
+         id = db.Column(db.Integer, primary_key=True)
+         user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+         medical_license_number = db.Column(db.String(50), unique=True, nullable=False)
+         qualification = db.Column(db.String(200), nullable=False)
+         practice_location = db.Column(db.String(200), nullable=False)
+         verification_status = db.Column(db.String(20), default='pending')
+         credentials_url = db.Column(db.String(200))
+         aadhaar_number = db.Column(db.String(20), nullable=True)  # Optional for India
+         user = db.relationship('User', backref='doctor_profile')
+Verify the SQL migration added all columns correctly (e.g., medical_license_number, aadhaar_number).
+Test Routes and API:
+Confirm routes.py includes the verification routes and decorators:
+python
+
+Copy
+from flask_login import login_required, current_user
+from functools import wraps
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            return redirect(url_for('web.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@web.route('/dashboard/doctor/verify', methods=['GET', 'POST'])
+@login_required
+@doctor_required  # Assume this checks user.doctor_profile
+def doctor_verify():
+    if request.method == 'POST':
+        license_number = request.form['medical_license_number']
+        qualification = request.form['qualification']
+        location = request.form['practice_location']
+        aadhaar = request.form.get('aadhaar_number')
+        new_doctor = Doctor(user_id=current_user.id, medical_license_number=license_number,
+                          qualification=qualification, practice_location=location, aadhaar_number=aadhaar)
+        if 'credentials' in request.files:
+            file = request.files['credentials']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('static/doctor_credentials', filename))
+                new_doctor.credentials_url = filename
+        db.session.add(new_doctor)
+        db.session.commit()
+        return redirect(url_for('web.doctor_verify'))
+    doctors = Doctor.query.all()
+    return render_template('doctor_verification.html', doctors=doctors)
+
+@web.route('/api/doctor/<int:doctor_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    doctor.verification_status = 'approved'
+    db.session.commit()
+    return jsonify({'status': 'success'})
+Test: Submit a doctor application and approve it via the API.
+Validate Templates:
+Ensure doctor_verification.html includes the form and India-specific fields:
+html
+
+Copy
+<form method="POST" enctype="multipart/form-data">
+    <input name="medical_license_number" placeholder="MCI-XXXXX-YYYY" required>
+    <input name="qualification" placeholder="e.g., MBBS, MS" required>
+    <input name="practice_location" placeholder="e.g., Mumbai, India" required>
+    <input name="aadhaar_number" placeholder="Optional Aadhaar (e.g., XXXX-XXXX-XXXX)">
+    <input type="file" name="credentials" accept="image/*,application/pdf" required>
+    <button type="submit">Submit</button>
+</form>
+<p>Aadhaar data is handled per DPDP Act, 2023, for identity verification only.</p>
+Confirm admin_doctor_verifications.html shows the doctor table:
+html
+
+Copy
+<table>
+    <tr><th>Name</th><th>License</th><th>Status</th><th>Actions</th></tr>
+    {% for doctor in doctors %}
+        <tr>
+            <td>{{ doctor.user.username }}</td>
+            <td>{{ doctor.medical_license_number }}</td>
+            <td>{{ doctor.verification_status }}</td>
+            <td>
+                <a href="{{ url_for('static', filename='doctor_credentials/' + doctor.credentials_url) }}">View</a>
+                <form method="POST" action="{{ url_for('approve_doctor', doctor_id=doctor.id) }}"><button>Approve</button></form>
+                <form method="POST" action="{{ url_for('reject_doctor', doctor_id=doctor.id) }}"><button>Reject</button></form>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+Verify dashboard_admin.html and dashboard_doctor.html have the verification links.
+Test and Validate:
+Restart the application.
+Log in as a doctor, navigate to /dashboard/doctor/verify, submit a test application with a fake MCI license (e.g., MCI-12345-2025), qualification, location, and a test PDF/JPG.
+Log in as an admin, go to /dashboard/admin, click "Doctor Verification," view credentials, and approve the application.
+Check the doctor table updates to "approved" and the status reflects.
+Take screenshots of the doctor submission form, admin verification page (before and after approval), and the updated doctor list.
+Generate logs (e.g., DEBUG:routes:Doctor verification submitted, INFO:db:COMMIT).
+India-Specific Adjustments:
+Add client-side validation for medical_license_number (e.g., MCI-XXXXX-YYYY format) using JavaScript in doctor_verification.html:
+html
+
+Copy
+<script>
+    document.querySelector('form').onsubmit = function(e) {
+        const license = document.querySelector('[name=medical_license_number]').value;
+        if (!/MCI-\d{5}-\d{4}/.test(license)) {
+            alert('License must be in MCI-XXXXX-YYYY format');
+            e.preventDefault();
+        }
+    };
+</script>
+Ensure the Aadhaar disclaimer is prominent.
+Provide Output:
+Share updated models.py, routes.py, doctor_verification.html, admin_doctor_verifications.html, dashboard_admin.html, dashboard_doctor.html, logs, console output, and screenshots.
+Respond: "The surgeon verification workflow is implemented for India launch. Please review the screenshots and logs to confirm functionality. No changes needed at this stage—proceed to test and validate."

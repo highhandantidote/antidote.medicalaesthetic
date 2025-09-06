@@ -1,0 +1,77 @@
+User-agent: *
+Allow: /
+
+# Medical content priority
+Allow: /procedures/
+Allow: /doctors/
+Allow: /clinics/
+Allow: /packages/
+Allow: /ai-recommendation/
+
+# Community content
+Allow: /community/
+Allow: /threads/
+
+# Important pages
+Allow: /search
+Allow: /categories/
+Allow: /face-analysis/
+
+# Block admin and private areas
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /dashboard/
+Disallow: /clinic/dashboard/
+Disallow: /clinic/*/dashboard/
+
+# Block form processing and authentication
+Disallow: /login
+Disallow: /logout
+Disallow: /register
+Disallow: /reset-password
+Disallow: /api/auth/
+Disallow: /api/payments/
+Disallow: /api/leads/
+Disallow: /api/messages/
+
+# Block duplicate content and filters
+Disallow: /search?*
+Disallow: /*?page=*
+Disallow: /*?sort=*
+Disallow: /*?filter=*
+
+# Block file uploads and temporary content
+Disallow: /uploads/temp/
+Disallow: /static/uploads/temp/
+
+# Medical marketplace specific
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://antidote.fit/sitemap.xml
+
+# Search engines optimization
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# Social media crawlers
+User-agent: facebookexternalhit/1.1
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Medical content verification bots
+User-agent: *healthbot*
+Allow: /procedures/
+Allow: /doctors/
+Allow: /clinics/

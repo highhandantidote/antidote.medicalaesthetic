@@ -1,0 +1,165 @@
+Add Detailed Logging to the Admin Dashboard Route
+Let’s modify the admin_dashboard route to add more detailed logging to identify exactly where the failure occurs. We’ll also ensure the data is being queried correctly.
+
+Instructions for Replit Agent (Part 1: Add Detailed Logging):
+
+Open routes.py and Locate the admin_dashboard Route:
+The route should be something like @admin.route('/dashboard') or @web.route('/dashboard/admin'). Based on the Replit Agent’s previous actions, it’s likely under the admin blueprint.
+Update the Route with Detailed Logging:
+Modify the admin_dashboard route to log each step of the data retrieval process. Use Python’s logging module for clarity.
+Here’s the updated code:
+text
+
+Copy
+import logging
+from flask import Blueprint, render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from models import User, Doctor, CommunityThread
+from extensions import db
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+admin = Blueprint('admin', __name__, url_prefix='/admin')
+
+@admin.route('/dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        logger.warning("Unauthorized access attempt to admin dashboard")
+        return redirect(url_for('web.index'))
+
+    try:
+        logger.debug("Fetching users count...")
+        users_count = User.query.count()
+        logger.debug(f"Users count: {users_count}")
+
+        logger.debug("Fetching doctors count...")
+        doctors_count = Doctor.query.count()
+        logger.debug(f"Doctors count: {doctors_count}")
+
+        logger.debug("Fetching leads count...")
+        leads_count = 0  # Placeholder since Lead model might not exist
+        if hasattr(db.Model, 'Lead'):
+            leads_count = db.Model.Lead.query.count()
+        logger.debug(f"Leads count: {leads_count}")
+
+        logger.debug("Fetching community posts count...")
+        community_posts_count = CommunityThread.query.count()
+        logger.debug(f"Community posts count: {community_posts_count}")
+
+        logger.debug("Rendering admin dashboard template...")
+        return render_template('admin_dashboard.html',
+                              users_count=users_count,
+                              doctors_count=doctors_count,
+                              leads_count=leads_count,
+                              community_posts_count=community_posts_count)
+
+    except Exception as e:
+        logger.error(f"Error in admin_dashboard route: {str(e)}")
+        # Instead of returning empty data, log the issue and still try to render
+        return render_template('admin_dashboard.html',
+                              users_count=0,
+                              doctors_count=0,
+                              leads_count=0,
+                              community_posts_count=0)
+Restart the Application:
+Restart the Flask application to apply the changes:
+text
+
+Copy
+Restarted Start application
+Check the Logs:
+Log in as admin@antidote.com (password: Admin1234) and navigate to /admin/dashboard.
+Check the Replit terminal for the Flask logs. You should see output like:
+text
+
+Copy
+DEBUG:__main__:Fetching users count...
+DEBUG:__main__:Users count: 2
+DEBUG:__main__:Fetching doctors count...
+DEBUG:__main__:Doctors count: 1
+DEBUG:__main__:Fetching leads count...
+DEBUG:__main__:Leads count: 0
+DEBUG:__main__:Fetching community posts count...
+DEBUG:__main__:Community posts count: 1
+DEBUG:__main__:Rendering admin dashboard template...
+If there’s an error, you’ll see something like:
+text
+
+Copy
+ERROR:__main__:Error in admin_dashboard route: <error message>
+Share the logs with me so we can identify the issue.
+Assign to Replit Agent:
+
+Please execute the above instructions to add detailed logging to the admin_dashboard route in routes.py. After restarting the application, log in as admin@antidote.com (password: Admin1234), navigate to /admin/dashboard, and share the Flask logs from the Replit terminal.
+Step 2: Verify Other Admin Routes
+The dashboard overview isn’t the only section showing empty data—/admin/users, /admin/doctors, /admin/procedures, etc., are also empty. Let’s add logging to one more route (e.g., /admin/users) to confirm if the issue is widespread.
+
+Instructions for Replit Agent (Part 2: Add Logging to /admin/users):
+
+Locate the manage_users Route in routes.py:
+It should be something like @admin.route('/users').
+Update the Route with Logging:
+Add logging to the manage_users route:
+text
+
+Copy
+@admin.route('/users')
+@login_required
+def manage_users():
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        logger.warning("Unauthorized access attempt to manage_users")
+        return redirect(url_for('web.index'))
+
+    try:
+        logger.debug("Fetching all users...")
+        users = User.query.all()
+        logger.debug(f"Found {len(users)} users")
+        for user in users:
+            logger.debug(f"User: {user.email}, Role: {user.role}")
+
+        logger.debug("Rendering manage_users template...")
+        return render_template('admin_users.html', users=users)
+
+    except Exception as e:
+        logger.error(f"Error in manage_users route: {str(e)}")
+        return render_template('admin_users.html', users=[])
+Restart the Application:
+Restart the Flask application again:
+text
+
+Copy
+Restarted Start application
+Check the Logs:
+Navigate to /admin/users and check the Flask logs in the Replit terminal. Look for output like:
+text
+
+Copy
+DEBUG:__main__:Fetching all users...
+DEBUG:__main__:Found 2 users
+DEBUG:__main__:User: admin@antidote.com, Role: admin
+DEBUG:__main__:User: testdoctor@antidote.com, Role: doctor
+DEBUG:__main__:Rendering manage_users template...
+Share the logs with me.
+Assign to Replit Agent:
+
+After completing Part 1, please execute the above instructions to add logging to the manage_users route in routes.py. Then navigate to /admin/users and share the Flask logs from the Replit terminal.
+Step 3: Debug Based on Logs
+Once we have the logs from both routes, we can determine the root cause:
+
+If Queries Return Data but Dashboard Is Empty:
+The issue might be in the template (admin_dashboard.html, admin_users.html). We’ll inspect the templates to ensure they’re rendering the data correctly.
+If Queries Fail or Return No Data:
+There might be a database connection issue or schema mismatch. We’ll verify the database connection and schema.
+If an Exception Occurs:
+The logs will show the exact error (e.g., NoneType error, database connection error). We’ll fix the specific issue.
+Next Steps
+Let’s assign the above tasks to the Replit Agent and wait for the logs. Once we have the logs, we can pinpoint the issue and fix it. If the data still doesn’t show, we might need to:
+
+Inspect the templates for rendering issues.
+Verify the database schema and relationships (e.g., Doctor.user relationship).
+Check for any filters in the queries that might exclude data.

@@ -1,0 +1,25 @@
+1. Complete Remaining Tests:
+   - **Doctor Verification Workflow**:
+     - Test Case 1: Approve Doctor
+       - Action: Run `verify_doctor_workflow.py` to approve "Doctor Test" (ID 101).
+       - Expected: Verification status changes to "approved". Verify with: `SELECT id, name, verification_status, is_verified FROM doctors WHERE id = 101;`.
+     - Test Case 2: Reject Doctor
+       - Action: Run `verify_doctor_workflow.py` to reject the new doctor (e.g., ID from prior `test_create_doctor.py` run).
+       - Expected: Verification status changes to "rejected". Verify with: `SELECT id, name, verification_status, is_verified FROM doctors WHERE id = <new_id>;`.
+   - **Procedure and Community Sections**:
+     - Test Case 3: Procedure Listing
+       - Action: Navigate to /procedures, confirm 5 procedures (Rhinoplasty, Facelift, Eyelid Surgery, Botox, Lip Fillers) display with "Doctor Test" link.
+       - Expected: All 5 procedures visible.
+     - Test Case 4: Community Threads
+       - Action: Navigate to /community, confirm 5 threads (e.g., "Rhinoplasty Experience") with replies display.
+       - Expected: All 5 threads and replies visible.
+   - Take screenshots of each test case result.
+
+2. Performance Testing:
+   - Measure page load time for /dashboard/doctor/verify, /procedures, /community using browser dev tools (e.g., Replit preview).
+   - Measure API response time for approval/rejection using `time python verify_doctor_workflow.py` (capture execution time).
+   - Log results (e.g., DEBUG:routes:Verification approved, INFO:db:COMMIT).
+
+3. Provide Output:
+   - Share updated verify_doctor_workflow.py, verify_doctor_api.py, routes.py, procedure.html, community.html, logs, console output, and screenshots.
+   - Respond: "Testing with minimal data (1 doctor, 5 procedures, 5 threads with replies) finalized. All test cases passed, with performance metrics included. Data populates and displays as expected—please review screenshots and logs. Data can be deleted later with a script (e.g., db.session.query(Doctor).delete(); db.session.query(Procedure).delete(); db.session.query(Community).delete(); db.session.query(CommunityReplies).delete(); db.session.query(User).filter(User.username.in_(['admin_test', 'doctor_test', 'doctor_test2'])).delete(); db.session.commit()). Next phase: Implement AI tools for procedure recommendations and community analytics, starting with a basic recommendation model using the existing procedure data."

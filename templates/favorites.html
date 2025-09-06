@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">My Favorites</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="row">
+        <!-- Saved Doctors -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Saved Doctors</h4>
+                </div>
+                <div class="card-body">
+                    {% if saved_doctors %}
+                        <div class="list-group">
+                            {% for favorite, doctor in saved_doctors %}
+                                <div class="list-group-item list-group-item-action favorite-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}">
+                                                Dr. {{ doctor.name }}
+                                            </a>
+                                        </h5>
+                                        <small class="text-muted">Saved {{ favorite.created_at|ago }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ doctor.specialty }} • {{ doctor.city }}</p>
+                                    <small class="text-muted">
+                                        <span class="text-warning">★</span> {{ doctor.rating|default('New', true) }}
+                                        {% if doctor.rating %} • {{ doctor.review_count }} reviews{% endif %}
+                                    </small>
+                                    <form class="mt-2 remove-form" action="{{ url_for('web.remove_favorite', favorite_id=favorite.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-action="remove">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fe fe-user-plus mb-3" style="font-size: 48px;"></i>
+                            <p class="text-muted">You haven't saved any doctors yet.</p>
+                            <a href="{{ url_for('web.doctors') }}" class="btn btn-outline-primary">
+                                Explore Doctors
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Saved Procedures -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Saved Procedures</h4>
+                </div>
+                <div class="card-body">
+                    {% if saved_procedures %}
+                        <div class="list-group">
+                            {% for favorite, procedure in saved_procedures %}
+                                <div class="list-group-item list-group-item-action favorite-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}">
+                                                {{ procedure.procedure_name }}
+                                            </a>
+                                        </h5>
+                                        <small class="text-muted">Saved {{ favorite.created_at|ago }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ procedure.short_description|truncate(100) }}</p>
+                                    <small class="text-muted">
+                                        ${{ procedure.min_cost|default('N/A', true) }} - ${{ procedure.max_cost|default('N/A', true) }}
+                                    </small>
+                                    <form class="mt-2 remove-form" action="{{ url_for('web.remove_favorite', favorite_id=favorite.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-action="remove">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fe fe-bookmark mb-3" style="font-size: 48px;"></i>
+                            <p class="text-muted">You haven't saved any procedures yet.</p>
+                            <a href="{{ url_for('web.procedures') }}" class="btn btn-outline-info">
+                                Explore Procedures
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript to handle removal of favorites with Ajax
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form.remove-form');
+        
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const url = this.getAttribute('action');
+                const listItem = this.closest('.list-group-item');
+                const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animate the removal of the item
+                        listItem.style.transition = 'opacity 0.3s, height 0.3s';
+                        listItem.style.opacity = '0';
+                        setTimeout(() => {
+                            listItem.style.height = '0';
+                            listItem.style.overflow = 'hidden';
+                            listItem.style.margin = '0';
+                            listItem.style.padding = '0';
+                            
+                            setTimeout(() => {
+                                listItem.remove();
+                                
+                                // Show empty state if no items left
+                                const container = this.closest('.card-body');
+                                const remainingItems = container.querySelectorAll('.list-group-item');
+                                
+                                if (remainingItems.length === 0) {
+                                    const emptyState = document.createElement('div');
+                                    emptyState.className = 'text-center py-4';
+                                    
+                                    const isDoctor = url.includes('doctor');
+                                    const icon = isDoctor ? 'fe-user-plus' : 'fe-bookmark';
+                                    const text = isDoctor ? 'doctors' : 'procedures';
+                                    const btnClass = isDoctor ? 'btn-outline-primary' : 'btn-outline-info';
+                                    const exploreUrl = isDoctor ? '/doctors' : '/procedures';
+                                    
+                                    emptyState.innerHTML = `
+                                        <i class="fe ${icon} mb-3" style="font-size: 48px;"></i>
+                                        <p class="text-muted">You haven't saved any ${text} yet.</p>
+                                        <a href="${exploreUrl}" class="btn ${btnClass}">
+                                            Explore ${text.charAt(0).toUpperCase() + text.slice(1)}
+                                        </a>
+                                    `;
+                                    
+                                    container.querySelector('.list-group').replaceWith(emptyState);
+                                }
+                            }, 300);
+                        }, 300);
+                    } else {
+                        alert(data.message || 'Error removing from favorites.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while removing the item from favorites.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

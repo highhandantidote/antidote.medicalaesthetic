@@ -1,0 +1,1096 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if category %}
+        {{ category.name }} Procedures - Antidote
+    {% else %}
+        All Procedures - Antidote
+    {% endif %}
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-filters.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-search-ultra-compact.css') }}">
+<script src="{{ url_for('static', filename='js/show-more-procedures.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/procedure-filters.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            {% if category %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('web.body_parts') }}">Body Parts</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('web.categories', body_part_id=category.body_part_id) }}">{{ category.body_part.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+                    </ol>
+                </nav>
+                <h1>{{ category.name }} Procedures</h1>
+                <p class="lead">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Enhanced Search Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" id="procedureFilterForm">
+                        <!-- Basic Filters Row -->
+                        <div class="row g-3 mb-3">
+                            <!-- Search Input -->
+                            <div class="col-md-4">
+                                <div class="position-relative">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" name="search" class="form-control" 
+                                               placeholder="Search procedures..." 
+                                               value="{{ request.args.get('search', request.args.get('q', '')) }}" id="procedureSearchInput">
+                                    </div>
+                                    <div id="procedureSearchSuggestions" class="dropdown-suggestions" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Body Part Filter -->
+                            <div class="col-md-4">
+                                <div class="position-relative">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" name="body_part" class="form-control" placeholder="Select body part..." 
+                                               value="{{ request.args.get('body_part', '') }}" 
+                                               id="procedureBodyPartInput" autocomplete="off">
+                                        <div class="dropdown-arrow"><i class="fas fa-chevron-down"></i></div>
+                                    </div>
+                                    <div id="procedureBodyPartDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Search Button -->
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100" type="submit">
+                                    <i class="fas fa-search me-2"></i>Search Procedures
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Filters Toggle -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" id="procedureAdvancedFiltersToggle">
+                                    <i class="fas fa-chevron-down me-1"></i>
+                                    <span>Advanced Filters</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Filters Section (Hidden by default) -->
+                        <div id="procedureAdvancedFiltersSection" style="display: none;" class="mt-3">
+                            <div class="row g-3">
+                                <!-- Category Filter -->
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label mb-1">Category</label>
+                                    <div class="position-relative">
+                                        <input type="text" name="category" class="form-control" placeholder="Select category..." 
+                                               value="{{ request.args.get('category', '') }}" 
+                                               id="procedureCategoryInput" autocomplete="off">
+                                        <div class="dropdown-arrow"><i class="fas fa-chevron-down"></i></div>
+                                        <div id="procedureCategoryDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Complexity Filter -->
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label mb-1">Complexity</label>
+                                    <select name="complexity" class="form-select">
+                                        <option value="">All Complexity</option>
+                                        <option value="simple" {% if request.args.get('complexity') == 'simple' %}selected{% endif %}>Simple</option>
+                                        <option value="moderate" {% if request.args.get('complexity') == 'moderate' %}selected{% endif %}>Moderate</option>
+                                        <option value="complex" {% if request.args.get('complexity') == 'complex' %}selected{% endif %}>Complex</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sort Filter -->
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label mb-1">Sort by</label>
+                                    <select name="sort" class="form-select">
+                                        <option value="popular" {% if request.args.get('sort') == 'popular' %}selected{% endif %}>Most Popular</option>
+                                        <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>Name A-Z</option>
+                                        <option value="category" {% if request.args.get('sort') == 'category' %}selected{% endif %}>Category</option>
+                                        <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest First</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="collapse d-lg-show" id="filterCollapse">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Filter Procedures</h5>
+                        <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Categories Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-2 filter-section-title">
+                                <i class="fas fa-tags me-2"></i> Categories
+                                <span class="float-end">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-section" data-target="categoriesFilterSection">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </span>
+                            </h6>
+                            <div id="categoriesFilterSection">
+                                {% set unique_categories = [] %}
+                                {% for procedure in procedures %}
+                                    {% if procedure.category %}
+                                        {% if procedure.category.name not in unique_categories %}
+                                            {% set _ = unique_categories.append(procedure.category.name) %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <div class="filter-options-container" style="max-height: 150px; overflow-y: auto;">
+                                    {% for category in unique_categories|sort %}
+                                    <div class="form-check">
+                                        <input class="form-check-input filter-category" type="checkbox" value="{{ category }}" id="cat{{ loop.index }}">
+                                        <label class="form-check-label" for="cat{{ loop.index }}">{{ category }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Body Parts Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-2 filter-section-title">
+                                <i class="fas fa-user me-2"></i> Body Parts
+                                <span class="float-end">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-section" data-target="bodyPartsFilterSection">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </span>
+                            </h6>
+                            <div id="bodyPartsFilterSection">
+                                {% set unique_body_parts = [] %}
+                                {% for procedure in procedures %}
+                                    {% if procedure.body_part %}
+                                        {% if procedure.body_part not in unique_body_parts %}
+                                            {% set _ = unique_body_parts.append(procedure.body_part) %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <div class="filter-options-container" style="max-height: 150px; overflow-y: auto;">
+                                    {% for body_part in unique_body_parts|sort %}
+                                    <div class="form-check">
+                                        <input class="form-check-input filter-body-part" type="checkbox" value="{{ body_part }}" id="body{{ loop.index }}">
+                                        <label class="form-check-label" for="body{{ loop.index }}">{{ body_part }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Cost Range Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-2 filter-section-title">
+                                <i class="fas fa-rupee-sign me-2"></i> Cost Range
+                                <span class="float-end">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-section" data-target="costFilterSection">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </span>
+                            </h6>
+                            <div id="costFilterSection">
+                                <div class="form-check">
+                                    <input class="form-check-input filter-cost" type="checkbox" value="0-20000" id="cost1">
+                                    <label class="form-check-label" for="cost1">₹0 - ₹20,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-cost" type="checkbox" value="20000-50000" id="cost2">
+                                    <label class="form-check-label" for="cost2">₹20,000 - ₹50,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-cost" type="checkbox" value="50000-100000" id="cost3">
+                                    <label class="form-check-label" for="cost3">₹50,000 - ₹1,00,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-cost" type="checkbox" value="100000+" id="cost4">
+                                    <label class="form-check-label" for="cost4">Above ₹1,00,000</label>
+                                </div>
+                                <div class="mt-2">
+                                    <div id="costRangeSlider" class="mt-3"></div>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <span class="small">₹<span id="minCostDisplay">0</span></span>
+                                        <span class="small">₹<span id="maxCostDisplay">200,000</span></span>
+                                    </div>
+                                    <input type="hidden" id="minCostValue" value="0">
+                                    <input type="hidden" id="maxCostValue" value="200000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recovery Time Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-2 filter-section-title">
+                                <i class="fas fa-clock me-2"></i> Recovery Time
+                                <span class="float-end">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-section" data-target="recoveryFilterSection">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </span>
+                            </h6>
+                            <div id="recoveryFilterSection">
+                                <div class="form-check">
+                                    <input class="form-check-input filter-recovery" type="checkbox" value="1-7" id="recovery1">
+                                    <label class="form-check-label" for="recovery1">1-7 days</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-recovery" type="checkbox" value="1-2 weeks" id="recovery2">
+                                    <label class="form-check-label" for="recovery2">1-2 weeks</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-recovery" type="checkbox" value="2-4 weeks" id="recovery3">
+                                    <label class="form-check-label" for="recovery3">2-4 weeks</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-recovery" type="checkbox" value="4+" id="recovery4">
+                                    <label class="form-check-label" for="recovery4">1+ month</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Filters -->
+                        <div class="mb-4">
+                            <h6 class="mb-2 filter-section-title">
+                                <i class="fas fa-sliders-h me-2"></i> Advanced Filters
+                                <span class="float-end">
+                                    <button class="btn btn-sm btn-link p-0 text-decoration-none toggle-section" data-target="advancedFilterSection">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </span>
+                            </h6>
+                            <div id="advancedFilterSection">
+                                <div class="form-check">
+                                    <input class="form-check-input filter-advanced" type="checkbox" value="outpatient" id="outpatient">
+                                    <label class="form-check-label" for="outpatient">Outpatient Only</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-advanced" type="checkbox" value="insurance" id="insurance">
+                                    <label class="form-check-label" for="insurance">Insurance Covered</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-advanced" type="checkbox" value="minimally_invasive" id="minimally_invasive">
+                                    <label class="form-check-label" for="minimally_invasive">Minimally Invasive</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-advanced" type="checkbox" value="pain_free" id="pain_free">
+                                    <label class="form-check-label" for="pain_free">Pain-Free Recovery</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sort By -->
+                        <div class="mb-4">
+                            <h6 class="mb-2">
+                                <i class="fas fa-sort me-2"></i> Sort By
+                            </h6>
+                            <select class="form-select" id="sortProcedures">
+                                <option value="relevance">Relevance</option>
+                                <option value="popularity">Popularity</option>
+                                <option value="cost_asc">Cost: Low to High</option>
+                                <option value="cost_desc">Cost: High to Low</option>
+                                <option value="recovery_asc">Recovery: Shortest First</option>
+                                <option value="recovery_desc">Recovery: Longest First</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100 mb-2" id="applyFilters">
+                            <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                        
+                        <button class="btn btn-outline-danger w-100" id="clearFilters">
+                            <i class="fas fa-times-circle me-1"></i> Clear All Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Procedure List -->
+        <div class="col-md-9">
+            <div id="activeFilters" class="mb-3" style="display: none;">
+                <h6 class="mb-2">Active Filters:</h6>
+                <div class="d-flex flex-wrap gap-2" id="activeFilterBadges">
+                    <!-- Active filter badges will be added here by JavaScript -->
+                </div>
+            </div>
+        
+            <div class="row" id="procedureList">
+        {% if procedures %}
+            {% for procedure in procedures %}
+                <div class="col-md-6 mb-4 procedure-card" 
+                    data-category="{{ procedure.category.name if procedure.category else '' }}"
+                    data-body-part="{{ procedure.body_part }}"
+                    data-min-cost="{{ procedure.min_cost|default(15000) }}"
+                    data-max-cost="{{ procedure.max_cost|default(150000) }}"
+                    data-recovery="{{ procedure.recovery_time|default('1-2 weeks') }}"
+                    data-outpatient="{{ procedure.is_outpatient|default(true)|string|lower }}"
+                    data-insurance="{{ procedure.insurance_covered|default(false)|string|lower }}"
+                    data-minimally-invasive="{{ procedure.is_minimally_invasive|default(false)|string|lower }}"
+                    data-pain-free="{{ procedure.is_pain_free|default(false)|string|lower }}">
+                    <div class="card h-100 shadow-sm border-0 hover-shadow">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h4 class="card-title mb-0">{{ procedure.procedure_name }}</h4>
+                            </div>
+                            <p class="card-text mb-3">{{ procedure.short_description }}</p>
+                            
+                            <div class="mb-3">
+                                <!-- Cost Range Row -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-rupee-sign text-success me-2"></i>
+                                    <strong class="me-2">Cost Range:</strong>
+                                    <span class="fw-medium">₹{{ procedure.min_cost|default(15000) }} - ₹{{ procedure.max_cost|default(150000) }}</span>
+                                </div>
+                                <!-- Recovery Row -->
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-clock text-primary me-2"></i>
+                                    <strong class="me-2">Recovery:</strong>
+                                    <span>{{ procedure.recovery_time|default('1-2 weeks') }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Tags removed as requested -->
+                            
+                            <div class="d-flex gap-2 mt-auto pt-2">
+                                <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-primary">
+                                    Learn More
+                                </a>
+                                <a href="{{ url_for('web.doctors', procedure_id=procedure.id) }}" class="btn btn-outline-primary">
+                                    Find Doctors
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    {% if category %}
+                        No procedures available for {{ category.name }} yet.
+                    {% else %}
+                        No procedures available yet.
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Show More Button -->
+    {% if has_more %}
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <button id="showMoreProcedures" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>
+                Show More Procedures
+                <span class="badge bg-primary ms-2">{{ total_count - showing_count }} more</span>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Loading State -->
+    <div id="loadingMore" class="row mt-4" style="display: none;">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading more procedures...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading more procedures...</p>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <p class="text-muted mb-0">
+                <span id="showingCount">{{ showing_count }}</span> of <span id="totalCount">{{ total_count }}</span> procedures
+            </p>
+        </div>
+    </div>
+
+    {% if category %}
+    <div class="mt-4">
+        <a href="{{ url_for('web.categories', body_part_id=category.body_part_id) }}" class="btn btn-outline-primary">
+            <i data-feather="arrow-left" class="feather-sm me-2"></i> Back to Categories
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('procedureSearch');
+        const procedureCards = document.querySelectorAll('.procedure-card');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const applyFiltersBtn = document.getElementById('applyFilters');
+        const sortSelect = document.getElementById('sortProcedures');
+        
+        // Track active filters
+        let activeFilters = {
+            search: '',
+            categories: [],
+            bodyParts: [],
+            costRanges: [],
+            recoveryTimes: [],
+            advanced: [],
+            minCost: 0,
+            maxCost: 200000,
+            sortBy: 'relevance'
+        };
+        
+        // Add data attributes to procedure cards for filtering
+        procedureCards.forEach(card => {
+            // Extract cost range values
+            const costRange = card.querySelector('.fw-medium').innerText;
+            const recoveryTime = card.querySelector('.d-flex:nth-of-type(2) span').innerText;
+            const costValue = extractCostValue(costRange);
+            
+            // Extract category from procedure card
+            let category = '';
+            try {
+                // Attempt to extract category if it exists
+                if (card.querySelector('.card-title').closest('.card').textContent.includes('Category:')) {
+                    category = card.querySelector('.card-title').closest('.card')
+                        .textContent.match(/Category:\s*([^,\n]+)/i)[1].trim();
+                }
+            } catch (e) {
+                // If category extraction fails, use an empty string
+                category = '';
+            }
+            
+            // Set data attributes for filtering
+            card.setAttribute('data-min-cost', costValue.min);
+            card.setAttribute('data-max-cost', costValue.max);
+            card.setAttribute('data-recovery', recoveryTime);
+            card.setAttribute('data-category', category);
+            
+            // Set additional attributes for advanced filters
+            // These would be populated from actual data; using defaults for now
+            card.setAttribute('data-outpatient', Math.random() > 0.5 ? 'true' : 'false');
+            card.setAttribute('data-insurance', Math.random() > 0.7 ? 'true' : 'false');
+            card.setAttribute('data-minimally-invasive', Math.random() > 0.6 ? 'true' : 'false');
+            card.setAttribute('data-pain-free', Math.random() > 0.8 ? 'true' : 'false');
+            
+            // Set popularity score for sorting (random for demo)
+            card.setAttribute('data-popularity', Math.floor(Math.random() * 100));
+        });
+        
+        // Helper to extract min and max cost values from display text
+        function extractCostValue(costText) {
+            const matches = costText.match(/₹(\d+,*\d*) - ₹(\d+,*\d*)/);
+            if (matches && matches.length === 3) {
+                return {
+                    min: parseInt(matches[1].replace(/,/g, '')),
+                    max: parseInt(matches[2].replace(/,/g, ''))
+                };
+            }
+            return { min: 0, max: 0 };
+        }
+        
+        // Apply all active filters and sorting
+        function applyFilters() {
+            let visibleCount = 0;
+            let visibleCards = [];
+            
+            // Get all active filter values
+            activeFilters.categories = getCheckedValues('.filter-category');
+            activeFilters.bodyParts = getCheckedValues('.filter-body-part');
+            activeFilters.costRanges = getCheckedValues('.filter-cost');
+            activeFilters.recoveryTimes = getCheckedValues('.filter-recovery');
+            activeFilters.advanced = getCheckedValues('.filter-advanced');
+            activeFilters.sortBy = sortSelect.value;
+            
+            // Cost slider values if slider is initialized
+            if (document.getElementById('minCostValue') && document.getElementById('maxCostValue')) {
+                activeFilters.minCost = parseInt(document.getElementById('minCostValue').value);
+                activeFilters.maxCost = parseInt(document.getElementById('maxCostValue').value);
+            }
+            
+            // Filter procedures
+            procedureCards.forEach(card => {
+                // Get card data
+                const title = card.querySelector('.card-title').innerText.toLowerCase();
+                const description = card.querySelector('.card-text').innerText.toLowerCase();
+                const minCost = parseInt(card.getAttribute('data-min-cost'));
+                const maxCost = parseInt(card.getAttribute('data-max-cost'));
+                const recovery = card.getAttribute('data-recovery');
+                const category = card.getAttribute('data-category').toLowerCase();
+                const bodyPart = card.querySelector('.card-body').innerText.toLowerCase();
+                
+                // Advanced filter attributes
+                const isOutpatient = card.getAttribute('data-outpatient') === 'true';
+                const hasInsurance = card.getAttribute('data-insurance') === 'true';
+                const isMinimallyInvasive = card.getAttribute('data-minimally-invasive') === 'true';
+                const isPainFree = card.getAttribute('data-pain-free') === 'true';
+                
+                // Check all filter conditions
+                const matchesSearch = activeFilters.search === '' || 
+                                     title.includes(activeFilters.search) || 
+                                     description.includes(activeFilters.search);
+                                     
+                // Check if procedure matches any selected category
+                const matchesCategory = activeFilters.categories.length === 0 || 
+                                      activeFilters.categories.some(cat => {
+                                          // Check for exact match or if procedure name contains the category
+                                          return category === cat.toLowerCase() || 
+                                                 title.includes(cat.toLowerCase()) ||
+                                                 (cat.toLowerCase() === 'abdominoplasty' && 
+                                                  (title.includes('tummy tuck') || 
+                                                   title.includes('panniculectomy') || 
+                                                   title.includes('diastasis recti')));
+                                      });
+                
+                // Check if procedure matches any selected body part
+                const bodyPartAttr = card.getAttribute('data-body-part').toLowerCase();
+                const matchesBodyPart = activeFilters.bodyParts.length === 0 || 
+                                       activeFilters.bodyParts.some(part => 
+                                           bodyPartAttr === part.toLowerCase());
+                
+                // Check cost range selections
+                const matchesCostCheckboxes = activeFilters.costRanges.length === 0 || 
+                                            activeFilters.costRanges.some(range => {
+                                                const [min, max] = range.split('-');
+                                                if (min && max) {
+                                                    return minCost <= parseInt(max) && maxCost >= parseInt(min);
+                                                } else if (min && min.includes('+')) {
+                                                    const threshold = parseInt(min.replace('+', ''));
+                                                    return minCost >= threshold;
+                                                }
+                                                return false;
+                                            });
+                
+                // Check cost slider range                         
+                const matchesCostSlider = minCost <= activeFilters.maxCost && 
+                                        maxCost >= activeFilters.minCost;
+                
+                // Check recovery time
+                const matchesRecovery = activeFilters.recoveryTimes.length === 0 || 
+                                      activeFilters.recoveryTimes.some(time => {
+                                          if (time === '1-7' && (recovery.includes('day') || recovery.includes('days'))) {
+                                              return true;
+                                          } else if (time === '1-2 weeks' && recovery.includes('1-2 weeks')) {
+                                              return true;
+                                          } else if (time === '2-4 weeks' && recovery.includes('2-4 weeks')) {
+                                              return true;
+                                          } else if (time === '4+' && (recovery.includes('month') || recovery.includes('months'))) {
+                                              return true;
+                                          }
+                                          return false;
+                                      });
+                
+                // Check advanced filters
+                const matchesAdvanced = activeFilters.advanced.length === 0 || 
+                                      !activeFilters.advanced.some(filter => {
+                                          if (filter === 'outpatient' && !isOutpatient) return true;
+                                          if (filter === 'insurance' && !hasInsurance) return true;
+                                          if (filter === 'minimally_invasive' && !isMinimallyInvasive) return true;
+                                          if (filter === 'pain_free' && !isPainFree) return true;
+                                          return false;
+                                      });
+                
+                // Show or hide based on all filter conditions
+                if (matchesSearch && matchesCategory && matchesBodyPart && 
+                    matchesCostCheckboxes && matchesCostSlider && 
+                    matchesRecovery && matchesAdvanced) {
+                    card.style.display = '';
+                    visibleCount++;
+                    visibleCards.push(card);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Sort visible procedures
+            if (visibleCards.length > 0) {
+                sortProcedures(visibleCards);
+            }
+            
+            // Update active filter badges
+            updateActiveFilterBadges();
+            
+            // Show or hide "no results" message
+            updateNoResultsMessage(visibleCount);
+            
+            // Update filter count badge
+            updateFilterCountBadge();
+        }
+        
+        // Helper function to get values from checked checkboxes
+        function getCheckedValues(selector) {
+            const values = [];
+            document.querySelectorAll(`${selector}:checked`).forEach(checkbox => {
+                values.push(checkbox.value);
+            });
+            return values;
+        }
+        
+        // Sort procedures based on selected sorting option
+        function sortProcedures(visibleCards) {
+            const procedureList = document.getElementById('procedureList');
+            
+            // Sort based on active sort option
+            visibleCards.sort((a, b) => {
+                switch (activeFilters.sortBy) {
+                    case 'popularity':
+                        return parseInt(b.getAttribute('data-popularity')) - parseInt(a.getAttribute('data-popularity'));
+                    case 'cost_asc':
+                        return parseInt(a.getAttribute('data-min-cost')) - parseInt(b.getAttribute('data-min-cost'));
+                    case 'cost_desc':
+                        return parseInt(b.getAttribute('data-min-cost')) - parseInt(a.getAttribute('data-min-cost'));
+                    case 'recovery_asc':
+                        // Simple string comparison for recovery (not perfect but works for demo)
+                        return a.getAttribute('data-recovery').localeCompare(b.getAttribute('data-recovery'));
+                    case 'recovery_desc':
+                        return b.getAttribute('data-recovery').localeCompare(a.getAttribute('data-recovery'));
+                    default: // relevance - maintain original order
+                        return 0;
+                }
+            });
+            
+            // Reorder the cards in the DOM
+            visibleCards.forEach(card => {
+                procedureList.appendChild(card.parentNode);
+            });
+        }
+        
+        // Update active filter badges
+        function updateActiveFilterBadges() {
+            const badgesContainer = document.getElementById('activeFilterBadges');
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            
+            // Clear existing badges
+            badgesContainer.innerHTML = '';
+            
+            // Track if we have any active filters
+            let hasActiveFilters = false;
+            
+            // Add badge for search
+            if (activeFilters.search) {
+                addFilterBadge('Search: ' + activeFilters.search, () => {
+                    searchInput.value = '';
+                    activeFilters.search = '';
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            }
+            
+            // Add badges for categories
+            activeFilters.categories.forEach(category => {
+                addFilterBadge('Category: ' + category, () => {
+                    document.querySelector(`.filter-category[value="${category}"]`).checked = false;
+                    activeFilters.categories = activeFilters.categories.filter(c => c !== category);
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            });
+            
+            // Add badges for body parts
+            activeFilters.bodyParts.forEach(bodyPart => {
+                addFilterBadge('Body Part: ' + bodyPart, () => {
+                    document.querySelector(`.filter-body-part[value="${bodyPart}"]`).checked = false;
+                    activeFilters.bodyParts = activeFilters.bodyParts.filter(b => b !== bodyPart);
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            });
+            
+            // Add badges for cost ranges
+            activeFilters.costRanges.forEach(costRange => {
+                let displayText = 'Cost: ';
+                if (costRange === '0-20000') displayText += '₹0 - ₹20,000';
+                else if (costRange === '20000-50000') displayText += '₹20,000 - ₹50,000';
+                else if (costRange === '50000-100000') displayText += '₹50,000 - ₹1,00,000';
+                else if (costRange === '100000+') displayText += 'Above ₹1,00,000';
+                
+                addFilterBadge(displayText, () => {
+                    document.querySelector(`.filter-cost[value="${costRange}"]`).checked = false;
+                    activeFilters.costRanges = activeFilters.costRanges.filter(c => c !== costRange);
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            });
+            
+            // Add badge for cost slider if it differs from default
+            if (
+                (activeFilters.minCost > 0 || 
+                activeFilters.maxCost < 200000) && 
+                document.getElementById('costRangeSlider')
+            ) {
+                addFilterBadge(`Cost: ₹${activeFilters.minCost.toLocaleString()} - ₹${activeFilters.maxCost.toLocaleString()}`, () => {
+                    // Reset slider values (if slider exists)
+                    activeFilters.minCost = 0;
+                    activeFilters.maxCost = 200000;
+                    // Update slider if it exists
+                    if (window.costSlider) {
+                        window.costSlider.set([0, 200000]);
+                    }
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            }
+            
+            // Add badges for recovery times
+            activeFilters.recoveryTimes.forEach(recoveryTime => {
+                let displayText = 'Recovery: ';
+                if (recoveryTime === '1-7') displayText += '1-7 days';
+                else if (recoveryTime === '1-2 weeks') displayText += '1-2 weeks';
+                else if (recoveryTime === '2-4 weeks') displayText += '2-4 weeks';
+                else if (recoveryTime === '4+') displayText += '1+ month';
+                
+                addFilterBadge(displayText, () => {
+                    document.querySelector(`.filter-recovery[value="${recoveryTime}"]`).checked = false;
+                    activeFilters.recoveryTimes = activeFilters.recoveryTimes.filter(r => r !== recoveryTime);
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            });
+            
+            // Add badges for advanced filters
+            activeFilters.advanced.forEach(advanced => {
+                let displayText = '';
+                if (advanced === 'outpatient') displayText = 'Outpatient Only';
+                else if (advanced === 'insurance') displayText = 'Insurance Covered';
+                else if (advanced === 'minimally_invasive') displayText = 'Minimally Invasive';
+                else if (advanced === 'pain_free') displayText = 'Pain-Free Recovery';
+                
+                addFilterBadge(displayText, () => {
+                    document.querySelector(`.filter-advanced[value="${advanced}"]`).checked = false;
+                    activeFilters.advanced = activeFilters.advanced.filter(a => a !== advanced);
+                    applyFilters();
+                });
+                hasActiveFilters = true;
+            });
+            
+            // Show or hide the active filters section
+            if (hasActiveFilters) {
+                activeFiltersContainer.style.display = 'block';
+            } else {
+                activeFiltersContainer.style.display = 'none';
+            }
+            
+            // Helper function to add a filter badge
+            function addFilterBadge(text, removeCallback) {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary d-flex align-items-center gap-2 py-2 px-3';
+                badge.innerHTML = `
+                    ${text}
+                    <button type="button" class="btn-close btn-close-white p-0" aria-label="Remove filter"></button>
+                `;
+                badge.querySelector('.btn-close').addEventListener('click', removeCallback);
+                badgesContainer.appendChild(badge);
+            }
+        }
+        
+        // Update the filter count badge
+        function updateFilterCountBadge() {
+            const countBadge = document.querySelector('.filter-count');
+            const filterCount = 
+                (activeFilters.search ? 1 : 0) +
+                activeFilters.categories.length +
+                activeFilters.bodyParts.length +
+                activeFilters.costRanges.length +
+                (activeFilters.minCost > 0 || activeFilters.maxCost < 200000 ? 1 : 0) +
+                activeFilters.recoveryTimes.length +
+                activeFilters.advanced.length;
+            
+            if (filterCount > 0) {
+                countBadge.textContent = filterCount;
+                countBadge.style.display = '';
+            } else {
+                countBadge.style.display = 'none';
+            }
+        }
+        
+        // Update or show "no results" message
+        function updateNoResultsMessage(visibleCount) {
+            // Remove existing message if it exists
+            const existingMessage = document.querySelector('.no-results-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Add new message if needed
+            if (visibleCount === 0) {
+                const procedureList = document.getElementById('procedureList');
+                const noResultsEl = document.createElement('div');
+                noResultsEl.className = 'col-12 no-results-message';
+                noResultsEl.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading"><i class="fas fa-search me-2"></i> No procedures found</h5>
+                        <p>No procedures match your current filter criteria. Try adjusting your filters to see more results.</p>
+                    </div>
+                `;
+                procedureList.appendChild(noResultsEl);
+            }
+        }
+        
+        // Toggle filter sections
+        document.querySelectorAll('.toggle-section').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetSection = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (targetSection.style.display === 'none') {
+                    targetSection.style.display = 'block';
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    targetSection.style.display = 'none';
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            });
+        });
+        
+        // Search input handler - real-time filtering
+        searchInput.addEventListener('input', function() {
+            activeFilters.search = this.value.toLowerCase();
+            applyFilters();
+        });
+        
+        // Add change listeners to all filter checkboxes
+        document.querySelectorAll('.filter-category, .filter-body-part, .filter-cost, .filter-recovery, .filter-advanced').forEach(checkbox => {
+            checkbox.addEventListener('change', applyFilters);
+        });
+        
+        // Sort select handler
+        sortSelect.addEventListener('change', function() {
+            activeFilters.sortBy = this.value;
+            applyFilters();
+        });
+        
+        // Apply filters button handler
+        applyFiltersBtn.addEventListener('click', applyFilters);
+        
+        // Clear all filters
+        clearFiltersBtn.addEventListener('click', function() {
+            // Reset all checkboxes
+            document.querySelectorAll('.filter-category, .filter-body-part, .filter-cost, .filter-recovery, .filter-advanced').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Reset sort to default
+            sortSelect.value = 'relevance';
+            
+            // Clear search
+            searchInput.value = '';
+            
+            // Reset cost slider if it exists
+            if (window.costSlider) {
+                window.costSlider.set([0, 200000]);
+            }
+            
+            // Reset all active filters
+            activeFilters = {
+                search: '',
+                categories: [],
+                bodyParts: [],
+                costRanges: [],
+                recoveryTimes: [],
+                advanced: [],
+                minCost: 0,
+                maxCost: 200000,
+                sortBy: 'relevance'
+            };
+            
+            // Apply cleared filters
+            applyFilters();
+        });
+        
+        // Initialize the filter system
+        applyFilters();
+        
+        // Initialize cost range slider if noUiSlider library is available
+        if (typeof noUiSlider !== 'undefined') {
+            const costSlider = document.getElementById('costRangeSlider');
+            window.costSlider = noUiSlider.create(costSlider, {
+                start: [0, 200000],
+                connect: true,
+                range: {
+                    'min': 0,
+                    'max': 200000
+                },
+                step: 1000,
+                format: {
+                    to: function (value) {
+                        return Math.round(value);
+                    },
+                    from: function (value) {
+                        return Math.round(value);
+                    }
+                }
+            });
+            
+            // Update display values and hidden inputs when slider changes
+            window.costSlider.on('update', function (values) {
+                const min = values[0];
+                const max = values[1];
+                
+                // Update display values with formatting
+                document.getElementById('minCostDisplay').textContent = parseInt(min).toLocaleString();
+                document.getElementById('maxCostDisplay').textContent = parseInt(max).toLocaleString();
+                
+                // Update hidden inputs
+                document.getElementById('minCostValue').value = min;
+                document.getElementById('maxCostValue').value = max;
+                
+                // Update active filters
+                activeFilters.minCost = parseInt(min);
+                activeFilters.maxCost = parseInt(max);
+                
+                // Apply filters with a small delay to prevent too many updates while sliding
+                clearTimeout(window.costSliderTimeout);
+                window.costSliderTimeout = setTimeout(applyFilters, 100);
+            });
+        } else {
+            // If noUiSlider is not available, hide the slider container
+            const sliderContainer = document.querySelector('#costRangeSlider').parentNode;
+            if (sliderContainer) {
+                sliderContainer.style.display = 'none';
+            }
+        }
+
+        // Show More functionality
+        const showMoreBtn = document.getElementById('showMoreProcedures');
+        const loadingDiv = document.getElementById('loadingMore');
+        const procedureList = document.getElementById('procedureList');
+        let currentOffset = {{ showing_count }};
+
+        if (showMoreBtn) {
+            showMoreBtn.addEventListener('click', function() {
+                // Hide show more button and show loading
+                showMoreBtn.style.display = 'none';
+                loadingDiv.style.display = 'block';
+
+                // Build current filter parameters
+                const params = new URLSearchParams();
+                params.append('offset', currentOffset);
+                params.append('limit', 20);
+                
+                // Add current filters
+                if (activeFilters.search) params.append('search', activeFilters.search);
+                if (window.location.search.includes('category_id')) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    params.append('category_id', urlParams.get('category_id'));
+                }
+                activeFilters.bodyParts.forEach(part => params.append('body_part', part));
+                params.append('sort', activeFilters.sortBy);
+
+                // Make AJAX request
+                fetch(`/api/procedures/load-more?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Add new procedures to the list
+                            data.procedures.forEach(procedure => {
+                                const procedureHTML = createProcedureCard(procedure);
+                                procedureList.insertAdjacentHTML('beforeend', procedureHTML);
+                            });
+
+                            // Update counts
+                            currentOffset += data.procedures.length;
+                            document.getElementById('showingCount').textContent = currentOffset;
+
+                            // Show or hide show more button based on has_more
+                            if (data.has_more) {
+                                showMoreBtn.style.display = 'block';
+                                const remainingCount = data.total_count - currentOffset;
+                                showMoreBtn.querySelector('.badge').textContent = `${remainingCount} more`;
+                            } else {
+                                showMoreBtn.style.display = 'none';
+                            }
+                        } else {
+                            console.error('Error loading more procedures:', data.message);
+                            showMoreBtn.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading more procedures:', error);
+                        showMoreBtn.style.display = 'block';
+                    })
+                    .finally(() => {
+                        loadingDiv.style.display = 'none';
+                    });
+            });
+        }
+
+        // Function to create procedure card HTML
+        function createProcedureCard(procedure) {
+            return `
+                <div class="col-md-6 mb-4 procedure-card" 
+                    data-category="${procedure.category || ''}"
+                    data-body-part="${procedure.body_part || ''}"
+                    data-min-cost="${procedure.min_cost || 15000}"
+                    data-max-cost="${procedure.max_cost || 150000}">
+                    <div class="card h-100 shadow-sm border-0 hover-shadow">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h4 class="card-title mb-0">${procedure.procedure_name}</h4>
+                            </div>
+                            <p class="card-text mb-3">${procedure.short_description}</p>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-rupee-sign text-success me-2"></i>
+                                    <strong class="me-2">Cost Range:</strong>
+                                    <span class="fw-medium">₹${(procedure.min_cost || 15000).toLocaleString()} - ₹${(procedure.max_cost || 150000).toLocaleString()}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-clock text-primary me-2"></i>
+                                    <strong class="me-2">Recovery:</strong>
+                                    <span>${procedure.recovery_time || '1-2 weeks'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2 mt-auto pt-2">
+                                <a href="/procedure/${procedure.id}" class="btn btn-primary">
+                                    Learn More
+                                </a>
+                                <a href="/doctors?procedure_id=${procedure.id}" class="btn btn-outline-primary">
+                                    Find Doctors
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+</script>
+<script src="{{ url_for('static', filename='js/procedure-filters.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,739 @@
+We need to test if the doctor dashboard is working properly and then proceed to build the remaining features. Our goal is to get the website live today, so please prioritize these tasks efficiently. Based on the progress and issues identified, let’s first ensure the doctor dashboard is fully functional for the test doctor (testdoctor@antidote.com, password: Doctor1234), and then implement the remaining features. Please ensure that no existing data is lost and none of the current working functionalities (such as leads, procedures, or any other implemented features) are disturbed. Back up the database before making any changes to prevent data loss.
+
+1. Back Up the Database
+Before proceeding, back up the current database to ensure no data is lost. Run the following command:
+cp instance/antidote.db instance/antidote_backup_$(date +%F_%H-%M-%S).db
+Verify the backup file exists by running:
+ls -l instance/
+2. Test the Doctor Dashboard Functionality
+Log out of the current session (if logged in) and navigate to the login page (/login).
+Log in with the test doctor credentials (testdoctor@antidote.com, password: Doctor1234).
+After logging in, verify the following:
+The dashboard should automatically redirect to /dashboard/doctor/1 (or the correct doctor ID) and display the doctor dashboard with options like "Overview," "Appointments," "Patient Leads," "Reviews," "My Procedures," "Availability," "Gallery," "Community," and "Verification."
+Check that the dashboard menu no longer shows user-specific options (e.g., "Saved Items," "My Reviews," "My Community Posts") and instead shows doctor-specific options.
+Manually navigate to /dashboard/doctor/1 and confirm it loads the doctor dashboard without redirecting to the homepage.
+If the dashboard still redirects to the homepage or shows the user dashboard, note any error messages in the Flask logs or browser console and let me know.
+3. Fix Any Remaining Navigation or Routing Issues
+If the test shows the doctor dashboard is not loading correctly (e.g., redirecting to the homepage or showing the user dashboard), the issue might be in the navigation or routing logic. Open templates/base.html and verify the navigation dropdown. The current implementation should route doctors to their dashboard. Ensure the code looks like this:
+text
+
+Copy
+<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dashboardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Dashboards
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dashboardDropdown">
+        {% if current_user.is_authenticated %}
+            {% if current_user.role == 'doctor' %}
+                <li><a class="dropdown-item" href="{{ url_for('web.doctor_dashboard', doctor_id=current_user.doctor.id) }}">Doctor Dashboard</a></li>
+            {% else %}
+                <li><a class="dropdown-item" href="{{ url_for('web.user_dashboard') }}">User Dashboard</a></li>
+            {% endif %}
+        {% endif %}
+    </ul>
+</div>
+If the doctor.id reference causes an error (e.g., current_user.doctor is None), it means the Doctor relationship isn’t properly set up in the User model. Open models.py and ensure the User model has a relationship to Doctor. Update it if necessary:
+text
+
+Copy
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='user')  # e.g., 'doctor' or 'user'
+    phone_number = db.Column(db.String(15), nullable=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    doctor = db.relationship('Doctor', backref='user', uselist=False)
+
+class Doctor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    specialty = db.Column(db.String(100), nullable=True)
+    experience = db.Column(db.Integer, nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(100), nullable=True)
+    hospital = db.Column(db.String(100), nullable=True)
+    consultation_fee = db.Column(db.Float, nullable=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    rating = db.Column(db.Float, default=0.0)
+    review_count = db.Column(db.Integer, default=0)
+    bio = db.Column(db.Text, nullable=True)
+Save the file. If you modified models.py, update the database schema:
+Run: flask db migrate -m "Add Doctor relationship to User model"
+Run: flask db upgrade
+Re-run the test doctor creation script to ensure the relationship is correctly set:
+python add_test_doctor.py or python restore_test_data.py
+Restart the application:
+Restarted Start application
+Log in again and test the dashboard access.
+4. Build Remaining Features
+Once the doctor dashboard is confirmed to work, proceed to implement the remaining features. These include appointments, availability, gallery, community, and verification, which are partially or not yet implemented. Follow these steps:
+
+4.1. Implement Appointments
+Create a template templates/doctor_appointments.html with sections for upcoming and past appointments:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Appointments - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Upcoming Appointments</h3>
+                <a href="#" class="btn btn-outline-primary mb-3">View Calendar</a>
+                {% if upcoming_appointments %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Procedure</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in upcoming_appointments %}
+                                <tr>
+                                    <td>{{ appointment.user.name }}</td>
+                                    <td>{{ appointment.procedure_name }}</td>
+                                    <td>{{ appointment.appointment_date }}</td>
+                                    <td>{{ appointment.appointment_time }}</td>
+                                    <td>{{ appointment.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No upcoming appointments</p>
+                {% endif %}
+
+                <h3>Past Appointments</h3>
+                {% if past_appointments %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Procedure</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in past_appointments %}
+                                <tr>
+                                    <td>{{ appointment.user.name }}</td>
+                                    <td>{{ appointment.procedure_name }}</td>
+                                    <td>{{ appointment.appointment_date }}</td>
+                                    <td>{{ appointment.appointment_time }}</td>
+                                    <td>{{ appointment.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No past appointments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+Add the Appointment model to models.py if not present:
+text
+
+Copy
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    procedure_name = db.Column(db.String(100), nullable=False)
+    appointment_date = db.Column(db.Date, nullable=False)
+    appointment_time = db.Column(db.Time, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, completed, cancelled
+    user = db.relationship('User', backref='appointments')
+    doctor = db.relationship('Doctor', backref='appointments')
+Add the route to routes.py:
+text
+
+Copy
+from datetime import date
+from flask import render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from .models import Doctor, Appointment
+
+@web.route('/dashboard/doctor/<int:doctor_id>/appointments')
+@login_required
+def doctor_appointments(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    today = date.today()
+    upcoming_appointments = Appointment.query.filter_by(doctor_id=doctor.id).filter(Appointment.appointment_date >= today).all()
+    past_appointments = Appointment.query.filter_by(doctor_id=doctor.id).filter(Appointment.appointment_date < today).all()
+    return render_template('doctor_appointments.html', doctor=doctor, upcoming_appointments=upcoming_appointments, past_appointments=past_appointments)
+Update the database schema:
+Run: flask db migrate -m "Add Appointment model"
+Run: flask db upgrade
+4.2. Implement Availability
+Create templates/doctor_availability.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Availability - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Manage Availability</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Set Regular Hours</h5>
+                        <form method="POST" action="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">
+                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                                <div class="mb-3">
+                                    <label>{{ day }}</label>
+                                    {% set availability = availabilities|selectattr('day_of_week', 'equalto', day)|first %}
+                                    <div class="row">
+                                        <div class="col">
+                                            <input type="time" name="{{ day }}_start" value="{{ availability.start_time if availability else '' }}">
+                                        </div>
+                                        <div class="col">
+                                            <input type="time" name="{{ day }}_end" value="{{ availability.end_time if availability else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-primary">Save Hours</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Upcoming Availability</h5>
+                        <p>Manage specific dates or exceptions in your calendar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+Add the Availability model to models.py:
+text
+
+Copy
+class Availability(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    day_of_week = db.Column(db.String(10), nullable=False)  # e.g., Monday
+    start_time = db.Column(db.Time, nullable=True)
+    end_time = db.Column(db.Time, nullable=True)
+    doctor = db.relationship('Doctor', backref='availabilities')
+Add the route to routes.py:
+text
+
+Copy
+from datetime import datetime
+from flask import render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from .models import Doctor, Availability
+
+@web.route('/dashboard/doctor/<int:doctor_id>/availability', methods=['GET', 'POST'])
+@login_required
+def doctor_availability(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+
+    if request.method == 'POST':
+        for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+            start_time = request.form.get(f'{day}_start')
+            end_time = request.form.get(f'{day}_end')
+            availability = Availability.query.filter_by(doctor_id=doctor.id, day_of_week=day).first()
+            if not availability:
+                availability = Availability(doctor_id=doctor.id, day_of_week=day)
+                db.session.add(availability)
+            if start_time and end_time:
+                availability.start_time = datetime.strptime(start_time, '%H:%M').time()
+                availability.end_time = datetime.strptime(end_time, '%H:%M').time()
+            else:
+                availability.start_time = None
+                availability.end_time = None
+            db.session.commit()
+        flash('Availability updated!', 'success')
+        return redirect(url_for('web.doctor_availability', doctor_id=doctor.id))
+
+    availabilities = Availability.query.filter_by(doctor_id=doctor.id).all()
+    return render_template('doctor_availability.html', doctor=doctor, availabilities=availabilities)
+Update the database schema:
+Run: flask db migrate -m "Add Availability model"
+Run: flask db upgrade
+4.3. Implement Gallery
+Create templates/doctor_gallery.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Gallery - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Photo Gallery</h3>
+                <a href="#" class="btn btn-outline-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">Upload Photos</a>
+                {% if photos %}
+                    <div class="row">
+                        {% for photo in photos %}
+                            <div class="col-md-4">
+                                <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" class="img-fluid" alt="Gallery Photo">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>You haven’t uploaded any photos yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Photo Modal -->
+    <div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadPhotoModalLabel">Upload Photo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ url_for('web.upload_photo', doctor_id=doctor.id) }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Select Photo</label>
+                            <input type="file" name="photo" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+Add the Photo model to models.py:
+text
+
+Copy
+class Photo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    filename = db.Column(db.String(100), nullable=False)
+    doctor = db.relationship('Doctor', backref='photos')
+Add the routes to routes.py:
+text
+
+Copy
+import os
+from werkzeug.utils import secure_filename
+from flask import render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from .models import Doctor, Photo
+
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+@web.route('/dashboard/doctor/<int:doctor_id>/gallery')
+@login_required
+def doctor_gallery(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    photos = Photo.query.filter_by(doctor_id=doctor.id).all()
+    return render_template('doctor_gallery.html', doctor=doctor, photos=photos)
+
+@web.route('/dashboard/doctor/<int:doctor_id>/upload_photo', methods=['POST'])
+@login_required
+def upload_photo(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    if 'photo' not in request.files:
+        flash('No file part', 'danger')
+        return redirect(url_for('web.doctor_gallery', doctor_id=doctor.id))
+    file = request.files['photo']
+    if file.filename == '':
+        flash('No selected file', 'danger')
+        return redirect(url_for('web.doctor_gallery', doctor_id=doctor.id))
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    photo = Photo(doctor_id=doctor.id, filename=filename)
+    db.session.add(photo)
+    db.session.commit()
+    flash('Photo uploaded!', 'success')
+    return redirect(url_for('web.doctor_gallery', doctor_id=doctor.id))
+Update the database schema:
+Run: flask db migrate -m "Add Photo model"
+Run: flask db upgrade
+4.4. Implement Community
+Create templates/doctor_community.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Community - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Community Engagement</h3>
+                <div class="alert alert-info">
+                    Engaging with the community as a doctor helps build trust and establish you as an authority in your field.
+                </div>
+                <h5>Recent Threads in Your Specialties</h5>
+                <a href="{{ url_for('web.community') }}" class="btn btn-outline-primary mb-3">View All Threads</a>
+                {% if threads %}
+                    <ul>
+                        {% for thread in threads %}
+                            <li><a href="{{ url_for('web.community_thread', thread_id=thread.id) }}">{{ thread.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No recent community threads in your specialties</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+Add the route to routes.py (assuming a Community model exists):
+text
+
+Copy
+from flask import render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from .models import Doctor, Procedure, DoctorProcedure, Community
+
+@web.route('/dashboard/doctor/<int:doctor_id>/community')
+@login_required
+def doctor_community(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    procedures = Procedure.query.join(DoctorProcedure).filter(DoctorProcedure.doctor_id == doctor.id).all()
+    procedure_ids = [proc.id for proc in procedures]
+    threads = Community.query.filter(Community.procedure_id.in_(procedure_ids)).order_by(Community.created_at.desc()).limit(5).all()
+    return render_template('doctor_community.html', doctor=doctor, threads=threads)
+Update the database schema if the Community model is new:
+Run: flask db migrate -m "Add Community model" (if applicable)
+Run: flask db upgrade
+4.5. Implement Verification
+Create templates/doctor_verification.html:
+text
+
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Verification - {{ doctor.name }}</title>
+    <!-- Include CSS and other head content -->
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}">Overview</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}">Appointments</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}">Patient Leads</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}">Reviews</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}">My Procedures</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}">Availability</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}">Gallery</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}">Community</a></li>
+                    <li class="list-group-item"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <h3>Doctor Verification for India</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Verification Status</h5>
+                        <p>Document Submission: {{ verification.status if verification else 'Incomplete' }}</p>
+                        <p>Admin Review: {{ 'Reviewed' if verification and verification.status == 'reviewed' else 'Not started' }}</p>
+                        <p>Verification Badge: {{ 'Active' if doctor.is_verified else 'Inactive' }}</p>
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verificationModal">Complete Verification</a>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Verification Details</h5>
+                        <p>Medical License Number (MCI): {{ verification.medical_license if verification else 'Not provided' }}</p>
+                        <p>Qualifications: {{ verification.qualifications if verification else 'Not provided' }}</p>
+                        <p>Practice Location: {{ verification.practice_location if verification else 'Not provided' }}</p>
+                    </div>
+                </div>
+                <h5 class="mt-4">Verification Process</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p>1. Submit Documents</p>
+                        <p>Upload your medical license and qualifications</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p>2. Verification Review</p>
+                        <p>Our team reviews your credentials</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p>3. Get Verified</p>
+                        <p>Receive your verified badge and enhanced visibility</p>
+                    </div>
+                </div>
+                <h5 class="mt-4">Benefits of Verification</h5>
+                <ul>
+                    <li>Enhanced trust and credibility with patients</li>
+                    <li>Verified badge on your profile</li>
+                    <li>Priority listing in doctor search</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div class="modal fade" id="verificationModal" tabindex="-1" aria-labelledby="verificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="verificationModalLabel">Complete Verification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ url_for('web.submit_verification', doctor_id=doctor.id) }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="medical_license" class="form-label">Medical License Number (MCI)</label>
+                            <input type="text" name="medical_license" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qualifications" class="form-label">Qualifications</label>
+                            <textarea name="qualifications" class="form-control" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="practice_location" class="form-label">Practice Location</label>
+                            <input type="text" name="practice_location" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="document" class="form-label">Upload Document</label>
+                            <input type="file" name="document" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+Add the Verification model to models.py:
+text
+
+Copy
+class Verification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    medical_license = db.Column(db.String(100), nullable=True)
+    qualifications = db.Column(db.Text, nullable=True)
+    practice_location = db.Column(db.String(100), nullable=True)
+    document_filename = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(20), default='incomplete')  # incomplete, submitted, reviewed, verified
+    doctor = db.relationship('Doctor', backref='verifications')
+Add the routes to routes.py:
+text
+
+Copy
+import os
+from werkzeug.utils import secure_filename
+from flask import render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from .models import Doctor, Verification
+
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+@web.route('/dashboard/doctor/<int:doctor_id>/verification')
+@login_required
+def doctor_verification(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    verification = Verification.query.filter_by(doctor_id=doctor.id).first()
+    return render_template('doctor_verification.html', doctor=doctor, verification=verification)
+
+@web.route('/dashboard/doctor/<int:doctor_id>/submit_verification', methods=['POST'])
+@login_required
+def submit_verification(doctor_id):
+    if current_user.role != 'doctor':
+        flash('Unauthorized access. Only doctors can access this dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    doctor = Doctor.query.get_or_404(doctor_id)
+    if doctor.user_id != current_user.id:
+        flash('Unauthorized access. You can only view your own dashboard.', 'danger')
+        return redirect(url_for('web.index'))
+    medical_license = request.form.get('medical_license')
+    qualifications = request.form.get('qualifications')
+    practice_location = request.form.get('practice_location')
+    file = request.files['document']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    verification = Verification.query.filter_by(doctor_id=doctor.id).first()
+    if not verification:
+        verification = Verification(doctor_id=doctor.id)
+        db.session.add(verification)
+    verification.medical_license = medical_license
+    verification.qualifications = qualifications
+    verification.practice_location = practice_location
+    verification.document_filename = filename
+    verification.status = 'submitted'
+    db.session.commit()
+
+    flash('Verification documents submitted!', 'success')
+    return redirect(url_for('web.doctor_verification', doctor_id=doctor.id))
+Update the database schema:
+Run: flask db migrate -m "Add Verification model"
+Run: flask db upgrade
+5. Final Testing and Deployment
+Restart the application:
+Restarted Start application
+Log in as the test doctor (testdoctor@antidote.com, password: Doctor1234) and test each section of the doctor dashboard (Overview, Appointments, Patient Leads, Reviews, My Procedures, Availability, Gallery, Community, Verification) to ensure they load without errors.
+If any errors occur, note them and let me know.
+Once confirmed working, deploy the application to a live server. If you’re using Replit’s hosting, follow these steps:
+Ensure all dependencies are in requirements.txt.
+Run: pip freeze > requirements.txt to update it if needed.
+Click the "Deploy" button in Replit and follow the prompts to make the site live.
+Provide the live URL once deployed.
+Please complete these steps and let me know the results of the doctor dashboard test and the live URL after deployment. We need to get this live today, so please prioritize and inform me of any issues immediately.

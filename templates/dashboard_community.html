@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block title %}Community Dashboard - Antidote{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- Chart.js for analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Immediate chart fix (loads sample data if database is empty) -->
+<script src="{{ url_for('static', filename='js/chart-fix.js') }}"></script>
+<!-- Optimized CSS for analytics dashboard -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/community-analytics.min.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.index') }}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Community Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Sidebar -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Community Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#overview" class="list-group-item list-group-item-action bg-dark text-white border-light active" data-bs-toggle="list">Overview</a>
+                    <a href="#threads" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Threads</a>
+                    <a href="#moderation" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Moderation</a>
+                    <a href="#analytics" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Analytics</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Overview -->
+                <div class="tab-pane fade show active" id="overview">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Threads</h6>
+                                    <h2 class="mb-0">{{ thread_count }}</h2>
+                                    <p class="text-muted">Total threads</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Replies</h6>
+                                    <h2 class="mb-0">{{ reply_count }}</h2>
+                                    <p class="text-muted">Total replies</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">New Threads (30 days)</h6>
+                                    <h2 class="mb-0">{{ recent_threads }}</h2>
+                                    <p class="text-muted">Recent activity</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">New Replies (30 days)</h6>
+                                    <h2 class="mb-0">{{ recent_replies }}</h2>
+                                    <p class="text-muted">Recent interactions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Threads</h5>
+                            <a href="{{ url_for('web.community') }}" class="btn btn-sm btn-outline-info">View All Threads</a>
+                        </div>
+                        <div class="card-body">
+                            {% if threads %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Created</th>
+                                                <th>Replies</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for thread in threads %}
+                                            <tr data-thread-id="{{ thread.id }}">
+                                                <td>
+                                                    <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="text-info">
+                                                        {{ thread.title|truncate(40) }}
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    {% if thread.is_anonymous %}
+                                                        Anonymous
+                                                    {% else %}
+                                                        {{ thread.user.username if thread.user else 'Unknown User' }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if thread.category %}
+                                                        {{ thread.category.name }}
+                                                    {% else %}
+                                                        General
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ thread.created_at.strftime('%b %d, %Y') }}</td>
+                                                <td>{{ thread.reply_count }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-outline-info">View</a>
+                                                        <button class="btn btn-outline-warning">Edit</button>
+                                                        <button class="btn btn-outline-danger">Delete</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No threads available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Threads Tab -->
+                <div class="tab-pane fade" id="threads">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">All Threads</h5>
+                            <button class="btn btn-sm btn-outline-success create-thread">Create Thread</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <input type="text" class="form-control" placeholder="Search threads...">
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-outline-info">Search</button>
+                                </div>
+                            </div>
+                            
+                            {% if threads %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Created</th>
+                                                <th>Views</th>
+                                                <th>Replies</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for thread in threads %}
+                                            <tr data-thread-id="{{ thread.id }}">
+                                                <td>
+                                                    <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="text-info">
+                                                        {{ thread.title|truncate(40) }}
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    {% if thread.is_anonymous %}
+                                                        Anonymous
+                                                    {% else %}
+                                                        {{ thread.user.username if thread.user else 'Unknown User' }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if thread.category %}
+                                                        {{ thread.category.name }}
+                                                    {% else %}
+                                                        General
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ thread.created_at.strftime('%b %d, %Y') }}</td>
+                                                <td>{{ thread.view_count }}</td>
+                                                <td>{{ thread.reply_count }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-outline-info">View</a>
+                                                        <button class="btn btn-outline-warning">Edit</button>
+                                                        <button class="btn btn-outline-danger">Delete</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No threads available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Moderation Tab -->
+                <div class="tab-pane fade" id="moderation">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Moderation Queue</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center py-4">
+                                <i class="fas fa-shield-alt fa-3x mb-3 text-muted"></i>
+                                <p class="text-muted">No threads requiring moderation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analytics Tab -->
+                <div class="tab-pane fade" id="analytics">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Community Analytics</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2 text-muted small">Last updated: <span id="lastUpdatedTime">{{ now.strftime('%H:%M:%S') }}</span></span>
+                                <button id="refreshAnalyticsButton" class="btn btn-sm btn-outline-info">
+                                    <span id="refreshingIndicator" class="spinner-border spinner-border-sm me-1 d-none"></span>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="analytics-card mb-3">
+                                        <div class="analytics-header">
+                                            <h5 class="mb-0">Trending Topics</h5>
+                                        </div>
+                                        <div class="analytics-body">
+                                            <div class="analytics-chart" id="trendingTopicsChartWrapper">
+                                                <canvas id="trendingTopicsChart" data-topics="{{ trending_topics|tojson }}"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="analytics-card mb-3">
+                                        <div class="analytics-header">
+                                            <h5 class="mb-0">Threads by Body Part</h5>
+                                        </div>
+                                        <div class="analytics-body">
+                                            <div class="analytics-chart" id="bodyPartDistributionChartWrapper">
+                                                <canvas id="bodyPartDistributionChart" data-distribution="{{ body_part_distribution|tojson }}"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card mb-4">
+                                <div class="analytics-header">
+                                    <h5 class="mb-0">Filter Threads by Body Part</h5>
+                                </div>
+                                <div class="analytics-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <select id="bodyPartFilter" class="form-select filter-control">
+                                                <option value="">All Body Parts</option>
+                                                {% for body_part in body_parts %}
+                                                <option value="{{ body_part }}">{{ body_part }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="threadList" class="list-group">
+                                        {% if threads_by_body_part %}
+                                            {% for thread in threads_by_body_part %}
+                                            <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" 
+                                               class="list-group-item list-group-item-action bg-dark text-white border-light thread-item"
+                                               data-body-part="{{ thread.procedure.body_part if thread.procedure else 'Unknown' }}">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1">{{ thread.title }}</h5>
+                                                    <small>{{ thread.created_at.strftime('%b %d, %Y') }}</small>
+                                                </div>
+                                                <p class="mb-1">{{ thread.content|truncate(100) }}</p>
+                                                <div>
+                                                    {% if thread.procedure and thread.procedure.body_part %}
+                                                    <span class="tag-pill body-part-badge">{{ thread.procedure.body_part }}</span>
+                                                    {% endif %}
+                                                    {% if thread.procedure and thread.procedure.category %}
+                                                    <span class="tag-pill category-badge">{{ thread.procedure.category }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <small class="text-muted">{{ thread.view_count }} views • {{ thread.reply_count }} replies</small>
+                                            </a>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="list-group-item text-center py-3">
+                                                <p class="mb-0">No threads available</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card">
+                                <div class="analytics-header">
+                                    <h5 class="mb-0">Community Health</h5>
+                                </div>
+                                <div class="analytics-body">
+                                    <div class="analytics-stats">
+                                        <div class="stat-card">
+                                            <div class="stat-label">Thread Engagement</div>
+                                            <div class="stat-value">{{ '%.1f'|format(avg_engagement) }}</div>
+                                            <small class="text-muted">Average replies per thread</small>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-label">Active Users</div>
+                                            <div class="stat-value">{{ active_users }}</div>
+                                            <small class="text-muted">Users with activity in past 30 days</small>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-label">Growth Rate</div>
+                                            <div class="stat-value">{{ growth_rate }}%</div>
+                                            <small class="text-muted">New threads compared to previous period</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Load the optimized analytics JS file -->
+<script src="{{ url_for('static', filename='js/community-analytics-updated.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable Bootstrap tabs
+        const triggerTabList = [].slice.call(document.querySelectorAll('.list-group-item[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+        
+        // Log tab initialization with timestamp
+        console.log(`[${new Date().toISOString()}] Dashboard tabs initialized`);
+        
+        // Initialize analytics if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            // Lazy loading for charts - done in community-analytics-updated.js
+            initializeLazyChartLoading();
+        } else {
+            console.error('Chart.js is not loaded. Charts will not be displayed.');
+        }
+        
+        // Initialize refresh button
+        initializeRefreshButton();
+    });
+</script>
+{% endblock %}

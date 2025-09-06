@@ -1,0 +1,68 @@
+
+/* Phase 4A Layout Shift Fix */
+.hero-banner-container {
+    min-height: 400px;
+    position: relative;
+}
+
+.hero-banner-container img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.slide-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Prevent font loading layout shifts */
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.font-loaded body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Fix search section layout shift */
+.hero-search-section {
+    min-height: 200px;
+    position: relative;
+}
+
+/* Prevent button layout shifts */
+.btn {
+    min-height: 38px;
+    box-sizing: border-box;
+}
+
+/* Fix navigation layout shifts */
+.navbar {
+    min-height: 64px;
+}
+
+/* Fix mobile navigation layout shifts */
+@media (max-width: 768px) {
+    .mobile-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        z-index: 1000;
+    }
+    
+    body {
+        margin-bottom: 60px;
+    }
+}

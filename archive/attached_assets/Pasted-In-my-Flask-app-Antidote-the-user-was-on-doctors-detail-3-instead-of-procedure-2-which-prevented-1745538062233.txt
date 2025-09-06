@@ -1,0 +1,73 @@
+In my Flask app Antidote, the user was on /doctors/detail/3 instead of /procedure/2, which prevented proper testing of the Rhinoplasty Procedure Detail Page. Navigate to the correct page and complete the end-to-end testing:
+1. Navigate to http://localhost:5000/procedure/2 (Rhinoplasty).
+2. Verify the Procedure Detail Page:
+   - Confirm the procedure name is "Rhinoplasty."
+   - Confirm the "Doctors Who Perform This Procedure" section exists and lists Dr. John Smith (ID 3):
+     - Verify the database association:
+       SELECT * FROM doctor_procedures WHERE doctor_id = 3 AND procedure_id = 2;
+     - If missing, re-insert:
+       INSERT INTO doctor_procedures (doctor_id, procedure_id, created_at) VALUES (3, 2, CURRENT_TIMESTAMP) RETURNING id;
+     - Check the procedure_detail route in routes.py to ensure it fetches doctors:
+       procedure_doctors = Doctor.query.join(DoctorProcedure).filter(DoctorProcedure.procedure_id == procedure_id).all()
+3. Test the "Write a Review" button functionality on /procedure/2:
+   - Check the browser console (F12 > Console) for errors when clicking the button.
+   - Open procedure_detail.html and confirm the button references the correct modal ID:
+     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#writeReviewModal">Write a Review</button>
+   - Confirm the modal exists with the correct ID:
+     <div class="modal fade" id="writeReviewModal" tabindex="-1" role="dialog" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+       <div class="modal-dialog" role="document">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title" id="writeReviewModalLabel">Write a Review</h5>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">×</span>
+             </button>
+           </div>
+           <div class="modal-body">
+             <form id="reviewForm" action="{{ url_for('web.submit_review') }}" method="POST">
+               <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+               <div class="form-group">
+                 <label for="rating">Rating (1-5):</label>
+                 <select name="rating" id="rating" class="form-control" required>
+                   <option value="1">1 Star</option>
+                   <option value="2">2 Stars</option>
+                   <option value="3">3 Stars</option>
+                   <option value="4">4 Stars</option>
+                   <option value="5">5 Stars</option>
+                 </select>
+               </div>
+               <div class="form-group">
+                 <label for="comment">Comment:</label>
+                 <textarea name="comment" id="comment" class="form-control" required></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit Review</button>
+             </form>
+           </div>
+         </div>
+       </div>
+     </div>
+   - Ensure Bootstrap and jQuery scripts are included in the template:
+     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+4. Test the review submission:
+   - Click "Write a Review" and confirm the modal appears.
+   - Enter rating 4 (select 4 stars) and comment "Great experience."
+   - Submit the review and verify it appears in the Reviews tab with the correct rating and comment.
+5. Check the browser console (F12 > Console) for errors during the process.
+6. Check the Network tab (F12 > Network) for a POST request to /submit-review, confirming a 200 response.
+7. Verify server logs:
+   tail -n 50 /tmp/replit-nix-errors.log
+8. Verify the database for the submitted review:
+   SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND procedure_id = 2 LIMIT 5;
+   - Expect: A review with rating=4, comment="Great experience", user_id=1, procedure_id=2.
+9. Provide a screenshot of /procedure/2 showing:
+   - The doctors list with Dr. John Smith.
+   - The review form modal (after clicking "Write a Review").
+   - The submitted review in the Reviews tab.
+10. Share observations for each step, including:
+    - Correct page navigation and procedure name.
+    - Doctors list content.
+    - Review modal appearance, submission success, and review display.
+    - Any errors in the console, network, or server logs.
+11. Update models.py, routes.py, templates, or the database if any issues arise.
+12. If all tests pass, confirm that the Procedure Detail Page functionality is fully resolved and ready to move on to the next task.

@@ -1,0 +1,42 @@
+{
+  "table": "community_moderation",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "community_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "reply_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "moderator_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "action",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "reason",
+      "type": "text",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

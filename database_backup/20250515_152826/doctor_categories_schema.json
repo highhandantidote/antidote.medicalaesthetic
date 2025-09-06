@@ -1,0 +1,32 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('doctor_categories_id_seq'::regclass)"
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "category_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_verified",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  }
+]

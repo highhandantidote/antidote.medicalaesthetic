@@ -1,0 +1,50 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('user_badges_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "badge_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "badge_name",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "badge_description",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "badge_icon",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "earned_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_visible",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  }
+]

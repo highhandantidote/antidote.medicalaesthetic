@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}All Clinics - Medical Centers{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-page-desktop-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-cards-visibility-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-all-desktop-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-cards-mobile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-cards-desktop-reviews.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-cards-gap-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-desktop-layout-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-search-ultra-compact.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('clinic.search_clinics') }}" id="clinicFilterForm">
+                    <!-- Basic Filters Row -->
+                    <div class="row g-3 mb-3">
+                        <!-- Search Input -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="q" class="form-control" 
+                                           placeholder="Search clinic names, specialties..." 
+                                           value="{{ request.args.get('q', '') }}" id="clinicSearchInput">
+                                </div>
+                                <div id="clinicSearchSuggestions" class="dropdown-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Location Filter -->
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" name="location" class="form-control" placeholder="Select location..." 
+                                           value="{{ request.args.get('location', request.args.get('city', '')) }}" 
+                                           id="clinicLocationInput" autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary" id="useLocationBtn">
+                                        <i class="fas fa-location-arrow"></i>
+                                    </button>
+                                </div>
+                                <div id="clinicLocationDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" type="submit">
+                                <i class="fas fa-search me-2"></i>Search Clinics
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Toggle -->
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-link p-0 text-decoration-none" id="clinicAdvancedFiltersToggle">
+                                <i class="fas fa-chevron-down me-1"></i>
+                                <span>Advanced Filters</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Section (Hidden by default) -->
+                    <div id="clinicAdvancedFiltersSection" style="display: none;" class="mt-3">
+                        <div class="row g-3">
+                            <!-- Specialties Filter -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label mb-1">Specialties</label>
+                                <div class="position-relative">
+                                    <input type="text" name="specialty" class="form-control" placeholder="Select specialty..." 
+                                           value="{{ request.args.get('specialty', request.args.get('category', '')) }}" 
+                                           id="clinicSpecialtyInput" autocomplete="off">
+                                    <div class="dropdown-arrow"><i class="fas fa-chevron-down"></i></div>
+                                    <div id="clinicSpecialtyDropdown" class="dropdown-suggestions" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Rating Filter -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label mb-1">Minimum Rating</label>
+                                <select name="rating" class="form-select">
+                                    <option value="">All Ratings</option>
+                                    <option value="4.5" {% if request.args.get('rating') == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                                    <option value="4.0" {% if request.args.get('rating') == '4.0' %}selected{% endif %}>4.0+ Stars</option>
+                                    <option value="3.5" {% if request.args.get('rating') == '3.5' %}selected{% endif %}>3.5+ Stars</option>
+                                    <option value="3.0" {% if request.args.get('rating') == '3.0' %}selected{% endif %}>3.0+ Stars</option>
+                                </select>
+                            </div>
+
+                            <!-- Verification Status -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label mb-1">Verification</label>
+                                <select name="verified" class="form-select">
+                                    <option value="">All Clinics</option>
+                                    <option value="true" {% if request.args.get('verified') == 'true' %}selected{% endif %}>Verified Only</option>
+                                    <option value="false" {% if request.args.get('verified') == 'false' %}selected{% endif %}>Unverified Only</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort Filter -->
+                            <div class="col-md-6 col-lg-3">
+                                <label class="form-label mb-1">Sort by</label>
+                                <select name="sort" class="form-select">
+                                    <option value="rating" {% if request.args.get('sort') == 'rating' %}selected{% endif %}>Highest Rated</option>
+                                    <option value="reviews" {% if request.args.get('sort') == 'reviews' %}selected{% endif %}>Most Reviews</option>
+                                    <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest First</option>
+                                    <option value="alphabetical" {% if request.args.get('sort') == 'alphabetical' %}selected{% endif %}>Alphabetical</option>
+                                    <option value="distance" {% if request.args.get('sort') == 'distance' %}selected{% endif %}>Distance</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter me-1"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="clinicClearFilters">
+                                        <i class="fas fa-times me-1"></i>Clear All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clinics List -->
+<div class="row">
+    <div class="col-12">
+
+
+        {% if clinics %}
+        <div class="d-flex flex-column gap-2">
+            {% for clinic in clinics %}
+            <div class="card shadow-sm clinic-card" 
+                 style="cursor: pointer;" 
+                 onclick="window.location.href='/clinic/view/{{ clinic.slug or clinic.id }}'">
+                <div class="card-body">
+                    <!-- Mobile Layout: Top row with image, name, location, description -->
+                    <div class="mobile-top-row d-md-none">
+                        <!-- Clinic Image/Icon -->
+                        {% if clinic.profile_image %}
+                        <img src="{{ clinic.profile_image }}" alt="{{ clinic.name }}" 
+                             class="mobile-clinic-image">
+                        {% else %}
+                        <div class="mobile-clinic-icon">
+                            <i class="fas fa-hospital"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Clinic Info -->
+                        <div class="mobile-clinic-info">
+                            <div class="mobile-clinic-name">{{ clinic.name }}</div>
+                            <div class="mobile-clinic-location">{{ clinic.city }}, {{ clinic.state }}</div>
+                            {% if clinic.description %}
+                            <div class="mobile-clinic-description">{{ clinic.description[:100] }}{% if clinic.description|length > 100 %}...{% endif %}</div>
+                            {% else %}
+                            <div class="mobile-clinic-description">Professional medical aesthetic center providing comprehensive cosmetic treatments.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Layout: Bottom row with rating and reviews -->
+                    <div class="mobile-bottom-row d-md-none">
+                        <div class="mobile-rating-section">
+                            {% if clinic.google_rating %}
+                                {% set rating = clinic.google_rating %}
+                                <div class="mobile-stars-row">
+                                    <div class="mobile-stars">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% elif i - 0.5 <= rating %}
+                                                <i class="fas fa-star-half-alt"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="mobile-rating-text">{{ "%.1f"|format(rating) }}</div>
+                                </div>
+                                <div class="mobile-reviews-count">
+                                    <i class="fab fa-google"></i> {{ clinic.google_review_count }} Google Reviews
+                                </div>
+                            {% else %}
+                                <div class="mobile-stars-row">
+                                    <div class="mobile-stars">
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <div class="mobile-rating-text">No rating</div>
+                                </div>
+                                <div class="mobile-reviews-count">No reviews yet</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Desktop Layout: Original structure (hidden on mobile) -->
+                    <div class="d-none d-md-block">
+                        <div class="row align-items-center">
+                            <!-- Left Section: Icon and Content -->
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-start">
+                                    <!-- Clinic Icon -->
+                                    <div class="me-3 flex-shrink-0">
+                                        {% if clinic.profile_image %}
+                                        <img src="{{ clinic.profile_image }}" alt="{{ clinic.name }}" 
+                                             class="rounded" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                             style="width: 100px; height: 100px;">
+                                            <i class="fas fa-hospital text-muted" style="font-size: 32px;"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Clinic Info -->
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-1">{{ clinic.name }}</h5>
+                                        <h6 class="text-primary mb-2">{{ clinic.city }}, {{ clinic.state }}</h6>
+                                        {% if clinic.description %}
+                                        <p class="card-text text-muted small">{{ clinic.description[:120] }}{% if clinic.description|length > 120 %}...{% endif %}</p>
+                                        {% else %}
+                                        <p class="card-text text-muted small">Professional medical aesthetic center providing comprehensive cosmetic treatments.</p>
+                                        {% endif %}
+                                        
+                                        <!-- Additional Info -->
+                                        <div class="d-flex gap-3 mt-2">
+                                            {% if clinic.current_day_hours %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ clinic.current_day_hours }}
+                                            </small>
+                                            {% endif %}
+                                            {% if clinic.contact_number %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-phone me-1"></i>{{ clinic.contact_number }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Section: Rating and Actions -->
+                            <div class="col-md-4 text-end">
+                                {% if clinic.google_rating %}
+                                    {% set rating = clinic.google_rating %}
+                                    <div class="d-flex align-items-center justify-content-end mb-2">
+                                        <div class="text-warning me-2">
+                                            {% for i in range(1, 6) %}
+                                                {% if i <= rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% elif i - 0.5 <= rating %}
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="small text-muted">{{ "%.1f"|format(rating) }}</span>
+                                    </div>
+                                    <div class="h6 text-primary fw-bold mb-1">
+                                        <i class="fab fa-google me-1"></i>{{ clinic.google_review_count }} Google Reviews
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex align-items-center justify-content-end mb-2">
+                                        <div class="text-muted me-2">
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                        <span class="small text-muted">No rating</span>
+                                    </div>
+                                    <div class="h6 text-muted mb-1">No reviews yet</div>
+                                {% endif %}
+                                {% if clinic.package_count %}
+                                <span class="badge bg-success">{{ clinic.package_count }} Packages</span>
+                                {% elif clinic.is_verified %}
+                                <span class="badge bg-info">Verified Clinic</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Clinic listing pagination">
+                <ul class="pagination">
+                    <!-- Previous Button -->
+                    {% if current_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('clinic.all_clinics', page=current_page-1) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    <!-- Page Numbers -->
+                    {% for page_num in range(1, total_pages + 1) %}
+                        {% if page_num == current_page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% elif page_num <= 3 or page_num > total_pages - 3 or (page_num >= current_page - 1 and page_num <= current_page + 1) %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('clinic.all_clinics', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% elif page_num == 4 or page_num == total_pages - 3 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Next Button -->
+                    {% if current_page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('clinic.all_clinics', page=current_page+1) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Results Summary -->
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                Showing {{ ((current_page - 1) * per_page + 1) }} to {{ (current_page * per_page if current_page * per_page <= total_count else total_count) }} 
+                of {{ total_count }} clinics
+            </small>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Clinics Found -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-search fa-3x text-muted"></i>
+            </div>
+            <h3 class="h4 mb-3">No clinics found</h3>
+            <p class="text-muted mb-4">Get started by adjusting your search filters or browse all available clinics.</p>
+            <a href="{{ url_for('clinic.clinic_marketplace') }}" class="btn btn-primary">
+                <i class="fas fa-eye me-2"></i>View All Clinics
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-filters.css') }}">
+<style>
+.clinic-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.clinic-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/clinic-filters.js') }}"></script>
+{% endblock %}
+{% endblock %}

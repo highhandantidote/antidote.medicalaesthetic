@@ -1,0 +1,80 @@
+/**
+ * Focused comma fixes - designed specifically to fix comma positioning
+ * throughout the Antidote platform
+ */
+
+/* ------ GLOBAL FIXES FOR ALL COMMA SEPARATED LISTS ------ */
+
+/* Fix all links that appear in any list of procedures */
+body a.text-decoration-none {
+    display: inline !important;
+    white-space: nowrap !important;
+    vertical-align: baseline !important;
+    position: relative !important;
+    line-height: 1.5 !important;
+}
+
+/* Fix all comma spans anywhere in the application */
+body span.text-muted {
+    display: inline !important;
+    white-space: nowrap !important;
+    vertical-align: baseline !important;
+    position: relative !important;
+    line-height: inherit !important;
+    top: 0 !important;
+}
+
+/* Ensure text flows properly */
+body a + span.text-muted {
+    margin-left: -1px !important;
+}
+
+/* Procedure link wrapper - for structured procedure lists */
+.procedure-link-wrap {
+    display: inline-flex !important;
+    margin-right: 2px !important;
+    white-space: nowrap !important;
+    align-items: baseline !important;
+}
+
+/* Ensure all text is properly aligned */
+body, 
+.text-muted,
+a.text-decoration-none,
+.procedure-link-wrap,
+.procedure-link-wrap a,
+.procedure-link-wrap span {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+}
+
+/* Fix for autocomplete dropdown and search results */
+.search-autocomplete-item strong,
+.search-autocomplete-item a,
+.search-autocomplete-item span {
+    display: inline !important;
+    vertical-align: baseline !important;
+}
+
+/* Scrolling content containers for procedure lists */
+.scrolling-content {
+    white-space: nowrap !important;
+}
+
+/* Popular section below search in all locations */
+body .Popular a,
+body form a.text-decoration-none,
+body .search-form-container a.text-decoration-none {
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body .Popular span.text-muted,
+body form span.text-muted,
+body .search-form-container span.text-muted {
+    display: inline-block !important;
+    margin-left: -1px !important;
+    margin-right: 2px !important;
+    vertical-align: baseline !important;
+}

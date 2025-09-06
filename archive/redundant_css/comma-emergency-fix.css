@@ -1,0 +1,65 @@
+/**
+ * Emergency comma positioning fix
+ * This adds spacing to procedure elements to fix comma positioning issues
+ */
+
+/* Add space after procedure links */
+a.text-decoration-none {
+  margin-right: 5px !important;
+  display: inline !important;
+  position: static !important;
+  float: none !important;
+  vertical-align: baseline !important;
+  line-height: inherit !important;
+}
+
+/* Force text-muted commas to appear inline with text */
+.text-muted {
+  display: inline !important;
+  vertical-align: baseline !important;
+  position: static !important;
+  float: none !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Special handling for procedure-link-wrap spans */
+.procedure-link-wrap {
+  display: inline-block !important;
+  position: static !important;
+  vertical-align: baseline !important;
+  line-height: inherit !important;
+}
+
+/* Ensure proper spacing in popular sections */
+div:has(> span:contains("Popular:")) * {
+  line-height: normal !important;
+}
+
+/* Alternative selectors for browsers without :has support */
+.scrolling-procedures .scrolling-content a,
+.mt-3.position-relative a {
+  margin-right: 5px !important;
+  display: inline !important;
+  position: static !important;
+  float: none !important;
+  vertical-align: baseline !important;
+  line-height: inherit !important;
+}
+
+/* Remove any unwanted black bar/line at the top of the page */
+body::before,
+body > div:first-child:not(.navbar):not(.container):not(.cursor-dot):not(.cursor-outline):not(.page-transition),
+body > div[style*="position: fixed"][style*="top: 0"],
+body > div[style*="height: 8px"],
+body > div[style*="height:8px"],
+div[style*="position: fixed"][style*="z-index: 2147483647"][style*="top: 0"],
+div[style*="position: fixed"][style*="height: 8px"],
+div[style*="position: fixed"][style*="background-color: rgb(0, 0, 0)"],
+div[style*="position: fixed"][style*="background-color: #000"],
+div[style*="position: fixed"][style*="background-color: black"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}

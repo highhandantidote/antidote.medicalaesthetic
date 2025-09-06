@@ -1,0 +1,90 @@
+In my Flask app Antidote, the Rhinoplasty Procedure Detail Page (/procedure/2) shows the correct page title and "Write a Review" button, but the button does not open the modal, and the "Doctors Who Perform This Procedure" section is not visible. Fix these issues and complete the end-to-end testing:
+1. Verify the "Doctors Who Perform This Procedure" section:
+   - Confirm the section exists in procedure_detail.html:
+     <h3>Doctors Who Perform This Procedure</h3>
+     {% if procedure_doctors %}
+         <ul>
+         {% for doctor in procedure_doctors %}
+             <li>{{ doctor.name }} (ID: {{ doctor.id }})</li>
+         {% endfor %}
+         </ul>
+     {% else %}
+         <p>No doctors found for this procedure.</p>
+     {% endif %}
+   - Verify the database association:
+     SELECT * FROM doctor_procedures WHERE doctor_id = 3 AND procedure_id = 2;
+   - If missing, re-insert:
+     INSERT INTO doctor_procedures (doctor_id, procedure_id, created_at) VALUES (3, 2, CURRENT_TIMESTAMP) RETURNING id;
+   - Check the procedure_detail route in routes.py:
+     procedure_doctors = Doctor.query.join(DoctorProcedure).filter(DoctorProcedure.procedure_id == procedure_id).all()
+   - If the section is not rendering, debug the template and query logic.
+2. Fix the "Write a Review" button functionality:
+   - Check the browser console (F12 > Console) for errors when clicking the button.
+   - Open procedure_detail.html and verify the button and modal:
+     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#writeReviewModal">Write a Review</button>
+     <div class="modal fade" id="writeReviewModal" tabindex="-1" role="dialog" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+       <div class="modal-dialog" role="document">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title" id="writeReviewModalLabel">Write a Review</h5>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">×</span>
+             </button>
+           </div>
+           <div class="modal-body">
+             <form id="reviewForm" action="{{ url_for('web.submit_review') }}" method="POST">
+               <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+               <div class="form-group">
+                 <label for="rating">Rating (1-5):</label>
+                 <select name="rating" id="rating" class="form-control" required>
+                   <option value="1">1 Star</option>
+                   <option value="2">2 Stars</option>
+                   <option value="3">3 Stars</option>
+                   <option value="4">4 Stars</option>
+                   <option value="5">5 Stars</option>
+                 </select>
+               </div>
+               <div class="form-group">
+                 <label for="comment">Comment:</label>
+                 <textarea name="comment" id="comment" class="form-control" required></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit Review</button>
+             </form>
+           </div>
+         </div>
+       </div>
+     </div>
+   - Ensure Bootstrap and jQuery scripts are correctly included in base.html:
+     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+   - Add manual modal initialization in procedure_detail.html or main.js:
+     <script>
+       $(document).ready(function() {
+         $('.btn-primary[data-toggle="modal"]').on('click', function() {
+           $('#writeReviewModal').modal('show');
+         });
+       });
+     </script>
+   - Restart the application if changes are made:
+     Restarted Start application
+3. Test the review submission:
+   - Click "Write a Review" and confirm the modal appears.
+   - Enter rating 4 (select 4 stars) and comment "Great experience."
+   - Submit the review and verify it appears in the Reviews tab with the correct rating and comment.
+4. Check the browser console (F12 > Console) for errors during the process.
+5. Check the Network tab (F12 > Network) for a POST request to /submit-review, confirming a 200 response.
+6. Verify server logs:
+   tail -n 50 /tmp/replit-nix-errors.log
+7. Verify the database for the submitted review:
+   SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND procedure_id = 2 LIMIT 5;
+   - Expect: A review with rating=4, comment="Great experience", user_id=1, procedure_id=2.
+8. Provide a screenshot of /procedure/2 showing:
+   - The doctors list with Dr. John Smith.
+   - The review form modal (after clicking "Write a Review").
+   - The submitted review in the Reviews tab.
+9. Share observations for each step, including:
+   - Procedure name and doctors list content.
+   - Review modal appearance, submission success, and review display.
+   - Any errors in the console, network, or server logs.
+10. Update models.py, routes.py, templates, or the database if any issues arise.
+11. If all tests pass, confirm that the Procedure Detail Page functionality is fully resolved and ready to move on to the next task.

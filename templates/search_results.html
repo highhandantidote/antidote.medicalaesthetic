@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results for "{{ query }}" | Antidote{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/package-filters.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+    
+    {% if (procedures|length + doctors|length + threads|length + packages|length + clinics|length) == 0 %}
+        <div class="alert alert-info">
+            <i data-feather="info" class="feather-sm me-2"></i>
+            No results found for "{{ query }}". Please try a different search term.
+        </div>
+    {% else %}
+        <div class="alert alert-success">
+            <i data-feather="check-circle" class="feather-sm me-2"></i>
+            Found {{ procedures|length + doctors|length + threads|length + packages|length + clinics|length }} results for "{{ query }}".
+        </div>
+    {% endif %}
+    
+    <!-- Treatment Packages Section - Priority #1 -->
+    {% if packages %}
+        <section class="mb-5">
+            <h2 class="mb-3">Treatment Packages ({{ packages|length }})</h2>
+            <!-- Include package cards from packages directory template -->
+            {% include 'packages/includes/package_cards.html' %}
+        </section>
+    {% endif %}
+    
+    <!-- Procedures Section - Priority #2 -->
+    {% if procedures %}
+        <section class="mb-5">
+            <h2 class="mb-3">Procedures ({{ procedures|length }})</h2>
+            <div class="row">
+                {% for procedure in procedures %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h4 class="card-title">{{ procedure.procedure_name }}</h4>
+                                <p class="card-text">{{ procedure.short_description }}</p>
+                                
+                                <div class="mb-3">
+                                    <!-- Cost Range Row -->
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-rupee-sign text-success me-2"></i>
+                                        <strong class="me-2">Cost Range:</strong>
+                                        <span class="price-display">₹{{ procedure.min_cost|default('N/A') }} - ₹{{ procedure.max_cost|default('N/A') }}</span>
+                                    </div>
+                                    <!-- Recovery Row -->
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i data-feather="clock" class="text-info me-2"></i>
+                                        <strong class="me-2">Recovery:</strong>
+                                        <span>{{ procedure.recovery_time|default('Varies') }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if procedure.category %}
+                                            <span class="badge bg-primary">{{ procedure.category.name }}</span>
+                                        {% endif %}
+                                        {% if procedure.body_part %}
+                                            <span class="badge bg-secondary">{{ procedure.body_part }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-outline-primary">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Clinics Section - Priority #3 -->
+    {% if clinics %}
+        <section class="mb-5">
+            <h2 class="mb-3">Clinics ({{ clinics|length }})</h2>
+            <div class="row">
+                {% for clinic in clinics %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">{{ clinic.name }}</h5>
+                                    {% if clinic.is_verified %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                        <span class="text-muted">{{ clinic.area }}, {{ clinic.city }}</span>
+                                    </div>
+                                    
+                                    {% if clinic.overall_rating %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="rating-stars me-2">
+                                                {% for i in range(5) %}
+                                                    {% if i < clinic.overall_rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-muted"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <span class="text-muted">{{ clinic.overall_rating|round(1) }} ({{ clinic.total_reviews|default(0) }} reviews)</span>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if clinic.phone_number %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-phone text-info me-2"></i>
+                                            <span class="text-muted">{{ clinic.phone_number }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if clinic.specialties %}
+                                            {% for specialty in clinic.specialties[:2] %}
+                                                <span class="badge bg-primary me-1">{{ specialty.category.name if specialty.category else 'General' }}</span>
+                                            {% endfor %}
+                                            {% if clinic.specialties|length > 2 %}
+                                                <span class="badge bg-light text-dark">+{{ clinic.specialties|length - 2 }} more</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('clinic.clinic_detail', slug=clinic.slug if clinic.slug else clinic.id) }}" class="btn btn-outline-primary">View Clinic</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Doctors Section - Priority #4 -->
+    {% if doctors %}
+        <section class="mb-5">
+            <h2 class="mb-3">Doctors ({{ doctors|length }})</h2>
+            <div class="row">
+                {% for doctor in doctors %}
+                    <div class="col-12 mb-4">
+                        <div class="card shadow-sm border-0 hover-shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 text-center">
+                                        {% if doctor.profile_image %}
+                                            <img src="{{ doctor.profile_image }}" class="rounded-circle img-fluid mx-auto border" style="width: 120px; height: 120px; object-fit: cover;" alt="Dr. {{ doctor.name }}">
+                                        {% elif doctor.doctor_photos and doctor.doctor_photos|length > 0 %}
+                                            <img src="{{ doctor.doctor_photos[0].photo_url }}" class="rounded-circle img-fluid mx-auto border" style="width: 120px; height: 120px; object-fit: cover;" alt="Dr. {{ doctor.name }}">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px;">
+                                                <i class="fas fa-user-md text-primary" style="font-size: 2.5rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h4 class="card-title mb-0">Dr. {{ doctor.name }}</h4>
+                                            {% if doctor.is_verified %}
+                                                <span class="badge bg-success ms-2">
+                                                    <i class="fas fa-check-circle"></i> Verified
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <p class="text-muted mb-2">{{ doctor.specialty }}</p>
+                                        <p class="mb-1"><strong>Qualifications:</strong> {{ doctor.qualification|default('MBBS, MS, MCh') }}</p>
+                                        
+                                        <div class="row mt-3 mb-3">
+                                            <div class="col-md-6">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                                    <span>{{ doctor.city }}{% if doctor.state %}, {{ doctor.state }}{% endif %}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-briefcase text-primary me-2"></i>
+                                                    <span>{{ doctor.experience|default(10) }} yrs experience</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-calendar-check text-info me-2"></i>
+                                                    <span>Available Today</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2 mt-3">
+                                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-primary">
+                                                View Profile
+                                            </a>
+                                            <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-success">
+                                                Book Consultation
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+    
+    <!-- Community Discussions Section - Priority #5 -->
+    {% if threads %}
+        <section>
+            <h2 class="mb-3">Community Discussions ({{ threads|length }})</h2>
+            <div class="row">
+                {% for thread in threads %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ thread.title }}</h5>
+                                <p class="card-text text-muted small">
+                                    {% if thread.created_at %}
+                                        {{ thread.created_at.strftime('%b %d, %Y') }}
+                                    {% endif %}
+                                    {% if thread.user_id %}
+                                        by 
+                                        {% if thread.user is defined and thread.user %}
+                                            {{ thread.user.username }}
+                                        {% else %}
+                                            Anonymous
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+                                <p class="card-text">{{ thread.content|truncate(100) }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div>
+                                        {% if thread.view_count is defined %}
+                                            <span class="text-muted me-3"><i data-feather="eye" class="feather-sm me-1"></i> {{ thread.view_count|default(0) }}</span>
+                                        {% endif %}
+                                        {% if thread.reply_count is defined %}
+                                            <span class="text-muted"><i data-feather="message-square" class="feather-sm me-1"></i> {{ thread.reply_count|default(0) }}</span>
+                                        {% else %}
+                                            <span class="text-muted"><i data-feather="message-square" class="feather-sm me-1"></i> 0</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-outline-primary">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{% endblock %}

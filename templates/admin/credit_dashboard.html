@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Credit Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Admin Credit Management Dashboard</h1>
+                <div class="btn-group">
+                    <a href="{{ url_for('web.admin_transaction_history') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-history"></i> Transaction History
+                    </a>
+                    <a href="{{ url_for('lead_pricing.pricing_management') }}" class="btn btn-outline-success">
+                        <i class="fas fa-tags"></i> Lead Pricing
+                    </a>
+                    <a href="{{ url_for('web.admin_lead_analytics') }}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-line"></i> Lead Analytics
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="fas fa-cogs"></i> More Admin Tools
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/admin/clinic">
+                                <i class="fas fa-hospital"></i> Clinic Management
+                            </a>
+                            <a class="dropdown-item" href="/admin/banners">
+                                <i class="fas fa-image"></i> Banner Management
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('web.admin_users') }}">
+                                <i class="fas fa-users"></i> User Management
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('web.admin_procedures') }}">
+                                <i class="fas fa-medkit"></i> Content Management
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('web.admin_dashboard_doctor_verifications') }}">
+                                <i class="fas fa-user-md"></i> Doctor Verification
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('web.admin_community_moderation') }}">
+                                <i class="fas fa-comments"></i> Community Moderation
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('web.admin_analytics') }}">
+                                <i class="fas fa-chart-bar"></i> Analytics & Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Clinics</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_clinics }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hospital fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Clinics</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_clinics }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Low Balance Clinics</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.low_balance_clinics }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Leads</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_leads }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Tools Grid -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Admin Management Tools</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="/admin/clinic" class="text-decoration-none">
+                                <div class="card bg-success text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Clinic Management</div>
+                                                <div class="text-sm">Manage and approve clinic registrations</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-hospital fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="/admin/banners" class="text-decoration-none">
+                                <div class="card bg-primary text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Banner Management</div>
+                                                <div class="text-sm">Create, edit, and manage banner displays</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-image fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('web.admin_dashboard_doctor_verifications') }}" class="text-decoration-none">
+                                <div class="card bg-info text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Doctor Verification</div>
+                                                <div class="text-sm">Review and verify doctor accounts</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-user-md fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('web.admin_users') }}" class="text-decoration-none">
+                                <div class="card bg-info text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">User Management</div>
+                                                <div class="text-sm">Manage user accounts and permissions</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-users fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('web.admin_procedures') }}" class="text-decoration-none">
+                                <div class="card bg-warning text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Content Management</div>
+                                                <div class="text-sm">Manage procedures and categories</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-medkit fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('web.admin_community_moderation') }}" class="text-decoration-none">
+                                <div class="card bg-secondary text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Community Moderation</div>
+                                                <div class="text-sm">Moderate posts, threads, and replies</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-comments fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('web.admin_analytics') }}" class="text-decoration-none">
+                                <div class="card bg-dark text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Analytics & Reports</div>
+                                                <div class="text-sm">View platform analytics and reports</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-chart-bar fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="/admin/category-images" class="text-decoration-none">
+                                <div class="card bg-light text-dark shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Category Images</div>
+                                                <div class="text-sm">Upload and manage category images</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-images fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="/admin/procedure-images" class="text-decoration-none">
+                                <div class="card bg-danger text-white shadow h-100">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">Procedure Images</div>
+                                                <div class="text-sm">Upload procedure images and media</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-file-image fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Credit Allocation Panel -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Allocate Credits</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('web.allocate_credits') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="form-group">
+                            <label for="clinic_id">Select Clinic</label>
+                            <select class="form-control" id="clinic_id" name="clinic_id" required>
+                                <option value="">Choose a clinic...</option>
+                                {% for clinic in clinics %}
+                                <option value="{{ clinic.id }}">
+                                    {{ clinic.name }} (Balance: {{ clinic.credit_balance }} credits)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="credits">Credits to Allocate</label>
+                            <input type="number" class="form-control" id="credits" name="credits" min="1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="2" placeholder="Reason for credit allocation..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Allocate Credits
+                        </button>
+                    </form>
+                    
+                    <!-- Debit Credits Form -->
+                    <hr class="my-4">
+                    <h6 class="font-weight-bold text-danger mb-3">Debit Credits (Refunds)</h6>
+                    <form id="debitForm" method="POST" action="{{ url_for('admin_credit.debit_credits') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="form-group">
+                            <label for="debit_clinic_id">Select Clinic</label>
+                            <select class="form-control" id="debit_clinic_id" name="clinic_id" required>
+                                <option value="">Choose clinic...</option>
+                                {% for clinic in clinics %}
+                                <option value="{{ clinic.id }}">{{ clinic.name }} (Balance: {{ clinic.credit_balance or 0 }} credits)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="debit_credits">Credits to Debit</label>
+                            <input type="number" class="form-control" id="debit_credits" name="credits" min="1" required placeholder="Enter credits to debit...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="debit_description">Reason for Debit</label>
+                            <textarea class="form-control" id="debit_description" name="description" rows="2" placeholder="Reason for credit debit (refund details)..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-minus-circle"></i> Debit Credits
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Transactions</h6>
+                    <a href="{{ url_for('web.admin_transaction_history') }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Clinic</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions[:5] %}
+                                <tr>
+                                    <td>{{ transaction.clinic_name }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 'success' if transaction.amount > 0 else 'danger' }}">
+                                            {{ '+' if transaction.amount > 0 else '' }}{{ transaction.amount }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.transaction_type.replace('_', ' ').title() }}</td>
+                                    <td>{{ transaction.created_at.strftime('%m/%d %H:%M') if transaction.created_at else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No transactions found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinic Management Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Clinic Credit Management</h6>
+                    <small class="text-muted">Manage all clinic credit balances and usage</small>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="clinicTable">
+                            <thead>
+                                <tr>
+                                    <th>Clinic Name</th>
+                                    <th>Email</th>
+                                    <th>Current Balance</th>
+                                    <th>Total Purchased</th>
+                                    <th>Total Used</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for clinic in clinics %}
+                                <tr>
+                                    <td>{{ clinic.name }}</td>
+                                    <td>{{ clinic.email }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 'success' if clinic.credit_balance > 10 else 'warning' if clinic.credit_balance > 0 else 'danger' }}">
+                                            {{ clinic.credit_balance }} credits
+                                        </span>
+                                    </td>
+                                    <td>{{ clinic.total_credits_purchased }}</td>
+                                    <td>{{ clinic.total_credits_used }}</td>
+                                    <td>
+                                        {% if clinic.credit_balance > 10 %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% elif clinic.credit_balance > 0 %}
+                                            <span class="badge badge-warning">Low Balance</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">No Credits</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary btn-sm" 
+                                                    onclick="allocateToClinic('{{ clinic.id }}', '{{ clinic.name }}')">
+                                                <i class="fas fa-plus"></i> Add Credits
+                                            </button>
+                                            {% if clinic.credit_balance and clinic.credit_balance > 0 %}
+                                            <button class="btn btn-outline-danger btn-sm" 
+                                                    onclick="debitFromClinic('{{ clinic.id }}', '{{ clinic.name }}', {{ clinic.credit_balance or 0 }})">
+                                                <i class="fas fa-minus"></i> Debit Credits
+                                            </button>
+                                            {% endif %}
+                                            <a href="{{ url_for('web.admin_transaction_history') }}?clinic_id={{ clinic.id }}" 
+                                               class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-history"></i> History
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function allocateToClinic(clinicId, clinicName) {
+    // Pre-fill the allocation form
+    document.getElementById('clinic_id').value = clinicId;
+    
+    // Scroll to the allocation form
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+    
+    // Focus on the credits input
+    setTimeout(() => {
+        document.getElementById('credits').focus();
+    }, 500);
+}
+
+function debitFromClinic(clinicId, clinicName, currentBalance) {
+    // Pre-fill the debit form
+    document.getElementById('debit_clinic_id').value = clinicId;
+    
+    // Scroll to the debit form
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+    
+    // Focus on the debit credits input
+    setTimeout(() => {
+        document.getElementById('debit_credits').focus();
+        // Show current balance info
+        document.getElementById('debit_credits').placeholder = `Enter credits to debit (Max: ${currentBalance})`;
+    }, 500);
+}
+
+// Handle debit credits form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const debitForm = document.getElementById('debitForm');
+    if (debitForm) {
+        debitForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const credits = parseInt(formData.get('credits'));
+            const clinicSelect = document.getElementById('debit_clinic_id');
+            const selectedOption = clinicSelect.options[clinicSelect.selectedIndex];
+            
+            // Extract current balance from option text
+            const balanceMatch = selectedOption.text.match(/Balance: (\d+) credits/);
+            const currentBalance = balanceMatch ? parseInt(balanceMatch[1]) : 0;
+            
+            // Validate sufficient balance
+            if (credits > currentBalance) {
+                alert(`Insufficient credits. Current balance: ${currentBalance}, Requested debit: ${credits}`);
+                return;
+            }
+            
+            // Confirm debit action
+            if (!confirm(`Are you sure you want to debit ${credits} credits from ${selectedOption.text.split(' (')[0]}?`)) {
+                return;
+            }
+            
+            // Submit form via AJAX
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Credits debited successfully: ' + data.message);
+                    location.reload(); // Refresh to show updated balances
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while debiting credits');
+            });
+        });
+    }
+});
+
+// Initialize DataTable for better clinic management
+$(document).ready(function() {
+    if ($.fn.DataTable) {
+        $('#clinicTable').DataTable({
+            "pageLength": 25,
+            "order": [[ 2, "asc" ]], // Sort by credit balance
+            "columnDefs": [
+                { "orderable": false, "targets": 6 } // Disable sorting on Actions column
+            ]
+        });
+    }
+});
+</script>
+{% endblock %}

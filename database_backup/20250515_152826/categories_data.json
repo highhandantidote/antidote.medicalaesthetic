@@ -1,0 +1,354 @@
+[
+  {
+    "id": 1,
+    "name": "Breast Surgery",
+    "body_part_id": 23,
+    "description": "Breast Surgery procedures for Breasts",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:37.720484"
+  },
+  {
+    "id": 2,
+    "name": "Abdominoplasty",
+    "body_part_id": 24,
+    "description": "Abdominoplasty procedures for Stomach",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:38.590454"
+  },
+  {
+    "id": 3,
+    "name": "Hip & Butt Enhancement",
+    "body_part_id": 25,
+    "description": "Hip & Butt Enhancement procedures for Butt",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:39.455262"
+  },
+  {
+    "id": 4,
+    "name": "Rhinoplasty And Nose Shaping",
+    "body_part_id": 26,
+    "description": "Rhinoplasty And Nose Shaping procedures for Nose",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:40.307164"
+  },
+  {
+    "id": 5,
+    "name": "Post-Pregnancy Procedures",
+    "body_part_id": 24,
+    "description": "Post-Pregnancy Procedures procedures for Stomach",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:40.951665"
+  },
+  {
+    "id": 6,
+    "name": "Eyelid Enhancement",
+    "body_part_id": 27,
+    "description": "Eyelid Enhancement procedures for Eyes",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:42.659790"
+  },
+  {
+    "id": 7,
+    "name": "Body Contouring",
+    "body_part_id": 28,
+    "description": "Body Contouring procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 07:09:43.510375"
+  },
+  {
+    "id": 10,
+    "name": "Face And Neck Lifts",
+    "body_part_id": 30,
+    "description": "Face And Neck Lifts procedures for Face",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:07:39.306192"
+  },
+  {
+    "id": 11,
+    "name": "Fillers And Other Injectables",
+    "body_part_id": 30,
+    "description": "Fillers And Other Injectables procedures for Face",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:07:39.960595"
+  },
+  {
+    "id": 12,
+    "name": "Hair Restoration",
+    "body_part_id": 31,
+    "description": "Hair Restoration procedures for Hair",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:07:42.562878"
+  },
+  {
+    "id": 13,
+    "name": "Female Genital Aesthetic Surgery",
+    "body_part_id": 32,
+    "description": "Female Genital Aesthetic Surgery procedures for Female Genitals",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:07:43.436834"
+  },
+  {
+    "id": 19,
+    "name": "Breast Reconstruction",
+    "body_part_id": 23,
+    "description": "Breast Reconstruction procedures for Breasts",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:18:10.681792"
+  },
+  {
+    "id": 20,
+    "name": "Weight Loss Treatments",
+    "body_part_id": 24,
+    "description": "Weight Loss Treatments procedures for Stomach",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:18:13.895273"
+  },
+  {
+    "id": 21,
+    "name": "Lip Enhancement",
+    "body_part_id": 39,
+    "description": "Lip Enhancement procedures for Lips",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:18:43.637486"
+  },
+  {
+    "id": 22,
+    "name": "Cosmetic Dentistry",
+    "body_part_id": 40,
+    "description": "Cosmetic Dentistry procedures for Teeth & Gums",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:19:07.059129"
+  },
+  {
+    "id": 23,
+    "name": "Cheek, Chin And Jawline Enhancement",
+    "body_part_id": 41,
+    "description": "Cheek, Chin And Jawline Enhancement procedures for Chin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:19:09.782586"
+  },
+  {
+    "id": 24,
+    "name": "Tattoo Removal",
+    "body_part_id": 43,
+    "description": "Tattoo Removal procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:20:33.022035"
+  },
+  {
+    "id": 26,
+    "name": "Skin Tightening",
+    "body_part_id": 43,
+    "description": "Skin Tightening procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:21:06.233752"
+  },
+  {
+    "id": 27,
+    "name": "Skin Rejuvenation And Resurfacing",
+    "body_part_id": 43,
+    "description": "Skin Rejuvenation And Resurfacing procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:21:08.508296"
+  },
+  {
+    "id": 28,
+    "name": "Ear Surgery",
+    "body_part_id": 44,
+    "description": "Ear Surgery procedures for Ears",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:22:34.391570"
+  },
+  {
+    "id": 29,
+    "name": "Hair Removal",
+    "body_part_id": 28,
+    "description": "Hair Removal procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:22:38.417992"
+  },
+  {
+    "id": 30,
+    "name": "Acne Treatments",
+    "body_part_id": 43,
+    "description": "Acne Treatments procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:23:35.897178"
+  },
+  {
+    "id": 31,
+    "name": "Scar Treatments",
+    "body_part_id": 43,
+    "description": "Scar Treatments procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:24:59.779379"
+  },
+  {
+    "id": 32,
+    "name": "Hyperhidrosis Treatments",
+    "body_part_id": 28,
+    "description": "Hyperhidrosis Treatments procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:25:04.945256"
+  },
+  {
+    "id": 33,
+    "name": "Reconstructive Surgeries",
+    "body_part_id": 28,
+    "description": "Reconstructive Surgeries procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:26:02.068467"
+  },
+  {
+    "id": 34,
+    "name": "Eyebrow And Lash Enhancement",
+    "body_part_id": 46,
+    "description": "Eyebrow And Lash Enhancement procedures for Eyebrows",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:29:33.141178"
+  },
+  {
+    "id": 35,
+    "name": "Gender Confirmation Surgery",
+    "body_part_id": 47,
+    "description": "Gender Confirmation Surgery procedures for Chest",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:29:37.231523"
+  },
+  {
+    "id": 36,
+    "name": "Vision Correction",
+    "body_part_id": 27,
+    "description": "Vision Correction procedures for Eyes",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:30:37.880711"
+  },
+  {
+    "id": 37,
+    "name": "Facial Reconstructive Surgery",
+    "body_part_id": 30,
+    "description": "Facial Reconstructive Surgery procedures for Face",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:32:38.427965"
+  },
+  {
+    "id": 38,
+    "name": "Vein Treatments",
+    "body_part_id": 28,
+    "description": "Vein Treatments procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:33:10.251661"
+  },
+  {
+    "id": 39,
+    "name": "Medical Dermatology",
+    "body_part_id": 28,
+    "description": "Medical Dermatology procedures for Body",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:33:31.389121"
+  },
+  {
+    "id": 40,
+    "name": "Vaginal Rejuvenation",
+    "body_part_id": 32,
+    "description": "Vaginal Rejuvenation procedures for Female Genitals",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:35:42.288611"
+  },
+  {
+    "id": 41,
+    "name": "Skin Care Products",
+    "body_part_id": 43,
+    "description": "Skin Care Products procedures for Skin",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:36:03.431840"
+  },
+  {
+    "id": 42,
+    "name": "Male Body Enhancement",
+    "body_part_id": 49,
+    "description": "Male Body Enhancement procedures for Male Genitals",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:36:51.606706"
+  },
+  {
+    "id": 43,
+    "name": "Sexual Wellness",
+    "body_part_id": 32,
+    "description": "Sexual Wellness procedures for Female Genitals",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 09:45:22.954556"
+  },
+  {
+    "id": 44,
+    "name": "Oral And Maxillofacial Surgeries",
+    "body_part_id": 26,
+    "description": "Oral And Maxillofacial Surgeries procedures for Nose",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 10:01:22.044343"
+  },
+  {
+    "id": 45,
+    "name": "Urinary Incontinence Treatments",
+    "body_part_id": 32,
+    "description": "Urinary Incontinence Treatments procedures for Female Genitals",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 10:03:49.404124"
+  },
+  {
+    "id": 46,
+    "name": "General Dentistry",
+    "body_part_id": 40,
+    "description": "General Dentistry procedures for Teeth & Gums",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 10:07:28.124689"
+  },
+  {
+    "id": 47,
+    "name": "Podiatry",
+    "body_part_id": 54,
+    "description": "Podiatry procedures for Feet",
+    "popularity_score": 0,
+    "created_at": "2025-05-14 10:25:07.657765"
+  },
+  {
+    "id": 51,
+    "name": "Facial Treatments",
+    "body_part_id": 30,
+    "description": null,
+    "popularity_score": null,
+    "created_at": "2025-05-14 12:22:31.406408"
+  },
+  {
+    "id": 52,
+    "name": "Skin Treatments",
+    "body_part_id": 28,
+    "description": null,
+    "popularity_score": null,
+    "created_at": "2025-05-14 12:51:09.501437"
+  },
+  {
+    "id": 59,
+    "name": "Sexual Wellness (Male Genitals)",
+    "body_part_id": 49,
+    "description": null,
+    "popularity_score": null,
+    "created_at": null
+  },
+  {
+    "id": 60,
+    "name": "Weight Loss Treatments (Body)",
+    "body_part_id": 28,
+    "description": null,
+    "popularity_score": null,
+    "created_at": null
+  },
+  {
+    "id": 61,
+    "name": "Gender Confirmation Surgery (Male Genitals)",
+    "body_part_id": 49,
+    "description": null,
+    "popularity_score": null,
+    "created_at": null
+  }
+]

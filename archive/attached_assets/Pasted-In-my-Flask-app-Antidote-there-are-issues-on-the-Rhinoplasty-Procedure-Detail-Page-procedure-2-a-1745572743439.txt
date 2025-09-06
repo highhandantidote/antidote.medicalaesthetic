@@ -1,0 +1,99 @@
+In my Flask app Antidote, there are issues on the Rhinoplasty Procedure Detail Page (/procedure/2) and Doctor Detail Page (/doctors/detail/3). The review count on /procedure/2 shows 2 reviews, but only 1 was submitted, the "Doctors Performing This Procedure" section is missing, and we need to confirm the "Write a Review" button and user dropdown on /doctors/detail/3. Fix these issues and test the functionality:
+1. Fix the review count discrepancy on /procedure/2:
+   - Check the database for duplicate reviews:
+     SELECT * FROM reviews WHERE procedure_id = 2 LIMIT 5;
+   - If duplicates exist, delete the extra review:
+     DELETE FROM reviews WHERE procedure_id = 2 AND id NOT IN (SELECT MIN(id) FROM reviews WHERE procedure_id = 2 GROUP BY user_id, comment);
+   - Open routes.py and check the procedure_detail route for how reviews are fetched:
+     reviews = Review.query.filter_by(procedure_id=procedure.id).all()
+   - Add a debug log to print the number of reviews:
+     print(f"Procedure ID: {procedure.id}, Reviews found: {len(reviews)}")
+   - Open procedure_detail.html and confirm the review count display:
+     <p>{{ reviews|length }} reviews total</p>
+   - Restart the application:
+     Restarted Start application
+   - Navigate to /procedure/2 and confirm the review count shows 1 review.
+
+2. Fix the "Doctors Performing This Procedure" section on /procedure/2:
+   - Verify the database association:
+     SELECT * FROM doctor_procedures WHERE doctor_id = 3 AND procedure_id = 2;
+   - If missing, insert:
+     INSERT INTO doctor_procedures (doctor_id, procedure_id, created_at) VALUES (3, 2, CURRENT_TIMESTAMP) RETURNING id;
+   - Open routes.py and confirm the procedure_detail route fetches doctors:
+     procedure_doctors = Doctor.query.join(DoctorProcedure).filter(DoctorProcedure.procedure_id == procedure.id).all()
+   - Add a debug log:
+     print(f"Procedure ID: {procedure.id}, Doctors found: {len(procedure_doctors)}")
+   - Open procedure_detail.html and confirm the section:
+     <h3>Doctors Performing This Procedure</h3>
+     {% if procedure_doctors %}
+         <ul>
+         {% for doctor in procedure_doctors %}
+             <li>{{ doctor.name }} (ID: {{ doctor.id }})</li>
+         {% endfor %}
+         </ul>
+     {% else %}
+         <p>No doctors found for this procedure.</p>
+     {% endif %}
+   - Navigate to /procedure/2 and confirm Dr. John Smith appears.
+
+3. Test the "Write a Review" button on /procedure/2:
+   - Navigate to /procedure/2.
+   - Click "Write a Review" and confirm the modal opens.
+   - If it doesn’t open, check the browser console (F12 > Console) for errors.
+   - Open procedure_detail.html and verify the button and modal:
+     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#writeReviewModal">Write a Review</button>
+     <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title" id="writeReviewModalLabel">Write a Review</h5>
+             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+             <form id="reviewForm" action="{{ url_for('web.submit_review') }}" method="POST">
+               <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+               <div class="mb-3">
+                 <label for="rating" class="form-label">Rating (1-5)</label>
+                 <select name="rating" id="rating" class="form-control" required>
+                   <option value="1">1</option>
+                   <option value="2">2</option>
+                   <option value="3">3</option>
+                   <option value="4">4</option>
+                   <option value="5">5</option>
+                 </select>
+               </div>
+               <div class="mb-3">
+                 <label for="comment" class="form-label">Comment</label>
+                 <textarea name="comment" id="comment" class="form-control" required></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit Review</button>
+             </form>
+           </div>
+         </div>
+       </div>
+     </div>
+   - Ensure jQuery and Bootstrap are loaded in base.html:
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+   - If errors persist, remove any custom JavaScript triggers and rely on Bootstrap’s data attributes.
+
+4. Test the Doctor Detail Page (/doctors/detail/3):
+   - Navigate to /doctors/detail/3.
+   - Confirm the "Test User" dropdown is visible and functional.
+   - Click "Write a Review" and confirm the modal opens.
+   - Submit a review (rating 4, comment "Excellent doctor").
+   - Check the Reviews tab for the new review.
+   - Check the database:
+     SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND doctor_id = 3 LIMIT 5;
+   - Check the console (F12 > Console) and Network tab (F12 > Network) for errors.
+
+5. Check server logs for debug output:
+   tail -n 50 /tmp/replit-nix-errors.log
+
+6. Provide screenshots of:
+   - /procedure/2 showing the doctors section and review count (should be 1).
+   - /procedure/2 with the review modal open.
+   - /doctors/detail/3 showing the dropdown and review modal.
+
+7. Share observations, including any errors in the console, network, or server logs.
+8. Once all issues are resolved, confirm the functionality is complete and suggest moving to the education modules.

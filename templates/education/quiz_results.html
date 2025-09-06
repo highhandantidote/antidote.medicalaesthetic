@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results - {{ quiz.title }} - Antidote{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('education.learn_home') }}">Education Hub</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('education.view_module', module_id=module.id) }}">{{ module.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('education.take_quiz', quiz_id=quiz.id) }}">{{ quiz.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Results</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Quiz Results</h1>
+            <h4 class="text-muted">{{ quiz.title }}</h4>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Module
+            </a>
+        </div>
+    </div>
+
+    <!-- Results Summary Card -->
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <div class="card bg-dark border-info mb-4">
+                <div class="card-header bg-info bg-opacity-10 text-info">
+                    <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Results Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center">
+                            <div class="score-circle 
+                                {% if attempt.passed %}
+                                    bg-success
+                                {% elif attempt.score >= 50 %}
+                                    bg-warning
+                                {% else %}
+                                    bg-danger
+                                {% endif %} bg-opacity-15 text-
+                                {% if attempt.passed %}
+                                    success
+                                {% elif attempt.score >= 50 %}
+                                    warning
+                                {% else %}
+                                    danger
+                                {% endif %}
+                                d-flex align-items-center justify-content-center">
+                                <div>
+                                    <div class="display-3 fw-bold">{{ attempt.score }}%</div>
+                                    <div>Score</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <h4 class="mb-0 
+                                    {% if attempt.passed %}
+                                        text-success
+                                    {% elif attempt.score >= 50 %}
+                                        text-warning
+                                    {% else %}
+                                        text-danger
+                                    {% endif %}">
+                                    {% if attempt.passed %}
+                                        <i class="fas fa-check-circle me-2"></i>Quiz Passed!
+                                    {% else %}
+                                        <i class="fas fa-times-circle me-2"></i>Quiz Not Passed
+                                    {% endif %}
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    Required passing score: {{ quiz.passing_score }}%
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <div>Correct Answers:</div>
+                                    {% set correct_count = formatted_answers|selectattr('is_correct', 'eq', true)|list|length %}
+                                    <div class="fw-bold">{{ correct_count }} / {{ formatted_answers|length }}</div>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" 
+                                        style="width: {{ (correct_count / formatted_answers|length) * 100 }}%"></div>
+                                </div>
+                            </div>
+                            
+                            {% if attempt.completed_at %}
+                            <div>
+                                <div class="small text-muted">
+                                    <i class="fas fa-clock me-1"></i> Completed on {{ attempt.completed_at.strftime('%B %d, %Y at %H:%M') }}
+                                </div>
+                                
+                                {% if attempt.time_spent_seconds %}
+                                <div class="small text-muted">
+                                    <i class="fas fa-hourglass-half me-1"></i> Time spent: 
+                                    {% set minutes = (attempt.time_spent_seconds // 60) %}
+                                    {% set seconds = (attempt.time_spent_seconds % 60) %}
+                                    {{ minutes }} min {{ seconds }} sec
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if module_completed %}
+                    <div class="alert alert-success mt-4">
+                        <div class="d-flex">
+                            <div class="me-3 fs-2">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <div>
+                                <h5>Module Complete!</h5>
+                                <p class="mb-0">Congratulations! You've completed all quizzes for this module and earned an achievement.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('education.take_quiz', quiz_id=quiz.id) }}" class="btn btn-outline-info">
+                            <i class="fas fa-redo me-2"></i>Retake Quiz
+                        </a>
+                        <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Continue Learning
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Achievements</h5>
+                </div>
+                <div class="card-body">
+                    {% if attempt.passed %}
+                    <div class="achievement-item p-3 mb-3 bg-dark border border-success rounded">
+                        <div class="d-flex">
+                            <div class="achievement-icon text-success me-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5>Quiz Passed</h5>
+                                <p class="text-muted mb-0 small">Successfully completed {{ quiz.title }} with {{ attempt.score }}% score</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if module_completed %}
+                    <div class="achievement-item p-3 mb-3 bg-dark border border-warning rounded">
+                        <div class="d-flex">
+                            <div class="achievement-icon text-warning me-3">
+                                <i class="fas fa-certificate fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5>Module Mastery</h5>
+                                <p class="text-muted mb-0 small">Successfully completed all quizzes in {{ module.title }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not attempt.passed and not module_completed %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-unlock-alt text-muted fa-3x mb-3"></i>
+                        <p class="text-muted">Pass this quiz to earn an achievement!</p>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('education.view_achievements') }}" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="fas fa-trophy me-2"></i>View All Achievements
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Results -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-dark border-light">
+                <div class="card-header bg-dark">
+                    <h4 class="mb-0"><i class="fas fa-list-ol me-2"></i>Detailed Results</h4>
+                </div>
+                <div class="card-body">
+                    {% for answer in formatted_answers %}
+                    <div class="result-item p-3 mb-3 
+                        {% if answer.is_correct %}
+                            border border-success bg-success bg-opacity-10
+                        {% else %}
+                            border border-danger bg-danger bg-opacity-10
+                        {% endif %}
+                        rounded">
+                        <div class="mb-2 d-flex justify-content-between">
+                            <h5 class="mb-0">{{ loop.index }}. {{ answer.question.question_text }}</h5>
+                            <span class="badge {% if answer.is_correct %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if answer.is_correct %}
+                                    <i class="fas fa-check me-1"></i>Correct
+                                {% else %}
+                                    <i class="fas fa-times me-1"></i>Incorrect
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="answer-box p-2 rounded border border-secondary">
+                                    <div class="answer-label small text-muted mb-1">Your Answer:</div>
+                                    <div class="fw-bold {% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                        {{ answer.user_answer or 'No answer provided' }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if not answer.is_correct %}
+                            <div class="col-md-6">
+                                <div class="answer-box p-2 rounded border border-success bg-success bg-opacity-10">
+                                    <div class="answer-label small text-muted mb-1">Correct Answer:</div>
+                                    <div class="fw-bold text-success">
+                                        {{ answer.question.correct_answer }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if answer.explanation %}
+                        <div class="explanation p-2 rounded bg-dark">
+                            <div class="small fw-bold mb-1"><i class="fas fa-info-circle me-1"></i>Explanation:</div>
+                            <div class="small">{{ answer.explanation }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between">
+            <a href="{{ url_for('education.take_quiz', quiz_id=quiz.id) }}" class="btn btn-outline-info">
+                <i class="fas fa-redo me-2"></i>Retake Quiz
+            </a>
+            <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Module
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .score-circle {
+        border-radius: 50%;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto;
+    }
+    
+    .achievement-icon {
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

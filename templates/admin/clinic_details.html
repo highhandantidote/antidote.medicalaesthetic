@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Clinic Details - {{ clinic.name }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-white">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clinic-medical me-2"></i>{{ clinic.name }}
+                    </h4>
+                    <a href="{{ url_for('web.admin_clinic') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Clinic Management
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Clinic Status Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-secondary">
+                                <div class="card-body">
+                                    <h6 class="card-title">Status Information</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Approval Status:</strong><br>
+                                            {% if clinic.is_approved %}
+                                                <span class="badge bg-success fs-6">Approved</span>
+                                            {% else %}
+                                                <span class="badge bg-warning fs-6">Pending</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Verification Status:</strong><br>
+                                            {% if clinic.is_verified %}
+                                                <span class="badge bg-info fs-6">Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary fs-6">Not Verified</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if clinic.verification_notes %}
+                                    <div class="mt-2">
+                                        <strong>Notes:</strong><br>
+                                        <small class="text-muted">{{ clinic.verification_notes }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-secondary">
+                                <div class="card-body">
+                                    <h6 class="card-title">Key Metrics</h6>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <strong>Packages:</strong><br>
+                                            <span class="fs-5">{{ packages|length }}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>Doctors:</strong><br>
+                                            <span class="fs-5">{{ doctors|length }}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>Leads:</strong><br>
+                                            <span class="fs-5">{{ leads|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="card bg-secondary mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Basic Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Clinic Name:</strong> {{ clinic.name }}</p>
+                                    <p><strong>Address:</strong> {{ clinic.address }}</p>
+                                    <p><strong>City:</strong> {{ clinic.city }}</p>
+                                    <p><strong>State:</strong> {{ clinic.state }}</p>
+                                    {% if clinic.pincode %}
+                                    <p><strong>PIN Code:</strong> {{ clinic.pincode }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Contact Number:</strong> {{ clinic.contact_number }}</p>
+                                    {% if clinic.email %}
+                                    <p><strong>Email:</strong> {{ clinic.email }}</p>
+                                    {% endif %}
+                                    <p><strong>Created:</strong> {{ clinic.created_at.strftime('%Y-%m-%d %H:%M') if clinic.created_at else 'N/A' }}</p>
+                                    {% if clinic.verification_date %}
+                                    <p><strong>Verified:</strong> {{ clinic.verification_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if clinic.description %}
+                            <div class="mt-3">
+                                <strong>Description:</strong>
+                                <p class="mt-2">{{ clinic.description }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Owner Information -->
+                    <div class="card bg-secondary mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Owner Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Owner Name:</strong> {{ clinic.owner_name or 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Email:</strong> {{ clinic.owner_email or 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Phone:</strong> {{ clinic.owner_phone or 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Packages Section -->
+                    <div class="card bg-secondary mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Packages ({{ packages|length }})</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if packages %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Package Name</th>
+                                                <th>Price</th>
+                                                <th>Leads</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for package in packages %}
+                                            <tr>
+                                                <td>{{ package.title }}</td>
+                                                <td>₹{{ "{:,}".format(package.price_actual) if package.price_actual else 'N/A' }}</td>
+                                                <td>{{ package.lead_count or 0 }}</td>
+                                                <td>{{ package.created_at.strftime('%Y-%m-%d') if package.created_at else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No packages found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Doctors Section -->
+                    <div class="card bg-secondary mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Doctors ({{ doctors|length }})</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if doctors %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Specialization</th>
+                                                <th>Experience</th>
+                                                <th>Rating</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for doctor in doctors %}
+                                            <tr>
+                                                <td>{{ doctor.name }}</td>
+                                                <td>{{ doctor.specialization or 'N/A' }}</td>
+                                                <td>{{ doctor.experience_years or 'N/A' }} years</td>
+                                                <td>{{ "%.1f"|format(doctor.rating) if doctor.rating else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No doctors found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Recent Leads Section -->
+                    <div class="card bg-secondary">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recent Leads ({{ leads|length }})</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if leads %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Phone</th>
+                                                <th>Package</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for lead in leads %}
+                                            <tr>
+                                                <td>{{ lead.patient_name or 'N/A' }}</td>
+                                                <td>{{ lead.patient_phone or 'N/A' }}</td>
+                                                <td>{{ lead.package_name or 'N/A' }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if lead.status == 'new' %}primary{% elif lead.status == 'contacted' %}info{% elif lead.status == 'converted' %}success{% else %}secondary{% endif %}">
+                                                        {{ lead.status|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ lead.created_at.strftime('%Y-%m-%d') if lead.created_at else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No recent leads found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

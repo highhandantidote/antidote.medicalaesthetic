@@ -1,0 +1,181 @@
+DOCTOR VERIFICATION REPORT
+=========================
+
+Database doctors: 90
+CSV doctors: 106
+
+DOCTORS IN DATABASE BUT NOT IN CSV
+=================================
+1. Dr. Anand Sharma (ID: 1, User ID: 1)
+   Profile Image: No
+   Education: Yes
+   Experience: 6
+
+2. Dr. Bhavna Patel (ID: 2, User ID: 2)
+   Profile Image: No
+   Education: Yes
+   Experience: 11
+
+3. Dr. Nandini Sharma (ID: 114, User ID: 135)
+   Profile Image: No
+   Education: No
+   Experience: 15
+
+4. Dr. Vikram Malhotra (ID: 115, User ID: 136)
+   Profile Image: No
+   Education: No
+   Experience: 12
+
+5. Dr. Priya Agarwal (ID: 116, User ID: 137)
+   Profile Image: No
+   Education: No
+   Experience: 10
+
+6. Dr. Rajiv Menon (ID: 117, User ID: 138)
+   Profile Image: No
+   Education: No
+   Experience: 14
+
+7. Dr. Sanjana Mehta (ID: 118, User ID: 139)
+   Profile Image: No
+   Education: No
+   Experience: 9
+
+8. Dr. Arjun Kapoor (ID: 119, User ID: 140)
+   Profile Image: No
+   Education: No
+   Experience: 16
+
+9. Dr. Leela Krishnan (ID: 120, User ID: 141)
+   Profile Image: No
+   Education: No
+   Experience: 11
+
+
+DOCTORS IN CSV BUT NOT IN DATABASE
+=================================
+1. Dr. Raja Tiwari
+   Profile Image: Yes
+   Education: Yes
+   Experience: 16 years experience
+
+2. Dr. Surindher DSA
+   Profile Image: Yes
+   Education: Yes
+   Experience: 24 years experience
+
+3. Dr. Madhu Kumar
+   Profile Image: Yes
+   Education: Yes
+   Experience: 20 years experience
+
+4. Dr. Harsh B. Amin
+   Profile Image: Yes
+   Education: Yes
+   Experience: 14 years experience
+
+5. Dr. Charanjeev Sobti
+   Profile Image: Yes
+   Education: Yes
+   Experience: 28 years experience
+
+6. Dr. Abhishek Vijayakumar
+   Profile Image: Yes
+   Education: Yes
+   Experience: 14 years experience
+
+7. Dr. Girish Amarapuram Chandramouly
+   Profile Image: Yes
+   Education: Yes
+   Experience: 17 years experience
+
+8. Dr. Ashwani Kumar
+   Profile Image: Yes
+   Education: Yes
+   Experience: 11 years experience
+
+9. Dr. Prince HP
+   Profile Image: Yes
+   Education: Yes
+   Experience: 14 years experience
+
+10. Dr. Audumbar Borgaonkar
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+11. Dr. Vikram Kumar Raja
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+12. Dr. Srinjoy Saha
+   Profile Image: Yes
+   Education: Yes
+   Experience: 17 years experience
+
+13. Dr. Vicky Jain
+   Profile Image: Yes
+   Education: Yes
+   Experience: 12 years experience
+
+14. Dr. Anoop G. Mohan
+   Profile Image: Yes
+   Education: Yes
+   Experience: 11 years experience
+
+15. Dr. BRN Padmini
+   Profile Image: Yes
+   Education: Yes
+   Experience: 19 years experience
+
+16. Dr. Vinay Jacob
+   Profile Image: Yes
+   Education: Yes
+   Experience: 24 years experience
+
+17. Dr. Lakshyajit Dhami
+   Profile Image: Yes
+   Education: Yes
+   Experience: 47 years experience
+
+18. Dr. Mukesh Sharma
+   Profile Image: Yes
+   Education: Yes
+   Experience: 14 years experience
+
+19. Dr. Vikramjeet S. Dhingra
+   Profile Image: Yes
+   Education: Yes
+   Experience: 18 years experience
+
+20. Dr. Ankit Gupta
+   Profile Image: Yes
+   Education: Yes
+   Experience: 12 years experience
+
+21. Dr. Aamod Rao
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+22. Dr. Rajesh Yellinedi
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+23. Dr. Ravi Annamaneni
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+24. Dr. Baburao Ravuri
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+
+25. Dr. Parag Sahasrabudhe
+   Profile Image: Yes
+   Education: Yes
+   Experience: 15 years experience
+

@@ -1,0 +1,188 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('procedures_id_seq'::regclass)"
+  },
+  {
+    "name": "procedure_name",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "alternative_names",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "short_description",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "overview",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "procedure_details",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "ideal_candidates",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "recovery_process",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "recovery_time",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "procedure_duration",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "hospital_stay_required",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "results_duration",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "min_cost",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "max_cost",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "benefits",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "benefits_detailed",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "risks",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "procedure_types",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "alternative_procedures",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "category_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "popularity_score",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "avg_rating",
+    "type": "double precision",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "review_count",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_featured",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "image_url",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "updated_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "body_part",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "tags",
+    "type": "ARRAY",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "body_area",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "category_type",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  }
+]

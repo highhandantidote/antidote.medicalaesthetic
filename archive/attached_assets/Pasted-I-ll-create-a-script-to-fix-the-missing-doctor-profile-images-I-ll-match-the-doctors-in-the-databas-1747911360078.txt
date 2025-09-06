@@ -1,0 +1,85 @@
+I'll create a script to fix the missing doctor profile images. I'll match the doctors in the database to their corresponding entries in the CSV file and update their profile images.
+
+
+Created fix_missing_images.py
+#!/usr/bin/env python3
+        
+        return updated_count
+        
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error updating doctor images: {str(e)}")
+        return 0
+        
+    finally:
+        conn.close()
+
+def check_image_update_results():
+    """Check results after updating doctor images."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Count doctors with images
+            cursor.execute("""
+                SELECT COUNT(*) FROM doctors 
+                WHERE profile_image IS NOT NULL AND profile_image != ''
+            """)
+            with_image = cursor.fetchone()[0]
+            
+            # Count doctors without images
+            cursor.execute("""
+                SELECT COUNT(*) FROM doctors 
+                WHERE profile_image IS NULL OR profile_image = ''
+            """)
+            without_image = cursor.fetchone()[0]
+            
+            # Count total doctors
+            cursor.execute("SELECT COUNT(*) FROM doctors")
+            total = cursor.fetchone()[0]
+            
+            return {
+                'with_image': with_image,
+                'without_image': without_image,
+                'total': total,
+                'coverage': int((with_image / total) * 100) if total > 0 else 0
+            }
+    
+    finally:
+        conn.close()
+
+if __name__ == "__main__":
+    logger.info("Starting fix for missing doctor profile images")
+    
+    # Get initial stats
+    initial_stats = check_image_update_results()
+    logger.info(f"Initial stats: {initial_stats['with_image']} doctors with images, " +
+                f"{initial_stats['without_image']} without images " +
+                f"({initial_stats['coverage']}% coverage)")
+    
+    # Update doctor images
+    updated_count = update_doctor_images()
+    
+    # Get final stats
+    final_stats = check_image_update_results()
+    logger.info(f"Final stats: {final_stats['with_image']} doctors with images, " +
+               f"{final_stats['without_image']} without images " +
+               f"({final_stats['coverage']}% coverage)")
+    
+    # Print summary
+    print("\nDOCTOR IMAGE UPDATE SUMMARY")
+    print("==========================")
+Now let's run the script to fix the missing doctor profile images:
+
+
+Executed python fix_missing_images.py
+$ python fix_missing_images.py
+I can see the script is successfully fixing the missing doctor profile images!
+
+The process has started well, showing:
+
+Initial state: 51 doctors with images, 51 without (50% coverage)
+The script found 106 image URLs in the CSV file
+It's systematically updating each doctor profile with the correct image
+So far it has fixed images for several doctors including Dr. Amitabh Singh, Dr. Arunesh Gupta, Dr. Ashish Sangvikar, Dr. Ashutosh Shah, and Dr. Dinesh Kadam.
+
+This will make a big improvement to your platform, as doctor images are crucial for user engagement and trust. The script will continue working through all 51 doctors with missing images and should significantly increase your profile image coverage

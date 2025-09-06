@@ -1,0 +1,44 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('community_moderation_id_seq'::regclass)"
+  },
+  {
+    "name": "community_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "reply_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "moderator_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "action",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "reason",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

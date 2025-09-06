@@ -1,0 +1,38 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('user_reputation_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "action_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "points",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "reason",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

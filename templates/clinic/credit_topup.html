@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Credit Top-Up - {{ clinic.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Credit Top-Up</h2>
+                    <p class="text-muted">{{ clinic.name }} - Add credits to your account</p>
+                </div>
+                <div>
+                    <a href="/clinic/billing-dashboard" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Billing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Balance Card -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="card-title">{{ credit_balance|format_credits }}</h3>
+                            <p class="card-text">Current Credit Balance</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small class="text-light">≈ ₹{{ credit_balance|format_credits }} value</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    {% if recent_transactions %}
+                        {% for transaction in recent_transactions[:3] %}
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <div>
+                                <small class="fw-bold">{{ transaction.description or 'Transaction' }}</small><br>
+                                <small class="text-muted">{{ transaction.created_at.strftime('%d %b %Y') }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold {% if transaction.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ transaction.amount|format_credits }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No recent transactions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Packages -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Choose Credit Package</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for package in credit_packages %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 {% if package.popular %}border-primary{% endif %} credit-package" 
+                                 data-credits="{{ package.credits }}" 
+                                 data-amount="{{ package.price }}" 
+                                 data-bonus="{{ package.bonus }}">
+                                {% if package.popular %}
+                                <div class="card-header bg-primary text-white text-center">
+                                    <small><i class="fas fa-star"></i> Most Popular</small>
+                                </div>
+                                {% endif %}
+                                <div class="card-body text-center">
+                                    <h3 class="card-title text-primary">{{ package.credits|format_credits }}</h3>
+                                    <p class="card-text">Base Credits</p>
+                                    {% if package.bonus > 0 %}
+                                    <div class="badge bg-success mb-2 fs-6">+{{ package.bonus|format_credits }} Bonus</div>
+                                    <h4 class="text-success">{{ package.total|format_credits }} Total</h4>
+                                    <small class="text-muted">{{ ((package.bonus / package.credits) * 100)|round|int }}% bonus</small>
+                                    {% endif %}
+                                    <div class="mt-3 pt-3 border-top">
+                                        <h4 class="text-dark">₹{{ '{:,}'.format(package.price) }}</h4>
+                                        <small class="text-muted">₹1 per credit + bonus</small>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn {% if package.popular %}btn-primary{% else %}btn-outline-primary{% endif %} w-100 purchase-btn">
+                                        <i class="fas fa-credit-card me-2"></i>Purchase Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Minimum Top-up Notice -->
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Minimum Top-up:</strong> ₹1,000 (1,000 credits). 
+                        Larger packages include bonus credits for better value.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    <div id="payment-status" class="mt-4"></div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Debug: Log when script loads
+    console.log('Credit top-up script loaded');
+    console.log('Found purchase buttons:', $('.purchase-btn').length);
+    console.log('Credit packages:', {{ credit_packages|tojson }});
+    
+    // Handle credit package purchases
+    $('.purchase-btn').click(function() {
+        console.log('Purchase button clicked');
+        const card = $(this).closest('.credit-package');
+        const credits = card.data('credits');
+        const amount = card.data('amount');
+        const bonus = card.data('bonus');
+        
+        // Validate minimum amount
+        if (amount < 1000) {
+            alert('Minimum top-up amount is ₹1,000');
+            return;
+        }
+        
+        // Disable only the clicked button
+        const $clickedBtn = $(this);
+        $clickedBtn.prop('disabled', true).text('Processing...');
+        
+        // Show confirmation
+        const totalCredits = credits + bonus;
+        const confirmMsg = `Purchase ${credits.toLocaleString()} credits${bonus > 0 ? ' + ' + bonus.toLocaleString() + ' bonus' : ''} for ₹${amount.toLocaleString()}?`;
+        
+        if (!confirm(confirmMsg)) {
+            $clickedBtn.prop('disabled', false).text('Purchase Now');
+            return;
+        }
+        
+        // Show payment status
+        $('#payment-status').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin me-2"></i>Initiating payment for ${totalCredits.toLocaleString()} credits...
+            </div>
+        `);
+        
+        // Initiate payment
+        $.post('/simple-purchase-credits', {
+            amount: amount,
+            csrf_token: $('meta[name=csrf-token]').attr('content')
+        })
+        .done(function(response) {
+            console.log('Payment order response:', response);
+            if (response.success) {
+                // Check if Razorpay is loaded
+                if (typeof Razorpay === 'undefined') {
+                    showPaymentError('Payment gateway not loaded. Please refresh and try again.');
+                    return;
+                }
+                
+                // Initialize Razorpay with complete configuration
+                const options = {
+                    "key": response.key,
+                    "amount": response.razorpay_amount,
+                    "currency": "INR",
+                    "name": "Antidote",
+                    "description": "Credit Top-up",
+                    "image": "/static/images/logo.png",
+                    "order_id": response.order_id,
+                    "handler": function (paymentResponse){
+                        console.log('Payment successful:', paymentResponse);
+                        verifyPayment(paymentResponse, response.credits, 0);
+                    },
+                    "prefill": {
+                        "name": "{{ current_user.name if current_user.name else 'Clinic User' }}",
+                        "email": "{{ current_user.email }}",
+                        "contact": "{{ current_user.phone_number if current_user.phone_number else '' }}"
+                    },
+                    "notes": {
+                        "clinic_id": "{{ clinic.id }}",
+                        "credits": response.credits
+                    },
+                    "theme": {
+                        "color": "#3399cc"
+                    },
+                    "modal": {
+                        "ondismiss": function(){
+                            console.log('Checkout form closed');
+                            $clickedBtn.prop('disabled', false).text('Add Credits');
+                            $('#payment-status').html(`
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-times me-2"></i>Payment cancelled
+                                </div>
+                            `);
+                        }
+                    }
+                };
+                
+                console.log('Creating Razorpay instance with options:', options);
+                
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+                
+                console.log('Razorpay checkout opened successfully');
+            } else {
+                showPaymentError(response.error || 'Failed to create payment order');
+            }
+        })
+        .fail(function() {
+            showPaymentError('Network error. Please try again.');
+        });
+    });
+    
+    function verifyPayment(paymentResponse, credits, bonus) {
+        $('#payment-status').html(`
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin me-2"></i>Verifying payment...
+            </div>
+        `);
+        
+        $.post('/verify-payment', {
+            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+            razorpay_order_id: paymentResponse.razorpay_order_id,
+            razorpay_signature: paymentResponse.razorpay_signature,
+            csrf_token: $('meta[name=csrf-token]').attr('content')
+        })
+        .done(function(response) {
+            if (response.success) {
+                showPaymentSuccess(credits, bonus, response.new_balance);
+            } else {
+                showPaymentError(response.error || 'Payment verification failed');
+            }
+        })
+        .fail(function() {
+            showPaymentError('Verification failed. Please contact support if credits are not added.');
+        });
+    }
+    
+    function showPaymentSuccess(credits, bonus, newBalance) {
+        const totalCredits = credits + bonus;
+        $('#payment-status').html(`
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Payment Successful!</strong><br>
+                ${totalCredits.toLocaleString()} credits added to your account.<br>
+                New balance: ${newBalance.toLocaleString()} credits
+            </div>
+        `);
+        
+        // Redirect after 3 seconds
+        setTimeout(function() {
+            window.location.href = '/clinic/billing-dashboard';
+        }, 3000);
+    }
+    
+    function showPaymentError(message) {
+        $('.purchase-btn').prop('disabled', false).text('Purchase Now');
+        $('#payment-status').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Payment Failed:</strong> ${message}
+            </div>
+        `);
+    }
+});
+</script>
+
+<!-- Include Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}

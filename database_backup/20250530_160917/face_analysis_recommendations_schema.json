@@ -1,0 +1,50 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('face_analysis_recommendations_id_seq'::regclass)"
+  },
+  {
+    "name": "analysis_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "recommendation_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "feature_name",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "severity_score",
+    "type": "double precision",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "recommendation_details",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "treatment_options",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

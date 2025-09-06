@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload New Logo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Upload New Logo</h2>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('web.upload_logo') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="border rounded p-3 mb-3">
+                                    <h6 class="mb-2">Current Logo</h6>
+                                    <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}" alt="Current Logo" style="max-height: 80px;" class="img-fluid">
+                                </div>
+                            </div>
+                            <label for="logo" class="form-label">Select New Logo File (SVG format recommended)</label>
+                            <input type="file" class="form-control" id="logo" name="logo" accept=".svg,.png,.jpg,.jpeg" required>
+                            <div class="form-text">SVG format is preferred for best quality at all sizes.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="logo_name" class="form-label">Logo Name</label>
+                            <input type="text" class="form-control" id="logo_name" name="logo_name" value="antidote-logo-new" required>
+                            <div class="form-text">This will be the filename for your logo (without extension).</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Upload New Logo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ clinic.name }} - Clinic Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        .metric-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-clinic-medical me-2"></i>Antidote
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="dashboard-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">{{ clinic.name }}</h1>
+                    <p class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ clinic.city }}
+                        {% if clinic.contact_number %}
+                        <span class="ms-3">
+                            <i class="fas fa-phone me-2"></i>{{ clinic.contact_number }}
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <h3 class="mb-0">Dashboard</h3>
+                    <small>{{ moment().format('MMMM DD, YYYY') }}</small>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-pills mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="/clinic/dashboard">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/clinic/leads">
+                    <i class="fas fa-users me-2"></i>Leads
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/clinic/billing">
+                    <i class="fas fa-credit-card me-2"></i>Billing
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#packages">
+                    <i class="fas fa-box me-2"></i>Packages
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#doctors">
+                    <i class="fas fa-user-md me-2"></i>Doctors
+                </a>
+            </li>
+        </ul>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ metrics.total_leads }}</div>
+                    <div class="metric-label">Total Leads</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ metrics.monthly_leads }}</div>
+                    <div class="metric-label">This Month</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ metrics.credit_balance }}</div>
+                    <div class="metric-label">Credits Available</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ "%.1f"|format(metrics.conversion_rate) }}%</div>
+                    <div class="metric-label">Conversion Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Recent Leads
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_leads %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lead in recent_leads %}
+                                    <tr>
+                                        <td>
+                                            {% if lead.user_name %}
+                                                {{ lead.user_name }}
+                                            {% else %}
+                                                Anonymous Patient
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if lead.action_type == 'call' else 'primary' }}">
+                                                {{ lead.action_type|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ lead.created_at.strftime('%b %d, %Y') if lead.created_at else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">New</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No leads yet. Start promoting your clinic to get more patients!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Quick Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Doctors</span>
+                            <strong>{{ metrics.doctor_count }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Active Packages</span>
+                            <strong>{{ metrics.package_count }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Clinic Rating</span>
+                            <strong>{{ "%.1f"|format(clinic.overall_rating or 4.5) }}/5.0</strong>
+                        </div>
+                        <hr>
+                        <div class="d-grid">
+                            <a href="/clinic/billing" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Purchase Credits
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bell me-2"></i>Notifications
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Tip:</strong> Respond to leads within 5 minutes for better conversion rates.
+                        </div>
+                        {% if metrics.credit_balance < 500 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Your credit balance is low. Consider purchasing more credits.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

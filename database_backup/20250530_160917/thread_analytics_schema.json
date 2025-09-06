@@ -1,0 +1,50 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('thread_analytics_id_seq'::regclass)"
+  },
+  {
+    "name": "thread_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "engagement_score",
+    "type": "double precision",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "trending_score",
+    "type": "double precision",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "topic_categories",
+    "type": "ARRAY",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "sentiment_score",
+    "type": "double precision",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "updated_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

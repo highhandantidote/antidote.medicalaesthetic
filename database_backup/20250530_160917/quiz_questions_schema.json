@@ -1,0 +1,56 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('quiz_questions_id_seq'::regclass)"
+  },
+  {
+    "name": "quiz_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "question_text",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "question_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "options",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "correct_answer",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "explanation",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "points",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

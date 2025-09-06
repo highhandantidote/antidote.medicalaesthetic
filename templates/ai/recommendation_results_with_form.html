@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Your AI Treatment Recommendations{% endblock %}
+
+{% block head %}
+<style>
+.recommendations-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.recommendation-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.confidence-badge {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.contact-form-section {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 3px solid #28a745;
+}
+
+.btn-contact {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-contact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+.urgency-indicator {
+    background: #ff6b6b;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.recommendation-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.detail-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.detail-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #20c997;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- AI Recommendations -->
+            <div class="recommendations-container">
+                <div class="text-center mb-4">
+                    <h1><i class="fas fa-brain"></i> Your AI Treatment Recommendations</h1>
+                    <p class="lead">Based on your input, our AI has analyzed and generated personalized recommendations</p>
+                </div>
+
+                {% for recommendation in recommendations %}
+                <div class="recommendation-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h3>{{ recommendation.procedure }}</h3>
+                        <div class="confidence-badge">
+                            {{ recommendation.confidence }}% Match
+                        </div>
+                    </div>
+                    
+                    <p class="lead mb-3">{{ recommendation.description }}</p>
+                    
+                    <div class="recommendation-details">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <h6>Estimated Cost</h6>
+                            <p class="mb-0">{{ recommendation.estimated_cost }}</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h6>Duration</h6>
+                            <p class="mb-0">{{ recommendation.duration }}</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h6>Recovery Time</h6>
+                            <p class="mb-0">{{ recommendation.recovery }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- High-Intent Contact Form -->
+            {% if show_contact_form %}
+            <div class="urgency-indicator">
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>High-Value Opportunity Detected!</strong>
+                Get detailed consultation and exclusive pricing by providing your contact information below.
+            </div>
+            {% endif %}
+
+            <!-- Contact Form Section -->
+            <div class="contact-form-section">
+                <div class="text-center mb-4">
+                    <h2><i class="fas fa-user-md"></i> Schedule Your Personalized Consultation</h2>
+                    <p class="lead text-muted">Connect with certified specialists for detailed planning and exclusive offers</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <form method="POST" action="{{ url_for('enhanced_ai.capture_ai_lead') }}" id="contactForm">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="interaction_id" value="{{ interaction_id }}"/>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="contact_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="contact_phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
+                                           placeholder="+91 9876543210" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="contact_email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="contact_email" name="contact_email">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="contact_city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="contact_city" name="contact_city">
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-contact btn-lg">
+                                    <i class="fas fa-calendar-check"></i> Schedule My Consultation
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-gift"></i> Exclusive Benefits</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success"></i>
+                                        Free detailed consultation (₹2,000 value)
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success"></i>
+                                        3D simulation and planning
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success"></i>
+                                        Certified surgeon evaluation
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success"></i>
+                                        Customized treatment timeline
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success"></i>
+                                        Special AI recommendation pricing
+                                    </li>
+                                </ul>
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <small>
+                                        <i class="fas fa-clock"></i>
+                                        <strong>Limited Time:</strong> AI recommendation benefits expire in 48 hours
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Indicators -->
+            <div class="row mt-4">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5>Why Thousands Trust Our AI Recommendations</h5>
+                            <div class="row mt-3">
+                                <div class="col-md-3">
+                                    <h3 class="text-primary">95%</h3>
+                                    <p class="mb-0">Accuracy Rate</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h3 class="text-success">5,000+</h3>
+                                    <p class="mb-0">Successful Cases</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h3 class="text-warning">24 hrs</h3>
+                                    <p class="mb-0">Response Time</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h3 class="text-info">100%</h3>
+                                    <p class="mb-0">Privacy Protected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.getElementById('contactForm');
+    const phoneInput = document.getElementById('contact_phone');
+    
+    // Phone number formatting
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 10) {
+            value = value.substring(0, 10);
+        }
+        e.target.value = value;
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('contact_name').value.trim();
+        const phone = document.getElementById('contact_phone').value.trim();
+        
+        if (!name || !phone) {
+            e.preventDefault();
+            alert('Please provide your name and phone number to continue.');
+            return false;
+        }
+        
+        if (phone.length < 10) {
+            e.preventDefault();
+            alert('Please provide a valid 10-digit phone number.');
+            return false;
+        }
+    });
+    
+    // Auto-scroll to contact form if high intent
+    {% if show_contact_form %}
+    setTimeout(function() {
+        document.querySelector('.contact-form-section').scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }, 1000);
+    {% endif %}
+});
+</script>
+{% endblock %}

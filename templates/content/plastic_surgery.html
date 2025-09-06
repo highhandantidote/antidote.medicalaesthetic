@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_data.title }}{% endblock %}
+{% block meta_description %}{{ seo_data.description }}{% endblock %}
+{% block meta_keywords %}{{ seo_data.keywords }}{% endblock %}
+{% block canonical_url %}{{ url_for('content.antidote_plastic_surgery', _external=True) }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section bg-gradient-primary text-white py-5 mb-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Antidote Plastic Surgery</h1>
+            <p class="lead mb-4">Find India's top plastic surgeons on Antidote. Board-certified specialists, transparent pricing, and comprehensive care for all your aesthetic needs.</p>
+            <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn btn-light btn-lg">Get AI Recommendations</a>
+        </div>
+    </div>
+
+    <!-- Popular Procedures -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Popular Plastic Surgery Procedures</h2>
+        <div class="row">
+            {% for procedure in procedures %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if procedure.image_url %}
+                    <img src="{{ procedure.image_url }}" class="card-img-top" alt="{{ procedure.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ procedure.name }}</h5>
+                        <p class="card-text">{{ procedure.description[:80] }}...</p>
+                        <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Surgeons -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">Leading Plastic Surgeons</h2>
+        <div class="row">
+            {% for doctor in doctors %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        {% if doctor.profile_image %}
+                        <img src="{{ doctor.profile_image }}" class="rounded-circle mb-3" alt="Dr. {{ doctor.name }}" width="80" height="80">
+                        {% endif %}
+                        <h5 class="card-title">Dr. {{ doctor.name }}</h5>
+                        <p class="text-muted">{{ doctor.specialization }}</p>
+                        <p class="small">{{ doctor.location }}</p>
+                        <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-outline-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

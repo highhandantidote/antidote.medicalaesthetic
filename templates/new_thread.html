@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Thread - Community{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create New Thread</h3>
+                </div>
+                <div class="card-body">
+                    <form id="newThreadForm" action="{{ url_for('community_new') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                placeholder="Enter a descriptive title" required>
+                            <div class="form-text">Be specific with your title to help others find your thread (50-100 characters recommended)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" rows="6" 
+                                placeholder="Share your experience or ask your question in detail" required></textarea>
+                            <div class="form-text">Provide as much detail as possible to get better responses</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="procedure_id" class="form-label">Related Procedure</label>
+                            <select class="form-select" id="procedure_id" name="procedure_id">
+                                <option value="">-- Select a procedure (optional) --</option>
+                                {% for procedure in procedures %}
+                                <option value="{{ procedure.id }}">{{ procedure.procedure_name }} ({{ procedure.body_part }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Linking to a procedure helps others find relevant content</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" 
+                                placeholder="recovery, cost, delhi, surgeon, experience">
+                            <div class="form-text">Add comma-separated tags to help categorize your thread</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="anonymous" name="anonymous">
+                            <label class="form-check-label" for="anonymous">Post anonymously</label>
+                            <div class="form-text">Your username will not be displayed if checked</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('community') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Thread</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Community Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Be respectful and supportive of other community members</li>
+                        <li>Avoid sharing personal information that could identify you or others</li>
+                        <li>Only share verified medical information and cite sources when possible</li>
+                        <li>Do not promote specific doctors, clinics or products unless sharing your personal experience</li>
+                        <li>Content that violates our community guidelines may be removed</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('newThreadForm');
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+        
+        // Simple form validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            if (titleInput.value.trim().length < 10) {
+                e.preventDefault();
+                titleInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                titleInput.classList.remove('is-invalid');
+            }
+            
+            if (contentInput.value.trim().length < 30) {
+                e.preventDefault();
+                contentInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                contentInput.classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger mt-3';
+                alertDiv.textContent = 'Please fix the errors in the form before submitting.';
+                form.prepend(alertDiv);
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            }
+        });
+        
+        // Character counter for title
+        titleInput.addEventListener('input', function() {
+            const length = this.value.trim().length;
+            const formText = this.nextElementSibling;
+            
+            if (length < 10) {
+                formText.textContent = `Title is too short (${length}/10 characters minimum)`;
+                formText.classList.add('text-danger');
+            } else if (length < 50) {
+                formText.textContent = `Title length: ${length} characters (50-100 recommended)`;
+                formText.classList.remove('text-danger');
+            } else if (length <= 100) {
+                formText.textContent = `Title length: ${length} characters (good length)`;
+                formText.classList.add('text-success');
+                formText.classList.remove('text-danger');
+            } else {
+                formText.textContent = `Title length: ${length} characters (100 characters recommended maximum)`;
+                formText.classList.add('text-warning');
+                formText.classList.remove('text-success', 'text-danger');
+            }
+        });
+        
+        // Character counter for content
+        contentInput.addEventListener('input', function() {
+            const length = this.value.trim().length;
+            const formText = this.nextElementSibling;
+            
+            if (length < 30) {
+                formText.textContent = `Content is too short (${length}/30 characters minimum)`;
+                formText.classList.add('text-danger');
+            } else if (length < 200) {
+                formText.textContent = `Content length: ${length} characters (adding more details helps get better responses)`;
+                formText.classList.remove('text-danger');
+            } else {
+                formText.textContent = `Content length: ${length} characters (good detail level)`;
+                formText.classList.add('text-success');
+                formText.classList.remove('text-danger');
+            }
+        });
+    });
+</script>
+{% endblock %}

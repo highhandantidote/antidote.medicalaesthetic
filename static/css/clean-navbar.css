@@ -1,0 +1,97 @@
+/* Clean Navigation Bar Styles - No Blinking/Line Issues */
+
+.clean-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.clean-nav .nav-item {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link-clean {
+    display: block;
+    padding: 12px 16px;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    position: relative;
+    transition: color 0.2s ease;
+    border: none;
+    background: transparent;
+}
+
+.nav-link-clean:hover {
+    color: #4FACFE;
+    text-decoration: none;
+}
+
+/* Active state for current page */
+.nav-link-clean.active {
+    color: #4FACFE;
+    border-bottom: 2px solid #4FACFE;
+}
+
+/* Remove any Bootstrap nav-link effects */
+.navbar-nav .nav-link-clean {
+    color: #374151 !important;
+    padding: 12px 16px !important;
+    font-weight: 500 !important;
+    transition: color 0.2s ease !important;
+}
+
+.navbar-nav .nav-link-clean:hover {
+    color: #4FACFE !important;
+}
+
+.navbar-nav .nav-link-clean:focus {
+    color: #4FACFE !important;
+    outline: none;
+    box-shadow: none;
+}
+
+/* Disable any pseudo-element effects */
+.nav-link-clean::before,
+.nav-link-clean::after {
+    display: none !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 991.98px) {
+    .clean-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+    
+    .nav-link-clean {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .nav-link-clean:hover {
+        background-color: #f9fafb;
+    }
+}
+
+/* Override any conflicting styles */
+.navbar-light .navbar-nav .nav-link-clean {
+    color: #374151 !important;
+}
+
+.navbar-light .navbar-nav .nav-link-clean:hover,
+.navbar-light .navbar-nav .nav-link-clean:focus {
+    color: #4FACFE !important;
+}
+
+/* Ensure no animation conflicts */
+.nav-link-clean * {
+    transition: none !important;
+    animation: none !important;
+}

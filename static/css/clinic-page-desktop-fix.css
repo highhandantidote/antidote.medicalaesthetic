@@ -1,0 +1,124 @@
+/* Clinic Page Desktop Visibility Fix */
+/* This file specifically addresses the clinic cards not showing on desktop due to aggressive size reduction */
+
+@media (min-width: 769px) {
+    /* Force clinic cards to be visible and properly sized on desktop */
+    .clinic-card {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        min-height: 180px !important;
+        margin-bottom: 1.5rem !important;
+        border: 1px solid #dee2e6 !important;
+        background: white !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    .clinic-card .card-body {
+        padding: 1.5rem !important;
+        min-height: 140px !important;
+    }
+    
+    /* Override aggressive desktop optimization for clinic card text */
+    .clinic-card h5.card-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+        color: #333 !important;
+        font-weight: 600 !important;
+    }
+    
+    .clinic-card h6 {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+        color: #00A0B0 !important;
+    }
+    
+    .clinic-card p.card-text {
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 1rem !important;
+        color: #666 !important;
+    }
+    
+    .clinic-card small {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Ensure the container shows properly */
+    .d-flex.flex-column.gap-3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    /* Fix star ratings size */
+    .clinic-card .fa-star,
+    .clinic-card .fa-star-half-alt,
+    .clinic-card .far.fa-star {
+        font-size: 1rem !important;
+        color: #ffc107 !important;
+    }
+    
+    /* Fix badge sizing */
+    .clinic-card .badge {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    
+    /* Fix profile image size */
+    .clinic-card img {
+        width: 60px !important;
+        height: 60px !important;
+        object-fit: cover !important;
+    }
+    
+    /* Hover effects */
+    .clinic-card:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        border-color: #00A0B0 !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Ensure all text elements are visible */
+    .clinic-card *,
+    .clinic-card .col-md-8 *,
+    .clinic-card .col-md-4 * {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Fix row and column layout inside cards */
+    .clinic-card .row {
+        margin: 0 !important;
+        width: 100% !important;
+    }
+    
+    .clinic-card .col-md-8,
+    .clinic-card .col-md-4 {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Additional safeguard for very specific elements */
+@media (min-width: 769px) {
+    body .clinic-card,
+    body .clinic-card .card-body,
+    body .clinic-card .row,
+    body .clinic-card .col-md-8,
+    body .clinic-card .col-md-4 {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    body .clinic-card .row {
+        display: flex !important;
+    }
+    
+    body .clinic-card .col-md-8,
+    body .clinic-card .col-md-4 {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+}

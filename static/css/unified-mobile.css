@@ -1,0 +1,534 @@
+/*
+ * Unified Mobile CSS for Antidote Platform
+ * This file consolidates all mobile responsive styles to prevent conflicts
+ * and ensure consistent display across all mobile devices
+ */
+
+/* Ensure proper box-sizing for all elements */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Base mobile styles for devices up to 768px */
+@media (max-width: 768px) {
+    /* Reset any conflicting styles */
+    body {
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Consistent typography scaling */
+    h1, .h1 {
+        font-size: 1.75rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    h2, .h2 {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.875rem !important;
+    }
+    
+    h3, .h3 {
+        font-size: 1.25rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    h4, .h4 {
+        font-size: 1.125rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.625rem !important;
+    }
+    
+    h5, .h5 {
+        font-size: 1rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    h6, .h6 {
+        font-size: 0.875rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Container and spacing */
+    .container,
+    .container-fluid {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Section spacing */
+    .py-5 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    .my-5 {
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Hero section */
+    .hero-title,
+    .ultra-hero-title {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 0.875rem !important;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.25rem !important;
+    }
+    
+    /* Navigation */
+    .navbar {
+        padding: 0.625rem 0.875rem !important;
+    }
+    
+    .navbar-brand img {
+        height: 36px !important;
+        width: auto !important;
+    }
+    
+    /* Forms and inputs */
+    .form-control,
+    input,
+    textarea,
+    select {
+        font-size: 14px !important;
+        padding: 0.5rem 0.75rem !important;
+        border-radius: 0.5rem !important;
+        min-height: 44px !important; /* Touch target size */
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    /* Specifically target hero search inputs */
+    .hero-search-container input,
+    .hero-search-container .form-control,
+    .hero-search-section input,
+    .hero-search-section .form-control {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    /* Buttons */
+    .btn {
+        font-size: 14px !important;
+        padding: 0.625rem 1rem !important;
+        border-radius: 0.5rem !important;
+        min-height: 44px !important; /* Touch target size */
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Cards */
+    .card {
+        margin-bottom: 0.875rem !important;
+        border-radius: 0.75rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .card-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.625rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    .card-text {
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Search components */
+    .hero-search-input,
+    .ultra-search-input {
+        font-size: 14px !important;
+        padding: 0.5rem 0.75rem !important;
+        padding-left: 2.5rem !important;
+        border-radius: 0.5rem !important;
+        border: none !important;
+    }
+    
+    /* Move search icons to left side on mobile - override Bootstrap positioning */
+    .position-absolute.end-0.translate-middle-y.pe-2 {
+        left: 0.75rem !important;
+        right: auto !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Active tab styling for mobile */
+    .hero-search-tab.active,
+    .hero-search-tab.nav-link.active {
+        border-bottom: 2px solid #00A0B0 !important;
+        font-weight: 600 !important;
+        color: #00A0B0 !important;
+    }
+    
+    /* Ensure underline appears on all tabs */
+    .hero-tabs-slider .nav-link {
+        border-bottom: 2px solid transparent !important;
+    }
+    
+    /* Reduce spacing gaps on mobile */
+    .hero-section {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .hero-section .py-5 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .hero-search-section {
+        margin-bottom: 0 !important;
+        padding: 20px !important;
+    }
+    
+    /* Remove extra spacing below search section */
+    .hero-search-section + * {
+        margin-top: 0 !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Hero search section - resized with 2.5% margins on mobile */
+    .hero-search-container {
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+    }
+    
+    .hero-search-container .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 0.75rem !important;
+    }
+    
+    /* Hero search section outer container - target the specific background div */
+    div[style*="background-color: #f1f3fc"],
+    .hero-search-section {
+        border-radius: 0.75rem !important;
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .hero-search-btn,
+    .ultra-search-btn {
+        font-size: 14px !important;
+        padding: 0.625rem 1rem !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    .hero-search-tab {
+        font-size: 13px !important;
+        padding: 0.5rem 0.75rem !important;
+        border-radius: 0.375rem !important;
+    }
+    
+    .hero-search-tab-text {
+        font-size: 13px !important;
+    }
+    
+    /* Procedure and doctor cards */
+    .procedure-card,
+    .doctor-card,
+    .ultra-procedure-card,
+    .ultra-doctor-card {
+        margin-bottom: 0.875rem !important;
+    }
+    
+    .procedure-card .card-title,
+    .doctor-card .card-title,
+    .ultra-procedure-card .card-title,
+    .ultra-doctor-card .card-title {
+        font-size: 0.9rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* AI recommendation components */
+    .ai-recommendation-card .card-title {
+        font-size: 1.125rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .ai-recommendation-card .form-label {
+        font-size: 0.875rem !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Banner slider */
+    .banner-slider {
+        height: 220px !important;
+        border-radius: 0.75rem !important;
+        overflow: hidden !important;
+    }
+    
+    .banner-slider .slide-nav {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 14px !important;
+    }
+    
+    .banner-slider .slide-content {
+        background-size: cover !important;
+        background-position: center !important;
+    }
+    
+    /* Thread and community cards */
+    .thread-card,
+    .ultra-thread-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .thread-card .card-title,
+    .ultra-thread-card .card-title {
+        font-size: 1rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* Disable hover effects on mobile */
+    .depth-effect:hover,
+    .glow-effect:hover,
+    .press-effect:hover,
+    .ultra-card:hover,
+    .ultra-procedure-card:hover,
+    .ultra-doctor-card:hover,
+    .ultra-thread-card:hover {
+        transform: none !important;
+        box-shadow: inherit !important;
+    }
+    
+    /* Ensure adequate spacing between interactive elements */
+    .mb-2 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1.25rem !important;
+    }
+    
+    /* Links and interactive elements */
+    a, .nav-link {
+        min-height: 44px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    
+    /* Form check elements */
+    .form-check-label {
+        min-height: 44px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Extra small mobile devices (phones in portrait) */
+@media (max-width: 576px) {
+    body {
+        font-size: 13px !important;
+    }
+    
+    /* Further reduce text sizes for very small screens */
+    h1, .h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    h2, .h2 {
+        font-size: 1.375rem !important;
+    }
+    
+    h3, .h3 {
+        font-size: 1.125rem !important;
+    }
+    
+    .hero-title,
+    .ultra-hero-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Compact navbar for very small screens */
+    .navbar-brand img {
+        height: 35px !important;
+    }
+    
+    .navbar {
+        padding: 0.5rem 1rem !important;
+    }
+    
+    /* Smaller buttons and forms for very small screens */
+    .btn {
+        font-size: 13px !important;
+        padding: 0.625rem 1rem !important;
+    }
+    
+    .form-control,
+    input,
+    textarea,
+    select {
+        font-size: 13px !important;
+        padding: 0.5rem 0.75rem !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    /* Specifically target hero search inputs for small screens */
+    .hero-search-container input,
+    .hero-search-container .form-control,
+    .hero-search-section input,
+    .hero-search-section .form-control {
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    
+    /* Compact banner for small screens */
+    .banner-slider {
+        height: 200px !important;
+    }
+    
+    .banner-slider .slide-nav {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Reduce card padding for very small screens */
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .card-title {
+        font-size: 1rem !important;
+    }
+    
+    /* Hero search section - resized with 5% margins for small mobile */
+    .hero-search-container {
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+    }
+    
+    /* Hero search section outer container - target the specific background div */
+    div[style*="background-color: #f1f3fc"],
+    .hero-search-section {
+        border-radius: 0.75rem !important;
+        margin-left: 0% !important;
+        margin-right: 0% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Search components for very small screens */
+    .hero-search-input,
+    .ultra-search-input {
+        font-size: 13px !important;
+        padding: 0.5rem 0.75rem !important;
+        padding-left: 2rem !important;
+        border: none !important;
+    }
+    
+    .hero-search-btn,
+    .ultra-search-btn {
+        font-size: 13px !important;
+        padding: 0.625rem 1rem !important;
+    }
+    
+    .hero-search-tab {
+        font-size: 12px !important;
+        padding: 0.375rem 0.625rem !important;
+    }
+    
+    .hero-search-tab-text {
+        font-size: 12px !important;
+    }
+    
+    /* Move search icons to left side on small mobile - override Bootstrap positioning */
+    .position-absolute.end-0.translate-middle-y.pe-2 {
+        left: 0.625rem !important;
+        right: auto !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    .hero-search-input,
+    .ultra-search-input {
+        padding-left: 2.25rem !important;
+    }
+    
+    /* Hero search cards - resized with 25% margins for small mobile */
+    .hero-search-container .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 0.75rem !important;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce vertical spacing in landscape mode */
+    .py-5 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+    
+    .my-5 {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .banner-slider {
+        height: 180px !important;
+    }
+}
+
+/* Fix for iOS Safari viewport issues */
+@supports (-webkit-touch-callout: none) {
+    body {
+        -webkit-text-size-adjust: 100% !important;
+    }
+    
+    input, textarea, select {
+        -webkit-appearance: none !important;
+        border-radius: 0.5rem !important;
+    }
+}
+
+/* Fix for Android Chrome viewport issues */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    body {
+        text-size-adjust: 100% !important;
+    }
+}

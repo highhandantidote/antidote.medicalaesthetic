@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Credit Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Credit Management</h2>
+                    <p class="text-muted">Manage clinic credits, view transactions, and handle disputes</p>
+                </div>
+                <div>
+                    <a href="/admin/disputes" class="btn btn-outline-warning me-2">
+                        <i class="fas fa-exclamation-triangle"></i> View Disputes
+                    </a>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adjustCreditsModal">
+                        <i class="fas fa-edit"></i> Adjust Credits
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ system_stats.total_credits|format_credits }}</h4>
+                            <p class="card-text">Total Credits in System</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">₹{{ '{:,}'.format(system_stats.revenue_today) }}</h4>
+                            <p class="card-text">Revenue Today</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ system_stats.leads_today }}</h4>
+                            <p class="card-text">Leads Generated Today</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-plus fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ system_stats.negative_balance_clinics }}</h4>
+                            <p class="card-text">Negative Balance Clinics</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinic Credit Balances -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>Clinic Credit Balances</h5>
+                    <div>
+                        <input type="text" id="clinicSearch" class="form-control form-control-sm" placeholder="Search clinics..." style="width: 200px;">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="clinicsTable">
+                            <thead>
+                                <tr>
+                                    <th>Clinic</th>
+                                    <th>Credit Balance</th>
+                                    <th>Leads This Month</th>
+                                    <th>Revenue Generated</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for clinic in clinics %}
+                                <tr class="{% if clinic.balance < 0 %}table-danger{% elif clinic.balance < 500 %}table-warning{% endif %}">
+                                    <td>
+                                        <div>
+                                            <strong>{{ clinic.name }}</strong><br>
+                                            <small class="text-muted">{{ clinic.city }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold {{ clinic.balance|credit_status_class }}">
+                                            {{ clinic.balance|format_credits }}
+                                        </span>
+                                        {% if clinic.balance < 0 %}
+                                        <br><small class="text-danger">Overdrawn by ₹{{ clinic.balance|abs|format_credits }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ clinic.leads_count }}</span>
+                                        <br><small class="text-muted">{{ clinic.credits_spent|format_credits }} spent</small>
+                                    </td>
+                                    <td>
+                                        <strong>₹{{ '{:,}'.format(clinic.revenue) }}</strong>
+                                    </td>
+                                    <td>
+                                        <small>{{ clinic.last_activity.strftime('%d %b %Y') if clinic.last_activity else 'No activity' }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary adjust-credits-btn" 
+                                                    data-clinic-id="{{ clinic.id }}" 
+                                                    data-clinic-name="{{ clinic.name }}"
+                                                    data-current-balance="{{ clinic.balance }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="/admin/clinic/{{ clinic.id }}/transactions" class="btn btn-outline-info">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                            <a href="/admin/clinic/{{ clinic.id }}/leads" class="btn btn-outline-success">
+                                                <i class="fas fa-users"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent System Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent System Transactions</h5>
+                    <a href="/admin/all-transactions" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Clinic</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>
+                                        <small>{{ transaction.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ transaction.clinic_name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'deduction' %}
+                                        <span class="badge bg-danger">Lead</span>
+                                        {% elif transaction.transaction_type == 'credit' %}
+                                        <span class="badge bg-success">Purchase</span>
+                                        {% elif transaction.transaction_type == 'bonus' %}
+                                        <span class="badge bg-info">Bonus</span>
+                                        {% elif transaction.transaction_type == 'refund' %}
+                                        <span class="badge bg-warning">Refund</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ transaction.transaction_type.title() }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="{% if transaction.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                            {{ transaction.amount|format_credits }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ transaction.description[:50] }}{% if transaction.description|length > 50 %}...{% endif %}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if transaction.status == 'completed' %}bg-success{% elif transaction.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ transaction.status.title() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Adjust Credits Modal -->
+<div class="modal fade" id="adjustCreditsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adjust Clinic Credits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="adjustCreditsForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Clinic</label>
+                        <select name="clinic_id" class="form-select" required>
+                            <option value="">Select a clinic...</option>
+                            {% for clinic in clinics %}
+                            <option value="{{ clinic.id }}" data-balance="{{ clinic.balance }}">
+                                {{ clinic.name }} ({{ clinic.balance|format_credits }} credits)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Adjustment Type</label>
+                        <select name="adjustment_type" class="form-select" required>
+                            <option value="credit">Add Credits</option>
+                            <option value="deduction">Deduct Credits</option>
+                            <option value="set_balance">Set Balance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" name="amount" class="form-control" required min="1">
+                        <small class="form-text text-muted">Enter the amount of credits to adjust</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea name="reason" class="form-control" rows="3" required 
+                                  placeholder="Provide a reason for this adjustment..."></textarea>
+                    </div>
+                    
+                    <div id="adjustment-preview" class="alert alert-info d-none">
+                        <strong>Preview:</strong> <span id="preview-text"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Adjustment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Search functionality
+    $('#clinicSearch').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $('#clinicsTable tbody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+    
+    // Individual adjust credits buttons
+    $('.adjust-credits-btn').click(function() {
+        const clinicId = $(this).data('clinic-id');
+        const clinicName = $(this).data('clinic-name');
+        const currentBalance = $(this).data('current-balance');
+        
+        $('select[name="clinic_id"]').val(clinicId);
+        $('#adjustCreditsModal .modal-title').text(`Adjust Credits - ${clinicName}`);
+        $('#adjustCreditsModal').modal('show');
+        
+        updatePreview();
+    });
+    
+    // Form change handlers
+    $('#adjustCreditsForm select, #adjustCreditsForm input').on('change input', updatePreview);
+    
+    function updatePreview() {
+        const clinicSelect = $('select[name="clinic_id"]');
+        const adjustmentType = $('select[name="adjustment_type"]').val();
+        const amount = parseInt($('input[name="amount"]').val()) || 0;
+        
+        if (!clinicSelect.val() || !adjustmentType || !amount) {
+            $('#adjustment-preview').addClass('d-none');
+            return;
+        }
+        
+        const currentBalance = parseInt(clinicSelect.find(':selected').data('balance')) || 0;
+        const clinicName = clinicSelect.find(':selected').text().split(' (')[0];
+        
+        let newBalance = currentBalance;
+        let previewText = '';
+        
+        switch(adjustmentType) {
+            case 'credit':
+                newBalance = currentBalance + amount;
+                previewText = `${clinicName}: ${currentBalance.toLocaleString()} + ${amount.toLocaleString()} = ${newBalance.toLocaleString()} credits`;
+                break;
+            case 'deduction':
+                newBalance = currentBalance - amount;
+                previewText = `${clinicName}: ${currentBalance.toLocaleString()} - ${amount.toLocaleString()} = ${newBalance.toLocaleString()} credits`;
+                break;
+            case 'set_balance':
+                newBalance = amount;
+                previewText = `${clinicName}: Set balance to ${newBalance.toLocaleString()} credits (was ${currentBalance.toLocaleString()})`;
+                break;
+        }
+        
+        $('#preview-text').text(previewText);
+        $('#adjustment-preview').removeClass('d-none');
+        
+        if (newBalance < 0) {
+            $('#adjustment-preview').removeClass('alert-info').addClass('alert-warning');
+        } else {
+            $('#adjustment-preview').removeClass('alert-warning').addClass('alert-info');
+        }
+    }
+    
+    // Form submission
+    $('#adjustCreditsForm').submit(function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            clinic_id: $('select[name="clinic_id"]').val(),
+            adjustment_type: $('select[name="adjustment_type"]').val(),
+            amount: $('input[name="amount"]').val(),
+            reason: $('textarea[name="reason"]').val()
+        };
+        
+        if (!confirm('Are you sure you want to apply this credit adjustment?')) {
+            return;
+        }
+        
+        $('button[type="submit"]').prop('disabled', true).text('Processing...');
+        
+        $.post('/admin/adjust-credits', formData)
+            .done(function(response) {
+                if (response.success) {
+                    alert('Credits adjusted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            })
+            .fail(function() {
+                alert('Network error. Please try again.');
+            })
+            .always(function() {
+                $('button[type="submit"]').prop('disabled', false).text('Apply Adjustment');
+            });
+    });
+    
+    // Auto-refresh every minute
+    setInterval(function() {
+        if (!$('#adjustCreditsModal').hasClass('show')) {
+            location.reload();
+        }
+    }, 60000);
+});
+</script>
+{% endblock %}

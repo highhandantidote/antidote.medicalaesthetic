@@ -1,0 +1,32 @@
+{
+  "table": "favorites",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "user_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "procedure_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "doctor_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

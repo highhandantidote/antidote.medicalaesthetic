@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">Error</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <p>{{ message }}</p>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('web.index') }}" class="btn btn-primary">Return to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

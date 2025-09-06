@@ -1,0 +1,50 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('notifications_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "message",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "is_read",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "mentioned_username",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "response_type",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  }
+]

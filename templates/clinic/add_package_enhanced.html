@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Package - {{ clinic.name }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+.form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.section-title {
+    color: #4A90E2;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.procedure-breakdown-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.result-gallery-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.highlight-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.highlight-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #4A90E2;
+    border-radius: 8px 0 0 8px;
+}
+
+.btn-add-item {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.btn-remove-item {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.file-upload-area:hover {
+    border-color: #4A90E2;
+}
+
+.sticky-form-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Add New Package</h2>
+        <a href="/clinic/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <form id="packageForm" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <!-- 1. Basic Package Information -->
+        <div class="form-section">
+            <h4 class="section-title">1. Basic Package Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="title" class="form-label">Package Name *</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="category" class="form-label">Category *</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Rhinoplasty">Rhinoplasty</option>
+                        <option value="Fillers">Fillers & Injectables</option>
+                        <option value="Facial Rejuvenation">Facial Rejuvenation</option>
+                        <option value="Body Contouring">Body Contouring</option>
+                        <option value="Skin Treatments">Skin Treatments</option>
+                        <option value="Hair Treatments">Hair Treatments</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <label for="actual_treatment_name" class="form-label">Actual Treatment Name</label>
+                    <input type="text" class="form-control" id="actual_treatment_name" name="actual_treatment_name" placeholder="e.g., Hyaluronic Acid Filler, Surgical Rhinoplasty, CO2 Laser Resurfacing">
+                    <small class="text-muted">The specific medical treatment or procedure (optional - will be auto-generated if not provided)</small>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Package Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="clinic_address" class="form-label">Clinic Address</label>
+                <textarea class="form-control" id="clinic_address" name="clinic_address" rows="2" readonly>{{ clinic.address or '' }}</textarea>
+                <small class="text-muted">Automatically fetched from clinic profile.</small>
+            </div>
+        </div>
+
+        <!-- 2. Pricing Information -->
+        <div class="form-section">
+            <h4 class="section-title">2. Pricing Information</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="price_actual" class="form-label">Actual Price (₹) *</label>
+                    <input type="number" class="form-control" id="price_actual" name="price_actual" step="0.01" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="price_discounted" class="form-label">Discounted Price (₹)</label>
+                    <input type="number" class="form-control" id="price_discounted" name="price_discounted" step="0.01">
+                </div>
+                <div class="col-md-4">
+                    <label for="discount_percentage" class="form-label">Discount Percentage (%)</label>
+                    <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" min="0" max="100">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label for="vat_amount" class="form-label">VAT Amount (₹)</label>
+                    <input type="number" class="form-control" id="vat_amount" name="vat_amount" step="0.01">
+                </div>
+                <div class="col-md-4">
+                    <label for="anesthetic_type" class="form-label">Anesthetic Type</label>
+                    <input type="text" class="form-control" id="anesthetic_type" name="anesthetic_type" placeholder="e.g., Local, Topical numbing">
+                </div>
+                <div class="col-md-4">
+                    <label for="aftercare_kit" class="form-label">After Care Kit</label>
+                    <input type="text" class="form-control" id="aftercare_kit" name="aftercare_kit" placeholder="e.g., Healing balm, Instructions">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. About the Procedure -->
+        <div class="form-section">
+            <h4 class="section-title">3. About the Procedure</h4>
+            <div class="mb-3">
+                <label for="about_procedure" class="form-label">Detailed Procedure Information</label>
+                <textarea class="form-control" id="about_procedure" name="about_procedure" rows="5" placeholder="Comprehensive description of the procedure, techniques used, technology, etc."></textarea>
+            </div>
+        </div>
+
+        <!-- 4. Key Highlights -->
+        <div class="form-section">
+            <h4 class="section-title">4. Key Highlights</h4>
+            <p class="text-muted mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Add key highlights that patients should know about this procedure. Include important details like recovery time, technology used, dosage, results duration, etc.
+            </p>
+            <button type="button" class="btn-add-item" onclick="addHighlight()">
+                <i class="fas fa-plus me-2"></i>Add Key Highlight
+            </button>
+            <div id="highlights-container">
+                <!-- Dynamic highlights will be added here -->
+            </div>
+        </div>
+
+        <!-- 5. Results Gallery (Before/After) -->
+        <div class="form-section">
+            <h4 class="section-title">5. Results Gallery (Before/After)</h4>
+            <button type="button" class="btn-add-item" onclick="addResultGalleryItem()">
+                <i class="fas fa-plus me-2"></i>Add Result Case
+            </button>
+            <div id="results-gallery-container">
+                <!-- Dynamic results will be added here -->
+            </div>
+        </div>
+
+        <!-- 6. Procedure Breakdown & Pricing -->
+        <div class="form-section">
+            <h4 class="section-title">6. Procedure Breakdown & Pricing</h4>
+            <button type="button" class="btn-add-item" onclick="addProcedureBreakdown()">
+                <i class="fas fa-plus me-2"></i>Add Procedure
+            </button>
+            <div id="procedure-breakdown-container">
+                <!-- Dynamic procedures will be added here -->
+            </div>
+        </div>
+
+        <!-- 7. Additional Information -->
+        <div class="form-section">
+            <h4 class="section-title">7. Additional Information</h4>
+            <div class="mb-3">
+                <label for="recommended_for" class="form-label">Recommended For</label>
+                <textarea class="form-control" id="recommended_for" name="recommended_for" rows="3" placeholder="Who is this procedure suitable for? Patient criteria, ideal candidates, etc."></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="downtime" class="form-label">Downtime</label>
+                    <input type="text" class="form-control" id="downtime" name="downtime" placeholder="e.g., 2-3 days, 1 week">
+                </div>
+                <div class="col-md-6">
+                    <label for="duration" class="form-label">Procedure Duration</label>
+                    <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g., 45 minutes, 2 hours">
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="downtime_description" class="form-label">Downtime Description</label>
+                <textarea class="form-control" id="downtime_description" name="downtime_description" rows="2" placeholder="Detailed description of recovery period, restrictions, etc."></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="precautions" class="form-label">Precautions & Side Effects</label>
+                <textarea class="form-control" id="precautions" name="precautions" rows="3" placeholder="Precautions to take, potential side effects, warnings, etc."></textarea>
+            </div>
+        </div>
+
+        <!-- 8. Contact & Communication -->
+        <div class="form-section">
+            <h4 class="section-title">8. Contact & Communication</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="whatsapp_number" class="form-label">WhatsApp Number</label>
+                    <input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" placeholder="e.g., +919876543210">
+                    <small class="text-muted">Leave blank to use clinic's default number</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="custom_phone_number" class="form-label">Custom Phone Number</label>
+                    <input type="tel" class="form-control" id="custom_phone_number" name="custom_phone_number" placeholder="e.g., +919876543210">
+                    <small class="text-muted">Leave blank to use clinic's default number</small>
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="chat_message_template" class="form-label">WhatsApp Message Template</label>
+                <textarea class="form-control" id="chat_message_template" name="chat_message_template" rows="2" placeholder="Default message when patients click WhatsApp button"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="call_message_template" class="form-label">Call Message Template</label>
+                <textarea class="form-control" id="call_message_template" name="call_message_template" rows="2" placeholder="Information for call inquiries"></textarea>
+            </div>
+        </div>
+
+        <!-- 9. Location Information -->
+        <div class="form-section">
+            <h4 class="section-title">9. Location Information</h4>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Location automatically fetched from clinic profile: <strong>{{ clinic.address or 'No address set' }}</strong>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="clinic_latitude" class="form-label">Latitude</label>
+                    <input type="number" class="form-control" id="clinic_latitude" name="clinic_latitude" step="0.000001" value="{{ clinic.latitude or '28.7041' }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label for="clinic_longitude" class="form-label">Longitude</label>
+                    <input type="number" class="form-control" id="clinic_longitude" name="clinic_longitude" step="0.000001" value="{{ clinic.longitude or '77.1025' }}" readonly>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div id="clinic-map" style="height: 300px; border: 1px solid #dee2e6; border-radius: 8px;"></div>
+                <small class="text-muted">Location automatically fetched from clinic profile. OpenStreetMap view of clinic location.</small>
+            </div>
+        </div>
+
+        <!-- Add padding for sticky footer -->
+        <div style="height: 80px;"></div>
+    </form>
+</div>
+
+<!-- Sticky Form Footer -->
+<div class="sticky-form-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="saveDraft()">
+                    <i class="fas fa-save me-2"></i>Save as Draft
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="submit" form="packageForm" class="btn btn-primary w-100">
+                    <i class="fas fa-check me-2"></i>Publish Package
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script>
+let highlightCount = 0;
+let procedureCount = 0;
+let resultCount = 0;
+let map = null;
+
+// Add highlight functionality
+function addHighlight() {
+    highlightCount++;
+    const container = document.getElementById('highlights-container');
+    const highlightHtml = `
+        <div class="highlight-item" id="highlight-${highlightCount}">
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <label class="form-label">Highlight Title *</label>
+                    <input type="text" class="form-control" name="highlight_title_${highlightCount}" placeholder="e.g., Recovery Time, Dosage, Technology Used" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Highlight Value *</label>
+                    <input type="text" class="form-control" name="highlight_value_${highlightCount}" placeholder="e.g., 2-3 days, 1ml Premium HA, Advanced Laser" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeHighlight(${highlightCount})">
+                        <i class="fas fa-trash me-1"></i>Remove
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10">
+                    <label class="form-label">Detailed Explanation (Optional)</label>
+                    <textarea class="form-control" name="highlight_explanation_${highlightCount}" rows="2" placeholder="Provide detailed explanation about this highlight (e.g., What makes this recovery time special? How does this technology benefit patients?)"></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', highlightHtml);
+}
+
+function removeHighlight(id) {
+    document.getElementById(`highlight-${id}`).remove();
+}
+
+// Add procedure breakdown functionality
+function addProcedureBreakdown() {
+    procedureCount++;
+    const container = document.getElementById('procedure-breakdown-container');
+    const procedureHtml = `
+        <div class="procedure-breakdown-item" id="procedure-${procedureCount}">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Procedure Name</label>
+                    <input type="text" class="form-control" name="procedure_name_${procedureCount}" placeholder="e.g., Main Surgery">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Actual Price (₹)</label>
+                    <input type="number" class="form-control procedure-actual-price" name="procedure_price_actual_${procedureCount}" step="0.01" data-procedure-id="${procedureCount}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Discounted Price (₹)</label>
+                    <input type="number" class="form-control procedure-discounted-price" name="procedure_price_discounted_${procedureCount}" step="0.01" data-procedure-id="${procedureCount}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Discount %</label>
+                    <input type="number" class="form-control procedure-discount-percent" name="procedure_discount_${procedureCount}" min="0" max="100" readonly data-procedure-id="${procedureCount}">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeProcedure(${procedureCount})">Remove</button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="procedure_description_${procedureCount}" rows="2" placeholder="Brief description of this procedure"></textarea>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', procedureHtml);
+    
+    // Add event listeners for automatic discount calculation
+    const actualPriceInput = container.querySelector(`input[name="procedure_price_actual_${procedureCount}"]`);
+    const discountedPriceInput = container.querySelector(`input[name="procedure_price_discounted_${procedureCount}"]`);
+    const discountPercentInput = container.querySelector(`input[name="procedure_discount_${procedureCount}"]`);
+    
+    function calculateProcedureDiscount() {
+        const actual = parseFloat(actualPriceInput.value) || 0;
+        const discounted = parseFloat(discountedPriceInput.value) || 0;
+        
+        if (actual > 0 && discounted > 0 && discounted < actual) {
+            const percentage = Math.round(((actual - discounted) / actual) * 100);
+            discountPercentInput.value = percentage;
+        } else {
+            discountPercentInput.value = '';
+        }
+    }
+    
+    actualPriceInput.addEventListener('input', calculateProcedureDiscount);
+    discountedPriceInput.addEventListener('input', calculateProcedureDiscount);
+}
+
+function removeProcedure(id) {
+    document.getElementById(`procedure-${id}`).remove();
+}
+
+// Add result gallery functionality
+function addResultGalleryItem() {
+    resultCount++;
+    const container = document.getElementById('results-gallery-container');
+    const resultHtml = `
+        <div class="result-gallery-item" id="result-${resultCount}">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Case Title</label>
+                    <input type="text" class="form-control" name="result_title_${resultCount}" placeholder="e.g., Natural Enhancement">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Doctor Name</label>
+                    <input type="text" class="form-control" name="result_doctor_${resultCount}" placeholder="e.g., Dr. Smith">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="result_description_${resultCount}" rows="1" placeholder="Brief case description"></textarea>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn-remove-item w-100" onclick="removeResult(${resultCount})">Remove</button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <label class="form-label">Before & After Images</label>
+                    <div class="d-flex gap-3">
+                        <div class="flex-fill">
+                            <div class="file-upload-area" onclick="document.getElementById('before_image_${resultCount}').click()">
+                                <i class="fas fa-camera"></i><br>
+                                <small>Before Image</small>
+                            </div>
+                            <input type="file" id="before_image_${resultCount}" name="before_image_${resultCount}" accept="image/*" style="display: none;" onchange="previewImage(this, 'before_preview_${resultCount}')">
+                            <div id="before_preview_${resultCount}" class="image-preview mt-2" style="display: none;">
+                                <img src="" alt="Before preview" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
+                            </div>
+                        </div>
+                        <div class="flex-fill">
+                            <div class="file-upload-area" onclick="document.getElementById('after_image_${resultCount}').click()">
+                                <i class="fas fa-camera"></i><br>
+                                <small>After Image</small>
+                            </div>
+                            <input type="file" id="after_image_${resultCount}" name="after_image_${resultCount}" accept="image/*" style="display: none;" onchange="previewImage(this, 'after_preview_${resultCount}')">
+                            <div id="after_preview_${resultCount}" class="image-preview mt-2" style="display: none;">
+                                <img src="" alt="After preview" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Both images will be displayed side by side in the same result card</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Before Video (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('before_video_${resultCount}').click()">
+                        <i class="fas fa-video"></i><br>
+                        <small>Click to upload</small>
+                    </div>
+                    <input type="file" id="before_video_${resultCount}" name="before_video_${resultCount}" accept="video/*" style="display: none;">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">After Video (Optional)</label>
+                    <div class="file-upload-area" onclick="document.getElementById('after_video_${resultCount}').click()">
+                        <i class="fas fa-video"></i><br>
+                        <small>Click to upload</small>
+                    </div>
+                    <input type="file" id="after_video_${resultCount}" name="after_video_${resultCount}" accept="video/*" style="display: none;">
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', resultHtml);
+}
+
+function removeResult(id) {
+    document.getElementById(`result-${id}`).remove();
+}
+
+// Image preview functionality
+function previewImage(input, previewId) {
+    const file = input.files[0];
+    const previewDiv = document.getElementById(previewId);
+    const img = previewDiv.querySelector('img');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            previewDiv.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewDiv.style.display = 'none';
+    }
+}
+
+// Initialize OpenStreetMap
+function initializeMap() {
+    const lat = parseFloat(document.getElementById('clinic_latitude').value) || 28.7041;
+    const lng = parseFloat(document.getElementById('clinic_longitude').value) || 77.1025;
+    
+    if (map) {
+        map.remove();
+    }
+    
+    map = L.map('clinic-map').setView([lat, lng], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    const marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup('{{ clinic.name or "Clinic Location" }}')
+        .openPopup();
+    
+    // Add a circle to show clinic service area
+    L.circle([lat, lng], {
+        color: 'blue',
+        fillColor: '#4A90E2',
+        fillOpacity: 0.1,
+        radius: 1000
+    }).addTo(map);
+}
+
+// Initialize map and add initial highlight when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initializeMap, 100);
+    // Add one initial highlight field
+    addHighlight();
+});
+
+// Auto-calculate discount percentage
+document.getElementById('price_actual').addEventListener('input', calculateDiscount);
+document.getElementById('price_discounted').addEventListener('input', calculateDiscount);
+
+function calculateDiscount() {
+    const actual = parseFloat(document.getElementById('price_actual').value) || 0;
+    const discounted = parseFloat(document.getElementById('price_discounted').value) || 0;
+    
+    if (actual > 0 && discounted > 0 && discounted < actual) {
+        const percentage = Math.round(((actual - discounted) / actual) * 100);
+        document.getElementById('discount_percentage').value = percentage;
+    }
+}
+
+// Form submission
+document.getElementById('packageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Collect all form data including dynamic fields
+    const formData = new FormData(this);
+    
+    // Collect highlights with enhanced structure
+    const highlights = [];
+    for (let i = 1; i <= highlightCount; i++) {
+        const titleField = document.querySelector(`input[name="highlight_title_${i}"]`);
+        const valueField = document.querySelector(`input[name="highlight_value_${i}"]`);
+        const explanationField = document.querySelector(`textarea[name="highlight_explanation_${i}"]`);
+        
+        if (titleField && valueField && titleField.value && valueField.value) {
+            highlights.push({
+                title: titleField.value,
+                value: valueField.value,
+                explanation: explanationField ? explanationField.value : ''
+            });
+        }
+    }
+    formData.append('key_highlights', JSON.stringify(highlights));
+    
+    // Collect procedure breakdown
+    const procedures = [];
+    for (let i = 1; i <= procedureCount; i++) {
+        const nameField = document.querySelector(`input[name="procedure_name_${i}"]`);
+        if (nameField && nameField.value) {
+            procedures.push({
+                name: nameField.value,
+                price_actual: parseFloat(document.querySelector(`input[name="procedure_price_actual_${i}"]`).value) || 0,
+                price_discounted: parseFloat(document.querySelector(`input[name="procedure_price_discounted_${i}"]`).value) || 0,
+                discount_percentage: parseInt(document.querySelector(`input[name="procedure_discount_${i}"]`).value) || 0,
+                description: document.querySelector(`textarea[name="procedure_description_${i}"]`).value || ''
+            });
+        }
+    }
+    formData.append('procedure_breakdown', JSON.stringify(procedures));
+    
+    // Collect results gallery
+    const results = [];
+    for (let i = 1; i <= resultCount; i++) {
+        const titleField = document.querySelector(`input[name="result_title_${i}"]`);
+        if (titleField && titleField.value) {
+            results.push({
+                title: titleField.value,
+                doctor_name: document.querySelector(`input[name="result_doctor_${i}"]`).value || '',
+                description: document.querySelector(`textarea[name="result_description_${i}"]`).value || ''
+            });
+        }
+    }
+    formData.append('results_gallery', JSON.stringify(results));
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    formData.append('csrf_token', csrfToken);
+    
+    // Submit form
+    fetch('/clinic/packages/add', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Package created successfully!');
+            window.location.href = '/clinic/dashboard';
+        } else {
+            alert('Error creating package: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating package. Please try again.');
+    });
+});
+
+function saveDraft() {
+    alert('Draft functionality will be implemented in the next update.');
+}
+
+// Initialize with one item in each section
+document.addEventListener('DOMContentLoaded', function() {
+    addHighlight();
+    addProcedureBreakdown();
+    addResultGalleryItem();
+});
+</script>
+{% endblock %}

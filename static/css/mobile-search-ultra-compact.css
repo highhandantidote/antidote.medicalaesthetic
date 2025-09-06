@@ -1,0 +1,292 @@
+/* 
+   Ultra-Compact Mobile Search Design for ALL search pages
+   Applies to: /procedures, /doctors, /packages, /clinic/all
+   Reduces space usage by 50% while maintaining all functionality
+   Creative design with optimized mobile UX
+*/
+
+/* Ultra-compact search section for mobile devices */
+@media (max-width: 768px) {
+    .card.shadow-sm {
+        border-radius: 16px !important;
+        box-shadow: 0 2px 8px rgba(0, 160, 176, 0.1) !important;
+        border: 1px solid rgba(0, 160, 176, 0.15) !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    /* Compact form layout - two rows instead of separate rows */
+    .row.g-3.mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Search input - 70% width, inline with body part */
+    .col-md-4:nth-child(1) {
+        flex: 0 0 70% !important;
+        max-width: 70% !important;
+        padding-right: 0.25rem !important;
+    }
+    
+    /* Body part input - 30% width, inline with search */
+    .col-md-4:nth-child(2) {
+        flex: 0 0 30% !important;
+        max-width: 30% !important;
+        padding-left: 0.25rem !important;
+    }
+    
+    /* Search button - full width but compact height */
+    .col-md-4:nth-child(3) {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    /* Ultra-compact input fields */
+    .input-group {
+        height: 2rem !important;
+    }
+    
+    .form-control {
+        height: 2rem !important;
+        padding: 0.25rem 0.5rem !important;
+        padding-left: 1.75rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+    }
+    
+    .input-group-text {
+        height: 2rem !important;
+        padding: 0 0.4rem !important;
+        font-size: 0.7rem !important;
+        border-radius: 8px 0 0 8px !important;
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    /* Compact search button */
+    .btn.btn-primary.w-100 {
+        height: 2rem !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        background: linear-gradient(135deg, #00A0B0 0%, #0084a0 100%) !important;
+        border: none !important;
+        box-shadow: 0 1px 3px rgba(0, 160, 176, 0.3) !important;
+    }
+    
+    .btn.btn-primary.w-100:hover {
+        background: linear-gradient(135deg, #0084a0 0%, #006b7a 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 6px rgba(0, 160, 176, 0.4) !important;
+    }
+    
+    .btn.btn-primary.w-100 i {
+        font-size: 0.7rem !important;
+        margin-right: 0.25rem !important;
+    }
+    
+    /* Advanced filters toggle - minimal design for all pages */
+    .btn.btn-link.p-0,
+    #procedureAdvancedFiltersToggle,
+    #doctorAdvancedFiltersToggle,
+    #advancedFiltersToggle,
+    #clinicAdvancedFiltersToggle {
+        font-size: 0.75rem !important;
+        color: #00A0B0 !important;
+        text-decoration: none !important;
+        padding: 0.25rem 0 !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    .btn.btn-link.p-0 i {
+        font-size: 0.65rem !important;
+        margin-right: 0.2rem !important;
+    }
+    
+    /* Advanced filters section - compact when expanded for all pages */
+    #procedureAdvancedFiltersSection,
+    #doctorAdvancedFiltersSection,
+    #advancedFiltersSection,
+    #clinicAdvancedFiltersSection {
+        margin-top: 0.5rem !important;
+        padding-top: 0.5rem !important;
+        border-top: 1px solid #e9ecef !important;
+    }
+    
+    #procedureAdvancedFiltersSection .row.g-3,
+    #doctorAdvancedFiltersSection .row.g-3,
+    #advancedFiltersSection .row.g-3,
+    #clinicAdvancedFiltersSection .row.g-3 {
+        gap: 0.5rem !important;
+    }
+    
+    #procedureAdvancedFiltersSection .col-md-6,
+    #procedureAdvancedFiltersSection .col-lg-4,
+    #procedureAdvancedFiltersSection .col-lg-3,
+    #doctorAdvancedFiltersSection .col-md-6,
+    #doctorAdvancedFiltersSection .col-lg-4,
+    #doctorAdvancedFiltersSection .col-lg-3,
+    #advancedFiltersSection .col-md-6,
+    #advancedFiltersSection .col-lg-4,
+    #advancedFiltersSection .col-lg-3,
+    #clinicAdvancedFiltersSection .col-md-6,
+    #clinicAdvancedFiltersSection .col-lg-4,
+    #clinicAdvancedFiltersSection .col-lg-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    #procedureAdvancedFiltersSection .form-label,
+    #doctorAdvancedFiltersSection .form-label,
+    #advancedFiltersSection .form-label,
+    #clinicAdvancedFiltersSection .form-label {
+        font-size: 0.7rem !important;
+        margin-bottom: 0.2rem !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+    }
+    
+    #procedureAdvancedFiltersSection .form-control,
+    #procedureAdvancedFiltersSection .form-select,
+    #doctorAdvancedFiltersSection .form-control,
+    #doctorAdvancedFiltersSection .form-select,
+    #advancedFiltersSection .form-control,
+    #advancedFiltersSection .form-select,
+    #clinicAdvancedFiltersSection .form-control,
+    #clinicAdvancedFiltersSection .form-select {
+        height: 1.8rem !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.75rem !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Dropdown suggestions - compact */
+    .dropdown-suggestions {
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid #dee2e6 !important;
+        max-height: 120px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .dropdown-suggestions .dropdown-item {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Dropdown arrows */
+    .dropdown-arrow {
+        position: absolute !important;
+        right: 0.3rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 0.6rem !important;
+        color: #6c757d !important;
+        pointer-events: none !important;
+    }
+    
+    /* Input placeholder styling */
+    .form-control::placeholder {
+        color: #9ca3af !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Breadcrumb compact */
+    .breadcrumb {
+        padding: 0.25rem 0 !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›" !important;
+        color: #6c757d !important;
+    }
+}
+
+/* Extra small screens - even more compact */
+@media (max-width: 480px) {
+    .card-body {
+        padding: 0.5rem !important;
+    }
+    
+    /* Stack inputs vertically on very small screens */
+    .col-md-4:nth-child(1),
+    .col-md-4:nth-child(2) {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .form-control {
+        height: 1.8rem !important;
+        padding: 0.2rem 0.4rem !important;
+        padding-left: 1.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .input-group-text {
+        height: 1.8rem !important;
+        padding: 0 0.3rem !important;
+        font-size: 0.65rem !important;
+    }
+    
+    .btn.btn-primary.w-100 {
+        height: 1.8rem !important;
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    
+    .btn.btn-link.p-0 {
+        font-size: 0.7rem !important;
+    }
+    
+    #procedureAdvancedFiltersSection .form-control,
+    #procedureAdvancedFiltersSection .form-select,
+    #doctorAdvancedFiltersSection .form-control,
+    #doctorAdvancedFiltersSection .form-select,
+    #advancedFiltersSection .form-control,
+    #advancedFiltersSection .form-select,
+    #clinicAdvancedFiltersSection .form-control,
+    #clinicAdvancedFiltersSection .form-select {
+        height: 1.6rem !important;
+        padding: 0.15rem 0.3rem !important;
+        font-size: 0.7rem !important;
+    }
+    
+    #procedureAdvancedFiltersSection .form-label,
+    #doctorAdvancedFiltersSection .form-label,
+    #advancedFiltersSection .form-label,
+    #clinicAdvancedFiltersSection .form-label {
+        font-size: 0.65rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+}
+
+/* Focus states for better UX */
+@media (max-width: 768px) {
+    .form-control:focus {
+        border-color: #00A0B0 !important;
+        box-shadow: 0 0 0 0.1rem rgba(0, 160, 176, 0.25) !important;
+    }
+    
+    .btn:focus {
+        box-shadow: 0 0 0 0.1rem rgba(0, 160, 176, 0.5) !important;
+    }
+}
+
+/* Smooth transitions for better UX */
+@media (max-width: 768px) {
+    .btn, .form-control, .input-group-text {
+        transition: all 0.2s ease !important;
+    }
+    
+    .dropdown-suggestions {
+        transition: opacity 0.2s ease !important;
+    }
+}

@@ -1,0 +1,49 @@
+# Task: Verify Fixes for Community Page, Admin Dashboard, and Admin Procedures
+
+I’m working on the Antidote platform, a plastic surgery marketplace. We need to verify recent fixes, test all pages, and populate data before adding new features. Let’s start by verifying the fixes you made to the community page, admin dashboard, and admin procedures route. Follow each step carefully, use Replit tools, and confirm progress with feedback.
+
+## Step 1: Verify Community Page Fix
+- **Task**: Check if the `/community` page now shows 6 threads and the “Create Thread” button works.
+- **Actions**:
+  - Use the `web_application_feedback_tool` to visit `/community` and confirm 6 threads are displayed (e.g., “Test Thread,” “How much does a facelift cost?”).
+  - Test the “Create Thread” button (at the top and bottom): Click each button and confirm it redirects to `/community/new`.
+  - Test the body part filter: Select “Face” (expect 5 threads), “Breast” (expect 1 thread), and measure filter lag (should be <100ms) using timestamp logs in the console.
+  - Test the search bar: Search for “cost” (expect 2 threads).
+- **Logging**:
+  - Add a log statement in `routes.py` for the `/community` route to log the number of threads retrieved: `print(f"Retrieved {len(threads)} threads for /community")`.
+  - Check `<automatic_updates>` and `<webview_console_logs>` for errors after testing.
+- **Output**:
+  - Write results to `test_report.md`: “Community page: 6 threads displayed, ‘Create Thread’ button redirects to `/community/new`, Face filter shows 5 threads, Breast filter shows 1 thread, filter lag: [X]ms, search for ‘cost’ shows 2 threads.”
+- **Feedback**:
+  - Use `web_application_feedback_tool` to confirm: “Does the `/community` page show 6 threads, and does the ‘Create Thread’ button redirect to `/community/new`?”
+
+## Step 2: Verify Admin Dashboard Fix
+- **Task**: Confirm the “unsupported operand type(s) for *: 'NoneType' and 'int'” error is resolved in `/dashboard/community`.
+- **Actions**:
+  - Use `web_application_feedback_tool` to visit `/dashboard/community`.
+  - Check if the page loads without errors and displays metrics: Total Discussions (expect 6), avg_engagement (should handle zero replies with defensive coding).
+  - Measure load time (should be <2s) using console timestamp logs.
+- **Logging**:
+  - Check `<automatic_updates>` and `<webview_console_logs>` for errors.
+- **Output**:
+  - Append to `antidote_full_test_20250421_234956.log`: “Admin Dashboard `/dashboard/community`: Error resolved, Total Discussions: 6, avg_engagement handles zero replies, load time: [X]s.”
+- **Feedback**:
+  - Use `web_application_feedback_tool` to confirm: “Does `/dashboard/community` load without errors and show Total Discussions as 6?”
+
+## Step 3: Verify Admin Procedures Route
+- **Task**: Confirm the `/dashboard/procedures` route works and supports editing.
+- **Actions**:
+  - Use `web_application_feedback_tool` to visit `/dashboard/procedures`.
+  - Confirm it lists 5 procedures: Rhinoplasty, Facelift, Botox, Eyelid Surgery, Breast Augmentation.
+  - Test editing: Update Rhinoplasty’s description to “Nose reshaping surgery for aesthetic improvement.”
+  - Use `execute_sql` to verify the update: `SELECT description FROM procedures WHERE id = 1;` (expect “Nose reshaping surgery for aesthetic improvement”).
+  - Measure load time (should be <2s) using console timestamp logs.
+- **Logging**:
+  - Check `<automatic_updates>` and `<webview_console_logs>` for errors.
+- **Output**:
+  - Append to `test_report.md`: “Admin Procedures `/dashboard/procedures`: Lists 5 procedures, Rhinoplasty description updated successfully, load time: [X]s.”
+- **Feedback**:
+  - Use `web_application_feedback_tool` to confirm: “Does `/dashboard/procedures` list 5 procedures, and is Rhinoplasty’s description updated?”
+
+## Next Steps:
+- After completing these steps, I’ll provide instructions to test all pages with the current dataset (5 procedures, 6 threads, no doctors). Complete these steps within 24 hours (by April 23, 2025, 03:39 PM PDT) and report progress using the `report_progress` tool.

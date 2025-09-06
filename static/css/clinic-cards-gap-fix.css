@@ -1,0 +1,23 @@
+/* Reduce gap between clinic cards */
+
+/* Override gap-2 class for even smaller gaps on mobile */
+@media (max-width: 768px) {
+    .d-flex.flex-column.gap-2 {
+        gap: 0.25rem !important;
+    }
+    
+    .clinic-card {
+        margin-bottom: 0.25rem !important;
+    }
+}
+
+/* Desktop gap reduction */
+@media (min-width: 769px) {
+    .d-flex.flex-column.gap-2 {
+        gap: 0.4rem !important;
+    }
+    
+    .clinic-card {
+        margin-bottom: 0.4rem !important;
+    }
+}

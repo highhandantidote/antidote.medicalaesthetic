@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Management - Clinic Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3 col-lg-2 bg-light sidebar">
+            <div class="sidebar-sticky pt-3">
+                <h6 class="sidebar-heading text-muted">Clinic Dashboard</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('clinic.dashboard_profile') }}">
+                            <i class="fas fa-clinic-medical me-2"></i>Profile Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clinic.dashboard_packages') }}">
+                            <i class="fas fa-box me-2"></i>Package Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clinic.dashboard_doctors') }}">
+                            <i class="fas fa-user-md me-2"></i>Doctor Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clinic.dashboard_leads') }}">
+                            <i class="fas fa-users me-2"></i>Leads & Consultations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clinic.dashboard_analytics') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Analytics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-9 col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Profile Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{{ url_for('clinic.clinic_profile', clinic_id=clinic.id) }}" class="btn btn-outline-primary" target="_blank">
+                        <i class="fas fa-eye me-2"></i>Preview Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile Management Tabs -->
+            <ul class="nav nav-tabs" id="profileTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#basic-info">Basic Information</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#promotional-banner">Promotional Banner</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#highlights">Clinic Highlights</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#popular-procedures">Popular Procedures</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#specialties">Specialties</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#contact-settings">Contact Settings</a>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4">
+                <!-- Basic Information Tab -->
+                <div class="tab-pane fade show active" id="basic-info">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="basicInfoForm" enctype="multipart/form-data">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="clinicName" class="form-label">Clinic Name</label>
+                                            <input type="text" class="form-control" id="clinicName" value="{{ clinic.name }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="clinicAddress" class="form-label">Address</label>
+                                            <textarea class="form-control" id="clinicAddress" rows="3" required>{{ clinic.address }}</textarea>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="clinicCity" class="form-label">City</label>
+                                                    <input type="text" class="form-control" id="clinicCity" value="{{ clinic.city }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="clinicState" class="form-label">State</label>
+                                                    <input type="text" class="form-control" id="clinicState" value="{{ clinic.state }}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="profileImage" class="form-label">Profile Image</label>
+                                            <input type="file" class="form-control" id="profileImage" accept="image/*">
+                                            {% if clinic.profile_image %}
+                                            <div class="mt-2">
+                                                <img src="{{ clinic.profile_image }}" alt="Current Profile" class="img-thumbnail" style="max-width: 150px;">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="workingHours" class="form-label">Working Hours</label>
+                                            <input type="text" class="form-control" id="workingHours" value="{{ clinic.working_hours }}" placeholder="e.g., Mon-Sat: 9AM-8PM, Sun: Closed">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="clinicDescription" class="form-label">Description</label>
+                                            <textarea class="form-control" id="clinicDescription" rows="3">{{ clinic.description }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Basic Information</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promotional Banner Tab -->
+                <div class="tab-pane fade" id="promotional-banner">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-image me-2"></i>Promotional Banner</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="bannerForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="bannerImage" class="form-label">Banner Image</label>
+                                    <input type="file" class="form-control" id="bannerImage" accept="image/*">
+                                    <div class="form-text">Recommended size: 1200x300 pixels</div>
+                                    {% if clinic.promotional_banner_url %}
+                                    <div class="mt-3">
+                                        <label class="form-label">Current Banner:</label>
+                                        <div>
+                                            <img src="{{ clinic.promotional_banner_url }}" alt="Current Banner" class="img-fluid" style="max-height: 150px;">
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Banner</button>
+                                {% if clinic.promotional_banner_url %}
+                                <button type="button" class="btn btn-outline-danger ms-2" onclick="removeBanner()">Remove Banner</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinic Highlights Tab -->
+                <div class="tab-pane fade" id="highlights">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-star me-2"></i>Clinic Highlights</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="highlightsForm">
+                                <p class="text-muted">Select the highlights that apply to your clinic:</p>
+                                <div class="row">
+                                    {% set available_highlights = [
+                                        'Post procedure care',
+                                        'Real names and qualifications listed',
+                                        'CCTV camera in operating room',
+                                        'Evening hours available',
+                                        'Recovery room available',
+                                        'Non-surgical focus',
+                                        'Surgical focus',
+                                        'Latest equipment',
+                                        'Experienced staff',
+                                        'Insurance accepted',
+                                        'EMI available',
+                                        'Free consultation',
+                                        'Video consultation',
+                                        'Same day appointments',
+                                        'Follow-up included',
+                                        'Parking available',
+                                        'Female staff available',
+                                        'Multiple languages supported',
+                                        'Government certified',
+                                        'International standards'
+                                    ] %}
+                                    {% for highlight in available_highlights %}
+                                    <div class="col-md-4 col-sm-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="highlight{{ loop.index }}" value="{{ highlight }}" 
+                                                   {% if clinic.clinic_highlights and highlight in clinic.clinic_highlights %}checked{% endif %}>
+                                            <label class="form-check-label" for="highlight{{ loop.index }}">
+                                                {{ highlight }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Save Highlights</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Popular Procedures Tab -->
+                <div class="tab-pane fade" id="popular-procedures">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-fire me-2"></i>Most Popular Procedures</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="popularProceduresForm">
+                                <p class="text-muted">Select up to 5 procedures that are most popular at your clinic:</p>
+                                <div class="row">
+                                    {% for procedure in all_procedures %}
+                                    <div class="col-md-4 col-sm-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input popular-procedure-checkbox" type="checkbox" 
+                                                   id="procedure{{ procedure.id }}" value="{{ procedure.id }}"
+                                                   {% if clinic.popular_procedures and procedure.id|string in clinic.popular_procedures %}checked{% endif %}>
+                                            <label class="form-check-label" for="procedure{{ procedure.id }}">
+                                                {{ procedure.procedure_name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Save Popular Procedures</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specialties Tab -->
+                <div class="tab-pane fade" id="specialties">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-medical-kit me-2"></i>Specialties</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="specialtiesForm">
+                                <p class="text-muted">Select the specialties your clinic offers:</p>
+                                <div class="row">
+                                    {% for category in categories %}
+                                    <div class="col-md-4 col-sm-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="specialty{{ category.id }}" value="{{ category.id }}"
+                                                   {% if clinic.specialties and category.id|string in (clinic.specialties.split(',') if clinic.specialties else []) %}checked{% endif %}>
+                                            <label class="form-check-label" for="specialty{{ category.id }}">
+                                                {{ category.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Save Specialties</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Settings Tab -->
+                <div class="tab-pane fade" id="contact-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-phone me-2"></i>Contact Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="contactForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="ctaWhatsapp" class="form-label">WhatsApp Number</label>
+                                            <input type="tel" class="form-control" id="ctaWhatsapp" 
+                                                   value="{{ clinic.cta_whatsapp_number }}" 
+                                                   placeholder="+91XXXXXXXXXX">
+                                            <div class="form-text">Include country code (e.g., +91 for India)</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="ctaPhone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="ctaPhone" 
+                                                   value="{{ clinic.cta_phone_number }}" 
+                                                   placeholder="+91XXXXXXXXXX">
+                                            <div class="form-text">Primary contact number for calls</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="clinicEmail" class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" id="clinicEmail" 
+                                                   value="{{ clinic.email }}" 
+                                                   placeholder="contact@clinic.com">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="clinicWebsite" class="form-label">Website URL</label>
+                                            <input type="url" class="form-control" id="clinicWebsite" 
+                                                   value="{{ clinic.website }}" 
+                                                   placeholder="https://www.clinic.com">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Contact Information</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+}
+
+.sidebar .nav-link .fas {
+    margin-right: 4px;
+    color: #999;
+}
+
+.sidebar .nav-link.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, .1);
+}
+
+.sidebar-heading {
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        top: 5rem;
+    }
+}
+</style>
+
+<script>
+// Handle form submissions with AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Basic Information Form
+    document.getElementById('basicInfoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        
+        formData.append('name', document.getElementById('clinicName').value);
+        formData.append('address', document.getElementById('clinicAddress').value);
+        formData.append('city', document.getElementById('clinicCity').value);
+        formData.append('state', document.getElementById('clinicState').value);
+        formData.append('working_hours', document.getElementById('workingHours').value);
+        formData.append('description', document.getElementById('clinicDescription').value);
+        
+        const profileImage = document.getElementById('profileImage').files[0];
+        if (profileImage) {
+            formData.append('profile_image', profileImage);
+        }
+        
+        submitForm('/clinic/dashboard/update-basic-info', formData, 'Basic information updated successfully!');
+    });
+
+    // Banner Form
+    document.getElementById('bannerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        
+        const bannerImage = document.getElementById('bannerImage').files[0];
+        if (bannerImage) {
+            formData.append('banner_image', bannerImage);
+            submitForm('/clinic/dashboard/update-banner', formData, 'Promotional banner updated successfully!');
+        } else {
+            alert('Please select a banner image to upload.');
+        }
+    });
+
+    // Highlights Form
+    document.getElementById('highlightsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const highlights = [];
+        document.querySelectorAll('#highlights .form-check-input:checked').forEach(function(checkbox) {
+            highlights.push(checkbox.value);
+        });
+        
+        const formData = new FormData();
+        formData.append('highlights', JSON.stringify(highlights));
+        
+        submitForm('/clinic/dashboard/update-highlights', formData, 'Clinic highlights updated successfully!');
+    });
+
+    // Popular Procedures Form
+    document.getElementById('popularProceduresForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const procedures = [];
+        const checkboxes = document.querySelectorAll('.popular-procedure-checkbox:checked');
+        
+        if (checkboxes.length > 5) {
+            alert('Please select a maximum of 5 procedures.');
+            return;
+        }
+        
+        checkboxes.forEach(function(checkbox) {
+            procedures.push(checkbox.value);
+        });
+        
+        const formData = new FormData();
+        formData.append('popular_procedures', JSON.stringify(procedures));
+        
+        submitForm('/clinic/dashboard/update-popular-procedures', formData, 'Popular procedures updated successfully!');
+    });
+
+    // Specialties Form
+    document.getElementById('specialtiesForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const specialties = [];
+        document.querySelectorAll('#specialties .form-check-input:checked').forEach(function(checkbox) {
+            specialties.push(checkbox.value);
+        });
+        
+        const formData = new FormData();
+        formData.append('specialties', JSON.stringify(specialties));
+        
+        submitForm('/clinic/dashboard/update-specialties', formData, 'Specialties updated successfully!');
+    });
+
+    // Contact Form
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        
+        formData.append('cta_whatsapp_number', document.getElementById('ctaWhatsapp').value);
+        formData.append('cta_phone_number', document.getElementById('ctaPhone').value);
+        formData.append('email', document.getElementById('clinicEmail').value);
+        formData.append('website', document.getElementById('clinicWebsite').value);
+        
+        submitForm('/clinic/dashboard/update-contact', formData, 'Contact information updated successfully!');
+    });
+
+    // Limit popular procedures selection
+    document.querySelectorAll('.popular-procedure-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const checkedBoxes = document.querySelectorAll('.popular-procedure-checkbox:checked');
+            if (checkedBoxes.length > 5) {
+                this.checked = false;
+                alert('You can select maximum 5 popular procedures.');
+            }
+        });
+    });
+});
+
+function submitForm(url, formData, successMessage) {
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name=csrf-token]');
+    if (csrfToken) {
+        formData.append('csrf_token', csrfToken.getAttribute('content'));
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(successMessage);
+            if (data.reload) {
+                location.reload();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to update information.'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function removeBanner() {
+    if (confirm('Are you sure you want to remove the promotional banner?')) {
+        const formData = new FormData();
+        formData.append('remove_banner', 'true');
+        submitForm('/clinic/dashboard/update-banner', formData, 'Banner removed successfully!');
+    }
+}
+</script>
+{% endblock %}

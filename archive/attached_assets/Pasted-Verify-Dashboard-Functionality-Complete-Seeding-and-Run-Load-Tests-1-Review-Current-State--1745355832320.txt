@@ -1,0 +1,30 @@
+Verify Dashboard Functionality, Complete Seeding, and Run Load Tests:
+
+1. Review Current State:
+   - Confirm `test_report.md` reflects 5 procedures, 6 threads, and performance metrics (e.g., load times <2s, API response times <500ms).
+   - Check `antidote_full_test_20250421_234956.log` for seeding success and debug traces (e.g., batch processing logs).
+
+2. Verify Dashboard Functionality:
+   - Navigate to `/dashboard/community` and verify in `dashboard_community.html`:
+     - Confirm “Top Trends” bar chart renders “cost” with 2 mentions, <200ms rendering, with labels and tooltips.
+     - Ensure body part distribution pie chart renders Face: 5, Breast: 1, <200ms rendering, with legend and tooltips.
+     - Check filter dropdown updates to 5 threads for “Face” with <100ms lag, logging changes with timestamps.
+   - Confirm `/community` in `community.html` shows only discussions (search, threads, “Create Thread”) with no analytics.
+   - Verify `/api/community/trends` returns “cost” with 2 mentions via: curl -s "http://0.0.0.0:5000/api/community/trends" | python -m json.tool.
+
+3. Complete Database Seeding:
+   - Expand `seed_procedures_batch.py` to seed the remaining 112 procedures (total 117), ensuring fields (e.g., procedure_name, body_part, category_id) align with the RealSelf hierarchy. Spot-check IDs 1, 13, 50 with: SELECT id, procedure_name, body_part FROM procedures WHERE id IN (1, 13, 50).
+   - Verify 6 threads are intact with: SELECT id, title, content, created_at, procedure_id, keywords FROM threads LIMIT 6.
+
+4. Finalize Optimizations and Load Test:
+   - Validate `static/js/community-analytics-updated.js` logs chart rendering and filter updates with timestamps.
+   - Confirm `static/css/community-analytics.min.css` enhances load times.
+   - Test real-time polling with `/api/community/trends`, logging an update after 5 minutes.
+   - Run load test: Simulate 20 concurrent users filtering and polling, targeting 99.9% uptime with no timeouts.
+
+5. Respond:
+   - Summarize: “Great job fixing timeouts and seeding 5 procedures and 6 threads! Dashboard looks good—confirmed charts (e.g., ‘cost’ at 2 mentions, Face: 5, Breast: 1) and filters work. Seed the remaining 112 procedures for a total of 117, then run load tests with 20 users. I’ll review final results.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `dashboard_community.html`, `seed_procedures_batch.py`, `seed_community_threads_batch.py`, `static/js/community-analytics-updated.js`, `static/css/community-analytics.min.css`, console output, and screenshots of `/community` (discussions) and `/dashboard/community` (analytics).
+
+6. Next Steps:
+   - Focus on seeding the remaining procedures and load testing.

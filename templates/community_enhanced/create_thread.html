@@ -1,0 +1,823 @@
+{% extends 'base.html' %}
+
+{% block title %}Start New Discussion - Medical Community{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+/* Enhanced Thread Creation Styles */
+:root {
+    --community-primary: #0d9488;
+    --community-primary-light: #14b8a6;
+    --community-primary-dark: #0f766e;
+    --community-secondary: #06b6d4;
+    --community-accent: #f0fdfa;
+    --community-border: #a7f3d0;
+    --community-text: #1f2937;
+    --community-text-light: #6b7280;
+    --community-success: #10b981;
+    --community-warning: #f59e0b;
+    --community-error: #ef4444;
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.create-header {
+    background: linear-gradient(135deg, var(--community-primary) 0%, var(--community-secondary) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 24px 24px;
+}
+
+.create-form-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--community-border);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--community-text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title i {
+    color: var(--community-primary);
+}
+
+.enhanced-input {
+    border: 2px solid var(--community-border);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    background: #fafafa;
+}
+
+.enhanced-input:focus {
+    outline: none;
+    border-color: var(--community-primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    background: white;
+}
+
+.enhanced-textarea {
+    min-height: 200px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+.rich-editor-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 2px solid var(--community-border);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.toolbar-btn:hover {
+    background: var(--community-accent);
+    border-color: var(--community-primary);
+}
+
+.toolbar-btn.active {
+    background: var(--community-primary);
+    color: white;
+    border-color: var(--community-primary);
+}
+
+.enhanced-select {
+    border: 2px solid var(--community-border);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.enhanced-select:focus {
+    outline: none;
+    border-color: var(--community-primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.tags-input-container {
+    position: relative;
+}
+
+.tags-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag-item {
+    background: var(--community-primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-remove {
+    cursor: pointer;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.tag-remove:hover {
+    opacity: 1;
+}
+
+.file-upload-area {
+    border: 2px dashed var(--community-border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: var(--community-accent);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: var(--community-primary);
+    background: rgba(13, 148, 136, 0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--community-primary);
+    background: rgba(13, 148, 136, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    background: var(--community-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.file-preview {
+    margin-top: 1rem;
+    display: none;
+}
+
+.file-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.anonymous-toggle {
+    background: white;
+    border: 2px solid var(--community-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.anonymous-toggle:hover {
+    border-color: var(--community-primary);
+    background: var(--community-accent);
+}
+
+.anonymous-toggle.checked {
+    border-color: var(--community-primary);
+    background: rgba(13, 148, 136, 0.05);
+}
+
+.toggle-switch {
+    width: 50px;
+    height: 26px;
+    background: #d1d5db;
+    border-radius: 13px;
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.toggle-switch.checked {
+    background: var(--community-primary);
+}
+
+.toggle-knob {
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.checked .toggle-knob {
+    transform: translateX(24px);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-primary-enhanced {
+    background: linear-gradient(135deg, var(--community-primary), var(--community-secondary));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary-enhanced:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.btn-secondary-enhanced {
+    background: white;
+    color: var(--community-text);
+    border: 2px solid var(--community-border);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary-enhanced:hover {
+    background: var(--community-accent);
+    border-color: var(--community-primary);
+    text-decoration: none;
+}
+
+.guidelines-sidebar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--community-border);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.guidelines-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--community-text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.guideline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--community-accent);
+    border-radius: 8px;
+}
+
+.guideline-icon {
+    color: var(--community-success);
+    font-size: 1.1rem;
+    margin-top: 0.1rem;
+}
+
+.character-count {
+    font-size: 0.875rem;
+    color: var(--community-text-light);
+    text-align: right;
+    margin-top: 0.5rem;
+}
+
+.character-count.warning {
+    color: var(--community-warning);
+}
+
+.character-count.error {
+    color: var(--community-error);
+}
+
+@media (max-width: 768px) {
+    .create-header {
+        padding: 1.5rem 0;
+        margin-bottom: 1rem;
+    }
+    
+    .create-form-container {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .guidelines-sidebar {
+        margin-top: 2rem;
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Create Thread Header -->
+<div class="create-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 mb-0">Start New Discussion</h1>
+                <p class="lead mb-0">Share your experience, ask questions, and connect with our medical community</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex align-items-center justify-content-lg-end gap-2">
+                    <i data-feather="users" style="color: rgba(255,255,255,0.8);"></i>
+                    <span style="color: rgba(255,255,255,0.8);">1.2k+ members online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <div class="create-form-container">
+                <form id="createThreadForm" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <!-- Title Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i data-feather="edit-3"></i>
+                            Discussion Title
+                        </div>
+                        <input type="text" 
+                               name="title" 
+                               id="threadTitle" 
+                               class="enhanced-input" 
+                               placeholder="What would you like to discuss?"
+                               maxlength="200"
+                               required>
+                        <div class="character-count" id="titleCharCount">0 / 200 characters</div>
+                    </div>
+                    
+                    <!-- Content Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i data-feather="message-square"></i>
+                            Your Message
+                        </div>
+                        
+                        <!-- Rich Text Toolbar -->
+                        <div class="rich-editor-toolbar">
+                            <button type="button" class="toolbar-btn" data-command="bold" title="Bold">
+                                <i data-feather="bold"></i>
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="italic" title="Italic">
+                                <i data-feather="italic"></i>
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="underline" title="Underline">
+                                <i data-feather="underline"></i>
+                            </button>
+                            <div style="width: 1px; height: 24px; background: #d1d5db; margin: 0 0.5rem;"></div>
+                            <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List">
+                                <i data-feather="list"></i>
+                            </button>
+                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">
+                                <i data-feather="circle"></i>
+                            </button>
+                        </div>
+                        
+                        <textarea name="content" 
+                                  id="threadContent" 
+                                  class="enhanced-input enhanced-textarea"
+                                  placeholder="Share your experience, ask your question, or provide helpful information to the community..."
+                                  style="border-radius: 0 0 12px 12px;"
+                                  required></textarea>
+                        <div class="character-count" id="contentCharCount">0 characters</div>
+                    </div>
+                    
+                    <!-- Category and Procedure Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i data-feather="tag"></i>
+                            Category & Procedure
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Category (Optional)</label>
+                                <select name="category_id" id="categorySelect" class="enhanced-select">
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Related Procedure (Optional)</label>
+                                <select name="procedure_id" id="procedureSelect" class="enhanced-select">
+                                    <option value="">Select a procedure</option>
+                                    {% for procedure in procedures %}
+                                    <option value="{{ procedure.id }}">{{ procedure.procedure_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i data-feather="hash"></i>
+                            Tags
+                        </div>
+                        <div class="tags-input-container">
+                            <div class="tags-display" id="tagsDisplay"></div>
+                            <input type="text" 
+                                   id="tagsInput" 
+                                   class="enhanced-input" 
+                                   placeholder="Add tags to help others find your discussion (press Enter to add)"
+                                   style="margin-top: 0.5rem;">
+                            <input type="hidden" name="tags" id="tagsHidden">
+                        </div>
+                        <small class="text-muted">Examples: rhinoplasty, recovery, before-after, consultation</small>
+                    </div>
+                    
+                    <!-- Image Upload Section -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i data-feather="image"></i>
+                            Add Photo (Optional)
+                        </div>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="upload-icon">
+                                <i data-feather="upload"></i>
+                            </div>
+                            <h5>Drop your image here or click to browse</h5>
+                            <p class="text-muted mb-0">Supports: JPG, PNG, GIF (Max 5MB)</p>
+                            <input type="file" name="photo" id="photoInput" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="file-preview" id="filePreview">
+                            <img id="previewImage" src="" alt="Preview">
+                        </div>
+                    </div>
+                    
+                    <!-- Anonymous Toggle -->
+                    <div class="form-section">
+                        <div class="anonymous-toggle" id="anonymousToggle">
+                            <div class="toggle-switch" id="toggleSwitch">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Post Anonymously</h6>
+                                <small class="text-muted">Your username will not be displayed with this discussion</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="is_anonymous" id="anonymousInput" value="false">
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="{{ url_for('community_enhanced.index') }}" class="btn-secondary-enhanced">
+                            <i data-feather="arrow-left"></i>
+                            Back to Community
+                        </a>
+                        <button type="submit" class="btn-primary-enhanced" id="submitBtn">
+                            <i data-feather="send"></i>
+                            Start Discussion
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Guidelines Sidebar -->
+        <div class="col-lg-4">
+            <div class="guidelines-sidebar">
+                <div class="guidelines-title">
+                    <i data-feather="shield-check"></i>
+                    Community Guidelines
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">✓</div>
+                    <div>
+                        <strong>Be Respectful</strong><br>
+                        <small>Treat all community members with kindness and respect</small>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">✓</div>
+                    <div>
+                        <strong>Share Authentic Experiences</strong><br>
+                        <small>Only share your genuine experiences and verified information</small>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">✓</div>
+                    <div>
+                        <strong>Protect Privacy</strong><br>
+                        <small>Never share personal contact information or sensitive details</small>
+                    </div>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">✓</div>
+                    <div>
+                        <strong>Medical Disclaimer</strong><br>
+                        <small>Always consult qualified doctors for medical advice</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Tips -->
+            <div class="guidelines-sidebar mt-3">
+                <div class="guidelines-title">
+                    <i data-feather="lightbulb"></i>
+                    Quick Tips
+                </div>
+                
+                <div class="mb-3">
+                    <small><strong>💡 Great Discussion Titles:</strong></small>
+                    <ul class="small text-muted mt-1 mb-0">
+                        <li>"Recovery timeline after rhinoplasty"</li>
+                        <li>"Choosing between surgical options"</li>
+                        <li>"Post-procedure care experiences"</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <small><strong>📸 Photo Guidelines:</strong></small>
+                    <ul class="small text-muted mt-1 mb-0">
+                        <li>Before/after photos are welcome</li>
+                        <li>Ensure patient consent if applicable</li>
+                        <li>No graphic or inappropriate content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Character counting
+    const titleInput = document.getElementById('threadTitle');
+    const contentTextarea = document.getElementById('threadContent');
+    const titleCharCount = document.getElementById('titleCharCount');
+    const contentCharCount = document.getElementById('contentCharCount');
+    
+    function updateCharCount(input, counter, max = null) {
+        const length = input.value.length;
+        if (max) {
+            counter.textContent = `${length} / ${max} characters`;
+            counter.className = 'character-count';
+            if (length > max * 0.8) counter.classList.add('warning');
+            if (length > max * 0.95) counter.classList.add('error');
+        } else {
+            counter.textContent = `${length} characters`;
+        }
+    }
+    
+    titleInput.addEventListener('input', () => updateCharCount(titleInput, titleCharCount, 200));
+    contentTextarea.addEventListener('input', () => updateCharCount(contentTextarea, contentCharCount));
+    
+    // Rich text editor toolbar
+    const toolbarBtns = document.querySelectorAll('.toolbar-btn');
+    toolbarBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const command = this.dataset.command;
+            document.execCommand(command, false, null);
+            this.classList.toggle('active');
+        });
+    });
+    
+    // Tags functionality
+    const tagsInput = document.getElementById('tagsInput');
+    const tagsDisplay = document.getElementById('tagsDisplay');
+    const tagsHidden = document.getElementById('tagsHidden');
+    let tags = [];
+    
+    function updateTagsDisplay() {
+        tagsDisplay.innerHTML = '';
+        tags.forEach((tag, index) => {
+            const tagElement = document.createElement('div');
+            tagElement.className = 'tag-item';
+            tagElement.innerHTML = `
+                ${tag}
+                <span class="tag-remove" onclick="removeTag(${index})">×</span>
+            `;
+            tagsDisplay.appendChild(tagElement);
+        });
+        tagsHidden.value = tags.join(',');
+    }
+    
+    window.removeTag = function(index) {
+        tags.splice(index, 1);
+        updateTagsDisplay();
+    };
+    
+    tagsInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const tag = this.value.trim().toLowerCase();
+            if (tag && !tags.includes(tag) && tags.length < 5) {
+                tags.push(tag);
+                updateTagsDisplay();
+                this.value = '';
+            }
+        }
+    });
+    
+    // File upload functionality
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const photoInput = document.getElementById('photoInput');
+    const filePreview = document.getElementById('filePreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    fileUploadArea.addEventListener('click', () => photoInput.click());
+    
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        this.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0]);
+        }
+    });
+    
+    photoInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            handleFileUpload(this.files[0]);
+        }
+    });
+    
+    function handleFileUpload(file) {
+        if (file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                filePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a valid image file under 5MB.');
+        }
+    }
+    
+    // Anonymous toggle
+    const anonymousToggle = document.getElementById('anonymousToggle');
+    const toggleSwitch = document.getElementById('toggleSwitch');
+    const anonymousInput = document.getElementById('anonymousInput');
+    
+    anonymousToggle.addEventListener('click', function() {
+        toggleSwitch.classList.toggle('checked');
+        anonymousToggle.classList.toggle('checked');
+        anonymousInput.value = toggleSwitch.classList.contains('checked') ? 'true' : 'false';
+    });
+    
+    // Form submission
+    const form = document.getElementById('createThreadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validation
+        if (!titleInput.value.trim() || !contentTextarea.value.trim()) {
+            alert('Please fill in both title and content.');
+            return;
+        }
+        
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-feather="loader"></i> Creating Discussion...';
+        feather.replace();
+        
+        // Create FormData
+        const formData = new FormData(form);
+        
+        // Submit the form
+        fetch('{{ url_for("community_enhanced.create_thread") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{{ url_for("community_enhanced.index") }}';
+            } else {
+                alert(data.message || 'Error creating discussion. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-feather="send"></i> Start Discussion';
+                feather.replace();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating discussion. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-feather="send"></i> Start Discussion';
+            feather.replace();
+        });
+    });
+});
+</script>
+{% endblock %}

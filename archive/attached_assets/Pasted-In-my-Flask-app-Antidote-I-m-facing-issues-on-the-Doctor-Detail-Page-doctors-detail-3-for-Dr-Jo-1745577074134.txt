@@ -1,0 +1,171 @@
+In my Flask app Antidote, I’m facing issues on the Doctor Detail Page (/doctors/detail/3) for Dr. John Smith and the Procedure Detail Page (/procedure/2). The save/unsave functionality isn’t working properly, review counts are incorrect, interactive buttons don’t work, and I need clarity on review integration. Fix these issues and test thoroughly:
+1. Fix the save/unsave functionality (Doctor Detail Page and Procedure Detail Page):
+   - **Doctor Detail Page (/doctors/detail/3)**:
+     - Verify the database table for saving doctors (e.g., `user_favorites_doctors`):
+       SELECT * FROM user_favorites_doctors WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND doctor_id = 3;
+     - Open routes.py and ensure the save/unsave routes exist:
+       @web.route('/save_doctor/<int:doctor_id>', methods=['POST'])
+       @login_required
+       def save_doctor(doctor_id):
+           doctor = Doctor.query.get_or_404(doctor_id)
+           favorite = UserFavoriteDoctor(user_id=current_user.id, doctor_id=doctor_id)
+           db.session.add(favorite)
+           db.session.commit()
+           return jsonify({'message': 'Doctor saved', 'saved': True})
+       @web.route('/unsave_doctor/<int:doctor_id>', methods=['POST'])
+       @login_required
+       def unsave_doctor(doctor_id):
+           favorite = UserFavoriteDoctor.query.filter_by(user_id=current_user.id, doctor_id=doctor_id).first()
+           if favorite:
+               db.session.delete(favorite)
+               db.session.commit()
+           return jsonify({'message': 'Doctor unsaved', 'saved': False})
+     - Open doctor_detail.html and update the save/unsave button with JavaScript:
+       <button id="saveDoctorButton" class="btn btn-outline-danger" data-doctor-id="{{ doctor.id }}">
+         {% if doctor.id in saved_doctors %}Saved{% else %}Save{% endif %}
+       </button>
+       <script>
+         document.getElementById('saveDoctorButton').addEventListener('click', function() {
+           const doctorId = this.getAttribute('data-doctor-id');
+           const isSaved = this.textContent.trim() === 'Saved';
+           const endpoint = isSaved ? '/unsave_doctor/' + doctorId : '/save_doctor/' + doctorId;
+           fetch(endpoint, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => {
+               this.textContent = data.saved ? 'Saved' : 'Save';
+               this.classList.toggle('btn-outline-danger', !data.saved);
+               this.classList.toggle('btn-danger', data.saved);
+             });
+         });
+       </script>
+     - In routes.py, pass `saved_doctors` to the template in the doctor_detail route:
+       saved_doctors = [fav.doctor_id for fav in UserFavoriteDoctor.query.filter_by(user_id=current_user.id).all()]
+       return render_template('doctor_detail.html', doctor=doctor, reviews=reviews, saved_doctors=saved_doctors)
+   - **Procedure Detail Page (/procedure/2)**:
+     - Apply the same fix to procedure_detail.html using routes `/save_procedure/<int:procedure_id>` and `/unsave_procedure/<int:procedure_id>`, a `user_favorites_procedures` table, and similar JavaScript logic.
+     - Test saving and unsaving on both pages, ensuring the state persists across sessions.
+
+2. Fix the review count discrepancy on /doctors/detail/3:
+   - Check the database for reviews:
+     SELECT * FROM reviews WHERE doctor_id = 3 LIMIT 5;
+   - If duplicates exist, delete the extra review:
+     DELETE FROM reviews WHERE doctor_id = 3 AND id NOT IN (SELECT MIN(id) FROM reviews WHERE doctor_id = 3 GROUP BY user_id, comment);
+   - Update the doctor’s review_count:
+     UPDATE doctors SET review_count = (SELECT COUNT(*) FROM reviews WHERE doctor_id = 3) WHERE id = 3;
+   - Open routes.py and ensure the doctor_detail route fetches reviews correctly:
+     reviews = Review.query.filter_by(doctor_id=doctor.id).all()
+   - Add a debug log:
+     print(f"Doctor ID: {doctor.id}, Reviews found: {len(reviews)}")
+   - Open doctor_detail.html and confirm the review count display:
+     <p>{{ reviews|length }} reviews total</p>
+   - Navigate to /doctors/detail/3 and confirm the count shows 1 review.
+
+3. Fix the "Helpful" and "Report" buttons on /doctors/detail/3:
+   - Open doctor_detail.html and verify the buttons:
+     <button class="btn btn-outline-light btn-sm helpful-btn" data-review-id="{{ review.id }}">Helpful</button>
+     <button class="btn btn-outline-light btn-sm report-btn" data-review-id="{{ review.id }}">Report</button>
+   - Update the JavaScript to use the correct endpoints:
+     <script>
+       document.querySelectorAll('.helpful-btn').forEach(button => {
+         button.addEventListener('click', function() {
+           const reviewId = this.getAttribute('data-review-id');
+           fetch('/helpful/' + reviewId, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       });
+       document.querySelectorAll('.report-btn').forEach(button => {
+         button.addEventListener('click', function() {
+           const reviewId = this.getAttribute('data-review-id');
+           fetch('/report/' + reviewId, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       });
+     </script>
+   - Confirm the routes in routes.py match those in procedure_detail.html:
+     @web.route('/helpful/<int:review_id>', methods=['POST'])
+     @login_required
+     def helpful_review(review_id):
+         review = Review.query.get_or_404(review_id)
+         review.helpful_count = (review.helpful_count or 0) + 1
+         db.session.commit()
+         return jsonify({'message': 'Marked as helpful'})
+     @web.route('/report/<int:review_id>', methods=['POST'])
+     @login_required
+     def report_review(review_id):
+         review = Review.query.get_or_404(review_id)
+         review.reported = True
+         db.session.commit()
+         return jsonify({'message': 'Review reported'})
+   - Test the buttons and confirm alerts appear.
+
+4. Fix other functionalities on /doctors/detail/3:
+   - **Book Consultation**:
+     - Add a route in routes.py:
+       @web.route('/book_consultation/<int:doctor_id>', methods=['POST'])
+       @login_required
+       def book_consultation(doctor_id):
+           # Placeholder for booking logic
+           return jsonify({'message': 'Consultation booked'})
+     - Update doctor_detail.html:
+       <button id="bookConsultationButton" class="btn btn-success" data-doctor-id="{{ doctor.id }}">Book Consultation</button>
+       <script>
+         document.getElementById('bookConsultationButton').addEventListener('click', function() {
+           const doctorId = this.getAttribute('data-doctor-id');
+           fetch('/book_consultation/' + doctorId, { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       </script>
+   - **Send Enquiry**:
+     - Add a route:
+       @web.route('/send_enquiry/<int:doctor_id>', methods=['POST'])
+       @login_required
+       def send_enquiry(doctor_id):
+           # Placeholder for enquiry logic
+           return jsonify({'message': 'Enquiry sent'})
+     - Update doctor_detail.html:
+       <button id="sendEnquiryButton" class="btn btn-outline-light">Send Enquiry</button>
+       <script>
+         document.getElementById('sendEnquiryButton').addEventListener('click', function() {
+           fetch('/send_enquiry/{{ doctor.id }}', { method: 'POST' })
+             .then(response => response.json())
+             .then(data => alert(data.message));
+         });
+       </script>
+   - **Share this profile**:
+     - Add JavaScript to copy the URL to the clipboard:
+       <script>
+         document.querySelectorAll('.share-button').forEach(button => {
+           button.addEventListener('click', function() {
+             const url = window.location.href;
+             navigator.clipboard.writeText(url).then(() => alert('Profile URL copied to clipboard'));
+           });
+         });
+       </script>
+   - Test each button and confirm actions work.
+
+5. Clarify review integration:
+   - Verify the reviews table structure:
+     SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'reviews';
+   - Confirm reviews are linked to both doctors and procedures (e.g., columns `doctor_id`, `procedure_id`).
+   - On /doctors/detail/3, reviews should show where `doctor_id=3`.
+   - On /procedure/2, reviews should show where `procedure_id=2`, with the doctor’s name (e.g., Dr. John Smith).
+   - Test by submitting a new review on /doctors/detail/3 and confirm it appears on /procedure/2 if associated.
+
+6. Check for JavaScript errors:
+   - Navigate to /doctors/detail/3, open the browser console (F12 > Console), and check for errors.
+   - Check the Network tab (F12 > Network) for failed requests (e.g., 404, 500).
+
+7. Check server logs:
+   tail -n 50 /tmp/replit-nix-errors.log
+
+8. Provide a screenshot of /doctors/detail/3 showing:
+   - The save/unsave button toggling correctly.
+   - The review count as 1 with the single review displayed.
+   - The "Helpful" and "Report" buttons functioning (show the alert after clicking).
+   - The "Book Consultation" and "Send Enquiry" buttons working (show the alert).
+
+9. Share observations, including console errors, network issues, and server logs.
+10. Once fixed, confirm the Doctor Detail Page and Procedure Detail Page functionalities are complete, and suggest proceeding with removing the "Learn" feature.

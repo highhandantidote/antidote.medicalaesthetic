@@ -1,0 +1,128 @@
+Populate Minimal Data and Test the Platform:
+
+1. Define and Seed Minimal Data:
+   - Ensure `models.py` includes all models:
+     - Update `Doctor` model (confirmed):
+       ```python
+       class Doctor(db.Model):
+           __tablename__ = 'doctors'
+           id = db.Column(db.Integer, primary_key=True)
+           user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+           medical_license_number = db.Column(db.String(50), unique=True, nullable=False)
+           qualification = db.Column(db.String(200), nullable=False)
+           practice_location = db.Column(db.String(200), nullable=False)
+           verification_status = db.Column(db.String(20), default='pending')
+           credentials_url = db.Column(db.String(200))
+           aadhaar_number = db.Column(db.String(20), nullable=True)
+           name = db.Column(db.String(100))
+           specialty = db.Column(db.String(100))
+           experience = db.Column(db.Integer)
+           user = db.relationship('User', backref='doctor_profile')
+Add Procedure model:
+python
+
+Copy
+class Procedure(db.Model):
+    __tablename__ = 'procedures'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    body_area = db.Column(db.String(50), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    surgical_non_surgical = db.Column(db.Boolean, nullable=False)
+    description = db.Column(db.Text)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    doctor = db.relationship('Doctor', backref='procedures')
+Confirm Community model exists (assume similar structure).
+Update test_create_doctor.py to seed minimal data in chunks:
+python
+
+Copy
+from app import db
+from models import Doctor, User, Procedure, Community
+import random
+import string
+
+def generate_user(username, role, is_verified=False):
+    return User(username=username, email=f"{username}@example.com", role=role, is_verified=is_verified)
+
+def generate_doctor():
+    return Doctor(
+        user_id=2,  # Link to doctor_test
+        medical_license_number="MCI-12345-2025",
+        qualification="MBBS 2015",
+        practice_location="Delhi, India",
+        verification_status="pending",
+        credentials_url="static/doctor_credentials/doc1.pdf",
+        aadhaar_number="1234-5678-9012",
+        name="Doctor Test",
+        specialty="General Surgery",
+        experience=10
+    )
+
+def generate_procedure():
+    return Procedure(
+        name=random.choice(["Rhinoplasty", "Botox", "Lip Fillers"]),
+        body_area=random.choice(["Face", "Body", "Skin"]),
+        category=random.choice(["Surgical", "Non-Surgical"]),
+        surgical_non_surgical=random.choice([True, False]),
+        description=''.join(random.choices(string.ascii_letters + ' ', k=100)),
+        doctor_id=1
+    )
+
+def generate_thread():
+    return Community(
+        title=f"{random.choice(['Rhinoplasty', 'Laser'])} {random.choice(['Tips', 'Query'])}",
+        content=''.join(random.choices(string.ascii_letters + ' ', k=50)),
+        category_id=1,  # Assume 1 category
+        author_id=2
+    )
+
+if __name__ == "__main__":
+    try:
+        # Clear existing test data (optional)
+        # db.session.query(Doctor).delete()
+        # db.session.query(Procedure).delete()
+        # db.session.query(Community).delete()
+        # db.session.query(User).filter(User.username.in_(['admin_test', 'doctor_test'])).delete()
+        # db.session.commit()
+
+        # Add users
+        db.session.add(generate_user("admin_test", "admin", True))
+        db.session.add(generate_user("doctor_test", "doctor", True))
+
+        # Add doctor
+        db.session.add(generate_doctor())
+
+        # Add procedures (5)
+        for _ in range(5):
+            db.session.add(generate_procedure())
+
+        # Add threads (5)
+        for _ in range(5):
+            db.session.add(generate_thread())
+
+        db.session.commit()
+        print("Data seeded successfully.")
+    except Exception as e:
+        print(f"Error seeding data: {e}")
+Run the script: python test_create_doctor.py.
+Test Across the Platform:
+Doctor Verification Workflow:
+Test Case 1: Verify Pending Status - Log in as "admin_test", navigate to /dashboard/admin, check "Doctor Test". Expected: Status "pending".
+Test Case 2: Admin Approval - Approve "Doctor Test" via dashboard or API. Expected: Status "approved".
+Test Case 3: Admin Rejection - Create another doctor (rerun script with new user), reject it. Expected: Status "rejected".
+Procedure Section:
+Test Case 4: Procedure Listing - Navigate to /procedures, verify 5 procedures load. Expected: Procedures visible with "Doctor Test" link.
+Community Section:
+Test Case 5: Thread Listing - Navigate to /community, verify 5 threads load. Expected: Threads visible.
+Performance Testing:
+Measure page load time for /dashboard/doctor/verify, /procedures, /community.
+Note API response time for /api/doctor/<doctor_id>/approve.
+Test and Validate:
+Restart the application.
+Run all test cases, noting results (pass/fail) in a summary.
+Take screenshots of the admin dashboard (pending doctor), approval action, procedure listing, community listing, and performance metrics (e.g., browser dev tools).
+Generate logs (e.g., DEBUG:routes:Doctor verification submitted, INFO:db:COMMIT).
+Provide Output:
+Share updated models.py, test_create_doctor.py, doctor_verification.html, admin_doctor_verifications.html, procedure.html (create if needed), community.html, logs, console output, and screenshots.
+Respond: "Minimal data (1 doctor, 5 procedures, 5 threads) seeded and tested. All test cases passed, with performance metrics included. Data populates across pages now—please review screenshots and logs. Data can be deleted later with a script (e.g., db.session.query(Doctor).delete(); db.session.query(Procedure).delete(); db.session.query(Community).delete(); db.session.query(User).filter(User.username.in_(['admin_test', 'doctor_test'])).delete(); db.session.commit()). Next, expand to 10 doctors, 20 procedures, and 20 threads, then retest."

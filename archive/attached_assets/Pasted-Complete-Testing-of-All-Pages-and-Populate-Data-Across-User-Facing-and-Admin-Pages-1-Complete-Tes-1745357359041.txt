@@ -1,0 +1,53 @@
+Complete Testing of All Pages and Populate Data Across User-Facing and Admin Pages:
+
+1. Complete Testing of User-Facing Pages:
+   - **Main Page (`/`)** (Continue from current test):
+     - Confirm doctor section is empty or erroring due to no doctor data.
+     - Verify featured procedures show 5 procedures (e.g., Rhinoplasty, Facelift, Botox, Breast Augmentation, Lip Fillers).
+     - Check recent threads display up to 6 threads (e.g., “Test Thread,” “How much does a facelift cost?”).
+     - Test any search/filter functionality for doctors or procedures, note failures.
+   - **Procedures (`/procedures`)**:
+     - Confirm listing shows 5 procedures, check if surgical/non-surgical filter exists and works.
+     - Test load time (<2s) and filter responsiveness (<100ms).
+   - **Doctors (`/doctors`)**:
+     - Verify page renders—expect it to be empty or erroring due to no doctor data.
+     - Test search/filter functionality (e.g., by specialty)—expect failure.
+   - **Community (`/community`)**:
+     - Confirm 6 threads display, test body part filter (5 threads for “Face,” 1 for “Breast”), check filter lag (<100ms) with timestamp logs.
+     - Test search bar with keywords (e.g., “cost”).
+   - **New Thread (`/community/new`)**:
+     - Verify procedure dropdown shows 5 procedures, test thread creation (submit a test thread: “Testing thread creation” for Rhinoplasty), confirm it saves to the database.
+     - Check if analytics update (e.g., thread count, trending topics).
+
+2. Assess Admin Procedures Page:
+   - Navigate to the admin procedures page (likely `/dashboard/procedures`):
+     - Confirm it shows 5 procedures, note if editing or analytics features (e.g., most discussed procedures) exist.
+     - Test load time (<2s) and any filtering/sorting functionality.
+     - Note any errors (e.g., Internal Server Error) or UI issues due to limited data.
+
+3. Populate Data Across All Pages:
+   - **Seed Doctors**:
+     - Create a script `seed_doctors.py` to seed 50 doctors with fields: `id`, `name` (e.g., “Dr. Priya Sharma”), `specialty` (e.g., “Plastic Surgery”), `qualifications` (e.g., “MBBS, MS”), `verified` (set 30 as True, 20 as False), `created_at`.
+     - Verify with: SELECT COUNT(*) FROM doctors; SELECT id, name, specialty, verified FROM doctors LIMIT 5.
+   - **Seed Remaining Procedures**:
+     - Use `seed_procedures_batch.py` to seed the remaining 112 procedures (total 117), ensuring fields (e.g., `procedure_name`, `body_part`, `category_id`, `surgical`—true/false as per April 10, 2025 dataset) align with the RealSelf hierarchy.
+     - Spot-check IDs 1, 13, 50 with: SELECT id, procedure_name, body_part FROM procedures WHERE id IN (1, 13, 50).
+   - **Seed Additional Threads**:
+     - Use `seed_community_threads_batch.py` to seed 50 more threads, ensuring a mix of body parts (e.g., 30 Face, 15 Breast, 5 other), and at least 5 more threads with “cost” in keywords (total 7 with “cost”).
+     - Verify with: SELECT COUNT(*) FROM threads; SELECT id, title, procedure_id, keywords FROM threads LIMIT 10.
+
+4. Retest All Pages After Populating Data:
+   - **User-Facing Pages**:
+     - Retest `/`, `/procedures`, `/doctors`, `/community`, `/community/new` to confirm all sections (e.g., doctor listings, procedure filters, thread displays) now work with populated data.
+     - Verify load times (<2s) and filter responsiveness (<100ms) across pages.
+   - **Admin Pages**:
+     - Retest `/dashboard/community`—confirm charts (e.g., “cost” with 7 mentions, updated body part distribution), filters, and metrics (e.g., Total Discussions: 56).
+     - Retest `/dashboard/doctor/verify`—confirm 50 doctors display, test approve/reject functionality.
+     - Retest `/dashboard/procedures`—confirm 117 procedures display, test editing or analytics features.
+
+5. Respond:
+   - Summarize: “Tested pages with 5 procedures, 6 threads, no doctors: Main page doctor section [empty/erroring], procedures page filters [work/fail], doctors page [empty/erroring], community page filter [works/fails], thread creation [works/fails]. Admin procedures page showed 5 procedures, [editing/analytics] [work/fail]. Populated 50 doctors, 117 procedures, 56 threads—retested all pages, all functionalities now [work/fail]. Ready for load testing.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `doctors.html`, `procedures.html`, `community_new.html`, `index.html`, `dashboard_community.html`, `dashboard_doctor_verify.html`, `dashboard_procedures.html`, `seed_doctors.py`, `seed_procedures_batch.py`, `seed_community_threads_batch.py`, console output, and screenshots of all pages (before and after populating).
+
+6. Next Steps:
+   - Proceed to load testing with 20 concurrent users, targeting 99.9% uptime.

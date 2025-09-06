@@ -1,0 +1,90 @@
+Part 1: Verify Data in the Database
+Instructions for Replit Agent:
+
+Create a Script to Check Database Data:
+Create a new file named check_data.py in the project root.
+Add the following code to query the database and print the counts and details of all relevant models:
+text
+
+Copy
+from app import app, db
+from models import User, Doctor, Procedure, Category, BodyPart, Review, CommunityThread
+
+def check_data():
+    with app.app_context():
+        # Check users
+        users = User.query.all()
+        print("Users:", len(users))
+        for user in users:
+            print(user.email, user.role)
+
+        # Check doctors
+        doctors = Doctor.query.all()
+        print("Doctors:", len(doctors))
+        for doctor in doctors:
+            print(doctor.user.name if doctor.user else 'N/A', doctor.specialty)
+
+        # Check procedures
+        procedures = Procedure.query.all()
+        print("Procedures:", len(procedures))
+        for procedure in procedures:
+            print(procedure.name, procedure.category)
+
+        # Check categories
+        categories = Category.query.all()
+        print("Categories:", len(categories))
+        for category in categories:
+            print(category.name)
+
+        # Check body parts
+        body_parts = BodyPart.query.all()
+        print("Body Parts:", len(body_parts))
+        for body_part in body_parts:
+            print(body_part.name)
+
+        # Check reviews
+        reviews = Review.query.all()
+        print("Reviews:", len(reviews))
+        for review in reviews:
+            print(review.rating, review.comment)
+
+        # Check community threads
+        threads = CommunityThread.query.all()
+        print("Community Threads:", len(threads))
+        for thread in threads:
+            print(thread.title, thread.category)
+
+if __name__ == '__main__':
+    check_data()
+Run the Script:
+Execute the script in the Replit terminal:
+text
+
+Copy
+python check_data.py
+Share the output in the terminal. The output should look something like:
+text
+
+Copy
+Users: 2
+admin@antidote.com admin
+testdoctor@antidote.com doctor
+Doctors: 1
+Dr. John Smith Plastic Surgery
+Procedures: 2
+Rhinoplasty Cosmetic
+Facelift Cosmetic
+Categories: 1
+Cosmetic
+Body Parts: 1
+Face
+Reviews: 1
+5 Great experience!
+Community Threads: 1
+hair is great Hair
+Report Results:
+If the counts are greater than 0, the data exists, and we can move to Part 3 (fixing the Admin Dashboard queries).
+If the counts are 0, proceed to Part 2 (seeding data).
+Assign to Replit Agent:
+
+Please execute the above instructions to verify the data in the database. Share the output of check_data.py so we can determine the next steps.

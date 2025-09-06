@@ -1,0 +1,16 @@
+In my Flask app Antidote, the Favorites/Saved Items feature shows a 'Save' button on doctor_detail.html, but clicking it has no action (console error: 'No save forms found on page'). Fix and test:
+1. Log in as testuser@antidote.com (password: Test@1234) at http://localhost:5000/login and confirm "Test User" appears in the navigation bar.
+2. Navigate to http://localhost:5000/doctors/detail/3 to test the "Save" button for Dr. John Smith (ID 3).
+3. Confirm doctor_detail.html has a form with class="save-form", method="POST", action="{{ url_for('web.save_item') }}", a hidden input name="doctor_id", and a button with class="save-btn".
+4. Update static/js/favorites.js to log all form classes (console.log('Form ${index} classes:', form.className)), select 'form.save-form' and 'button.save-btn', and log 'Save button found in form' and 'Save button clicked for doctor_id'.
+5. On /doctors/detail/3, click the "Save" button and check the browser console (F12 > Console) for logs ('Save button found in form', 'Save button clicked').
+6. Check the Network tab (F12 > Network) for a POST request to /save-item and confirm a 200 response with {'success': True, 'message': 'Saved to favorites'}.
+7. Verify server logs: tail -n 50 /tmp/replit-nix-errors.log (look for 'Save item request received').
+8. Test the Favorites flow:
+   - From doctors.html, save Dr. John Smith (ID 3) by clicking the "Save" button.
+   - From procedure_detail.html (for Rhinoplasty ID 2), save the procedure by clicking the "Save" button.
+   - Visit http://localhost:5000/favorites to verify Dr. John Smith and Rhinoplasty appear.
+   - Remove one item (e.g., Dr. John Smith) using the "Remove" button and confirm it’s no longer in /favorites.
+9. Verify the database: SELECT * FROM favorites WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') LIMIT 5.
+10. Confirm UI: Ensure save and remove buttons display correctly in screenshots for doctors.html, procedure_detail.html, and favorites.html.
+11. Update routes.py, templates, or models.py if any issues arise during testing.

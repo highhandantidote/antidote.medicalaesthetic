@@ -1,0 +1,57 @@
+/* Universal tab underline styling for all screen sizes */
+
+/* Base styling for all tabs */
+.hero-tabs-slider .nav-link,
+.hero-search-tab,
+.nav-tabs .nav-link {
+    border-bottom: 2px solid transparent !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    background-color: transparent !important;
+    transition: all 0.3s ease !important;
+    position: relative;
+}
+
+/* Active tab styling */
+.hero-tabs-slider .nav-link.active,
+.hero-tabs-slider .hero-search-tab.active,
+.nav-tabs .nav-link.active,
+.hero-search-tab.nav-link.active,
+.hero-search-tab.active,
+button.nav-link.active.hero-search-tab {
+    border-bottom: 2px solid #00A0B0 !important;
+    font-weight: 600 !important;
+    color: #00A0B0 !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    background-color: transparent !important;
+}
+
+/* Desktop enhancement */
+@media (min-width: 992px) {
+    .hero-tabs-slider .nav-link.active,
+    .hero-search-tab.active {
+        border-bottom-width: 3px !important;
+        font-weight: 700 !important;
+    }
+    
+    .hero-tabs-slider .nav-link,
+    .hero-search-tab {
+        border-bottom-width: 3px !important;
+    }
+}
+
+/* Tablet enhancement */
+@media (min-width: 768px) and (max-width: 991px) {
+    .hero-tabs-slider .nav-link.active,
+    .hero-search-tab.active {
+        border-bottom-width: 2.5px !important;
+    }
+    
+    .hero-tabs-slider .nav-link,
+    .hero-search-tab {
+        border-bottom-width: 2.5px !important;
+    }
+}

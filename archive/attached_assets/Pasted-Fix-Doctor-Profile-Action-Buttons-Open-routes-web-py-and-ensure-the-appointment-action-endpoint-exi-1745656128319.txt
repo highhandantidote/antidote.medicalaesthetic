@@ -1,0 +1,428 @@
+Fix Doctor Profile Action Buttons:
+Open routes/web.py and ensure the appointment action endpoint exists:
+python
+
+Copy
+@app.route('/appointment/<action>/<int:id>', methods=['POST'])
+@login_required
+def appointment_action(action, id):
+    if action not in ['details', 'cancel']:
+        return jsonify({'success': False, 'message': 'Invalid action'}), 400
+    appointment = db.execute("SELECT * FROM appointments WHERE id = %s AND user_id = %s", (id, current_user.id)).fetchone()
+    if not appointment:
+        return jsonify({'success': False, 'message': 'Appointment not found or not authorized'}), 404
+    new_status = 'cancelled' if action == 'cancel' else 'viewed'
+    db.execute("UPDATE appointments SET status = %s WHERE id = %s AND user_id = %s", (new_status, id, current_user.id))
+    db.commit()
+    return jsonify({'success': True, 'message': f'Appointment {action} successful'})
+Verify the appointments table:
+sql
+
+Copy
+\dt
+If missing, create it:
+sql
+
+Copy
+CREATE TABLE appointments (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    doctor_id INTEGER REFERENCES doctors(id),
+    status VARCHAR(50) DEFAULT 'pending',
+    appointment_date TIMESTAMP,
+    last_viewed TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    notes TEXT
+);
+INSERT INTO appointments (user_id, doctor_id, status, appointment_date) VALUES (10, 3, 'pending', NOW() + interval '3 days');
+Open static/js/dashboard.js and ensure the event listeners are present:
+javascript
+
+Copy
+document.querySelectorAll('.appointment-actions .btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const appointmentId = this.getAttribute('data-id');
+        const action = this.getAttribute('data-action');
+        if (!appointmentId || !action) {
+            console.error('Missing appointment ID or action');
+            return;
+        }
+        fetch(`/appointment/${action}/${appointmentId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Action successful!');
+                location.reload();
+            } else {
+                alert(data.message || 'Action failed.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+Open templates/dashboard_user.html and confirm the buttons have data attributes:
+html
+
+Copy
+<div class="appointment-card mb-3 p-3 border rounded" data-id="{{ appointment.id }}">
+    <p><strong>Doctor:</strong> {{ appointment.doctor_name }}</p>
+    <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+    <div class="appointment-actions">
+        <a href="#" class="btn btn-primary btn-sm" data-id="{{ appointment.id }}" data-action="details">Details</a>
+        <a href="#" class="btn btn-danger btn-sm" data-id="{{ appointment.id }}" data-action="cancel">Cancel</a>
+    </div>
+</div>
+Fix Reviews (Edit and Delete):
+Open routes/web.py and ensure the review endpoints are present:
+python
+
+Copy
+@app.route('/review/edit/<int:id>', methods=['POST'])
+@login_required
+def edit_review(id):
+    review = db.execute("SELECT * FROM reviews WHERE id = %s AND user_id = %s", (id, current_user.id)).fetchone()
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found or not authorized'}), 404
+    data = request.get_json()
+    if not data or 'rating' not in data or 'content' not in data:
+        return jsonify({'success': False, 'message': 'Rating and content are required'}), 400
+    db.execute("UPDATE reviews SET rating = %s, content = %s WHERE id = %s AND user_id = %s",
+              (data['rating'], data['content'], id, current_user.id))
+    db.commit()
+    return jsonify({'success': True, 'message': 'Review updated successfully'})
+
+@app.route('/review/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_review(id):
+    review = db.execute("SELECT * FROM reviews WHERE id = %s AND user_id = %s", (id, current_user.id)).fetchone()
+    if not review:
+        return jsonify({'success': False, 'message': 'Review not found or not authorized'}), 404
+    db.execute("DELETE FROM reviews WHERE id = %s AND user_id = %s", (id, current_user.id))
+    db.commit()
+    return jsonify({'success': True, 'message': 'Review deleted successfully'})
+Verify the reviews table:
+sql
+
+Copy
+\dt
+If missing, create it:
+sql
+
+Copy
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    doctor_id INTEGER REFERENCES doctors(id),
+    procedure_id INTEGER REFERENCES procedures(id),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+INSERT INTO reviews (user_id, doctor_id, procedure_id, rating, content) VALUES (10, 3, 1, 4, 'Great experience!');
+Update static/js/dashboard.js with review actions:
+javascript
+
+Copy
+document.querySelectorAll('.review-actions .btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const reviewId = this.getAttribute('data-id');
+        const action = this.getAttribute('data-action');
+        if (!reviewId || !action) {
+            console.error('Missing review ID or action');
+            return;
+        }
+        if (action === 'edit') {
+            const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+            document.getElementById('editReviewId').value = reviewId;
+            modal.show();
+        } else if (action === 'delete') {
+            if (confirm('Are you sure you want to delete this review?')) {
+                fetch(`/review/${action}/${reviewId}`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || 'Action successful!');
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Action failed.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    });
+});
+
+const editReviewForm = document.querySelector('#editReviewForm');
+if (editReviewForm) {
+    editReviewForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reviewId = document.querySelector('#editReviewId').value;
+        const rating = document.querySelector('#editRating').value;
+        const content = document.querySelector('#editContent').value;
+        if (!rating || !content) {
+            alert('Rating and content are required.');
+            return;
+        }
+        fetch(`/review/edit/${reviewId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ rating: parseInt(rating), content: content })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Review updated successfully!');
+                location.reload();
+            } else {
+                alert(data.message || 'Failed to update review.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+}
+Update templates/dashboard_user.html with the review section and modal:
+html
+
+Copy
+<div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+    {% if reviews %}
+        {% for review in reviews %}
+            <div class="review-card mb-3 p-3 border rounded" data-id="{{ review.id }}">
+                <p><strong>Doctor:</strong> {{ review.doctor_name }}</p>
+                <p><strong>Procedure:</strong> {{ review.procedure_name }}</p>
+                <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+                <p><strong>Comment:</strong> {{ review.content }}</p>
+                <p>{{ review.created_at.strftime('%B %d, %Y') }}</p>
+                <div class="review-actions">
+                    <a href="#" class="btn btn-primary btn-sm" data-id="{{ review.id }}" data-action="edit">Edit</a>
+                    <a href="#" class="btn btn-danger btn-sm" data-id="{{ review.id }}" data-action="delete">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No reviews yet.</p>
+    {% endif %}
+</div>
+<div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editReviewModalLabel">Edit Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReviewForm">
+                    <input type="hidden" id="editReviewId">
+                    <div class="mb-3">
+                        <label for="editRating" class="form-label">Rating</label>
+                        <select class="form-control" id="editRating" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="editContent" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+Fix Community Thread Creation:
+Open community_thread_routes.py and ensure the endpoint is correct:
+python
+
+Copy
+from flask import Blueprint, request, jsonify
+from flask_login import login_required, current_user
+from your_app import db  # Adjust import based on your structure
+
+community = Blueprint('community', __name__)
+
+@community.route('/create_thread', methods=['POST'])
+@login_required
+def create_thread():
+    data = request.get_json()
+    if not data or not data.get('title') or not data.get('content'):
+        return jsonify({'success': False, 'message': 'Title and content are required'}), 400
+    try:
+        db.execute("INSERT INTO threads (user_id, title, content, created_at) VALUES (%s, %s, %s, NOW())",
+                  (current_user.id, data['title'], data['content']))
+        db.commit()
+        return jsonify({'success': True, 'message': 'Thread created successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
+Verify the threads table:
+sql
+
+Copy
+\dt
+If missing, create it:
+sql
+
+Copy
+CREATE TABLE threads (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+Open static/js/community.js and ensure the fetch call works:
+javascript
+
+Copy
+document.addEventListener('DOMContentLoaded', function() {
+    const createThreadBtn = document.querySelector('#createThreadBtn');
+    const threadForm = document.querySelector('#createThreadForm');
+    const modalElement = document.getElementById('createThreadModal');
+    let modal;
+
+    if (createThreadBtn) {
+        createThreadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!modal) {
+                modal = new bootstrap.Modal(modalElement, { backdrop: 'static', keyboard: false });
+            }
+            modal.show();
+        });
+    }
+
+    if (threadForm) {
+        threadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const title = document.querySelector('#threadTitle').value.trim();
+            const content = document.querySelector('#threadContent').value.trim();
+            if (!title || !content) {
+                alert('Title and content are required.');
+                return;
+            }
+            const submitBtn = threadForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            fetch('/community/create_thread', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ title: title, content: content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                if (data.success) {
+                    modal.hide();
+                    alert(data.message || 'Thread created successfully!');
+                    location.href = '/community';
+                } else {
+                    alert(data.message || 'Failed to create thread.');
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                console.error('Fetch error:', error);
+                alert('An error occurred while creating the thread. Check console for details.');
+            });
+        });
+    }
+
+    if (modalElement) {
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            modal = null;
+        });
+    }
+});
+Open templates/community.html and ensure the modal is set up:
+html
+
+Copy
+<button id="createThreadBtn" class="btn btn-primary">Create Thread</button>
+<div class="modal fade" id="createThreadModal" tabindex="-1" aria-labelledby="createThreadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createThreadModalLabel">Create New Thread</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createThreadForm" novalidate>
+                    <div class="mb-3">
+                        <label for="threadTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="threadTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="threadContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="threadContent" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="threads-list">
+    {% if threads %}
+        {% for thread in threads %}
+            <div class="thread-card mb-3 p-3 border rounded">
+                <h5>{{ thread.title }}</h5>
+                <p>{{ thread.content }}</p>
+                <p>Posted on {{ thread.created_at.strftime('%B %d, %Y') }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center">
+            <p>No discussions yet. Be the first to start a conversation!</p>
+        </div>
+    {% endif %}
+</div>
+Open routes/web.py and ensure the community route fetches threads:
+python
+
+Copy
+@app.route('/community')
+@login_required
+def community():
+    threads = db.execute("SELECT t.*, u.email AS username FROM threads t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC").fetchall()
+    return render_template('community.html', threads=threads)
+Open routes/web.py and register the blueprint:
+python
+
+Copy
+from community_thread_routes import community
+app.register_blueprint(community, url_prefix='/community')
+Test the Fixes:
+Restart the application:
+bash
+
+Copy
+Restarted Start application
+Log in as testuser@antidote.com with password "password123".
+Navigate to /dashboard/user/10:
+Go to the Appointments tab, click "Details" and "Cancel" on an appointment, and confirm an alert appears and the page reloads.
+Go to the Reviews tab, click "Edit" to update a review, save, and confirm the change; then click "Delete" and confirm removal.
+Take a screenshot of the Appointments and Reviews tabs post-actions.
+Navigate to /community:
+Click "Create Thread," fill out the modal with a title (e.g., "Hair Transplant Update") and content (e.g., "My latest experience."), submit, and confirm the thread appears.
+Take a screenshot of the community page with the new thread.
+Check for errors:
+F12 > Console and Network tabs on both pages (screenshot if errors remain).
+Run: tail -n 50 /tmp/replit-nix-errors.log and report issues.
+Provide a Summary:
+Confirm if the appointment "Details" and "Cancel" buttons work.
+Confirm if the review "Edit" and "Delete" buttons work.
+Confirm if the community thread creation works and the thread appears.
+Include screenshots from step 4.
+Note any errors from step 4.
+Suggest next steps (e.g., enhance UI, add thread replies).

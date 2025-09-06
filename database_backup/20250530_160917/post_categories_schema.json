@@ -1,0 +1,44 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('post_categories_id_seq'::regclass)"
+  },
+  {
+    "name": "community_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "category_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "confidence_score",
+    "type": "double precision",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "auto_tagged",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "manually_verified",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

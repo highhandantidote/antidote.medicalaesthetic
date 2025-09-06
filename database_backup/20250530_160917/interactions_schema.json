@@ -1,0 +1,32 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('interactions_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "action_type",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "target_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "timestamp",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

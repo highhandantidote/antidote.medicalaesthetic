@@ -1,0 +1,50 @@
+package_name,treatment_name,price,discount
+Aqua Glow Facial,Hydrafacial,9599,20
+Oxygen Glow Therapy,Oxygen Facial,5999,20
+Diamond Detox Facial,Carbon Facial,7199,20
+Youth Glow PRP Facial,Vampire Facial,11999,20
+Perfect Brow Design,Microblading,41999,20
+Soft Ombre Brows,Ombrebrows,35999,20
+3D Designer Brows,Combination Brow,47999,20
+Scalp Density Treatment,Scalp Micro Pigmentation,23999,20
+Natural Lip Tint,Lip Blush,41999,20
+Spot Clear Therapy,Acne Spots,11999,20
+Scar Clear Treatment,Acne Scars,11999,20
+Crystal Peel Treatment,Medical Skin Peels,4199,20
+Skin/Hair Nutrition Therapy,Mesotherapy,11999,20
+Spot Removal Procedure,"Moles, Skin Tags & Warts Removal",3599,20
+Even Skin Tone Therapy,Hyprepigmentation Therapy,4799,20
+Bright Eye Treatment,Dark Circles Reduction,2399,20
+Collagen Boost Therapy,Microneedling,11999,20
+Skin Glow Rejuvenation,Skin Rejuvenation,11999,20
+Clear Pores Treatment,Comedone Extraction,5999,20
+Firm & Lift Treatment,Skin Tightening + Lifting,35999,20
+PRP/GFC Youth Therapy,Skin PRP / GFC,14399,20
+Radiant Skin Therapy,Skin Pigmentation Treatment,10799,20
+Youthful Hands Treatment,Hand Skin Treatment,7199,20
+Hydration Boost Facial,Skin Hydration,5999,20
+Lip Brightening Therapy,Lip Pigmentation Treatment,5999,20
+Permanent Hair-Free Laser,Laser Hair Reduction,3599,20
+Laser Glow Toning,Laser Skin Toning,9599,20
+Laser Lift Treatment,Skin tightrning,35999,20
+Tattoo Clear Laser,Laser Tattoo Removal,5999,20
+Scar Clear Laser,Laser Scar Reduction,7199,20
+Stretchmark Clear Laser,Laser Stretchmarks Reduction,17999,20
+Hair Fall Control Therapy,Hair Fall Treatments,12,20
+Hair Regain Program,Hair Loss Solutions,11999,20
+PRP Hair Regrowth,PRP for Hair Regrowth,11999,20
+Advanced GFC Hair Regrowth,GFC for Hair Regrowth,14399,20
+Hair Nutrition Therapy,Hair Mesotherapy,11999,20
+Hair Transplant (per graft),Hair Transplantation,72,20
+Anti-Wrinkle Botox,Botox (Facial),600,20
+Baby Botox Glow,Micro Botox,23999,20
+Meso Botox Youth Therapy,Meso Botox,23999,20
+Face Contour Fillers,Dermal Fillers,47999,20
+Under-Eye Bright Fillers,Under-eye Fillers,47999,20
+Nose Shaping Fillers,Nose Job (Non-surgical),47999,20
+Lip Enhancement Fillers,Lip Enhancement,47999,20
+Chin Contour Fillers,Chin Augmentation,47999,20
+Instant Face Lift Threads,Thread Lifts,17999,20
+Anti-Wrinkle Botox Plus,Wrinkle Reduction,600,20
+Chin Sculpt Treatment,Double Chin Reduction,29999,20
+Scar Removal Therapy,Hypertrophic Scar and Keloid Reduction,17999,20

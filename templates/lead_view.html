@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lead Details - {{ lead.patient_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-dark text-white">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-3">
+                <h4>Doctor Profile</h4>
+                <p>{{ doctor.name }}</p>
+                <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                <a href="{{ url_for('web.edit_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">Edit Profile</a>
+
+                <h4 class="mt-4">Dashboard Menu</h4>
+                <ul class="list-group">
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Overview</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_appointments', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Appointments</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Patient Leads</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_reviews', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Reviews</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white text-decoration-none">My Procedures</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Availability</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Gallery</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Community</a></li>
+                    <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white text-decoration-none">Verification <span class="badge bg-warning">NEW</span></a></li>
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <div class="card bg-dark border">
+                    <div class="card-header">
+                        <h2>Lead Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Patient:</div>
+                            <div class="col-md-8">{{ lead.patient_name }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Procedure:</div>
+                            <div class="col-md-8">{{ lead.procedure_name }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Mobile:</div>
+                            <div class="col-md-8">{{ lead.mobile_number }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Email:</div>
+                            <div class="col-md-8">{{ lead.user.email if lead.user else 'N/A' }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">City:</div>
+                            <div class="col-md-8">{{ lead.city }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Preferred Date:</div>
+                            <div class="col-md-8">{{ lead.preferred_date.strftime('%d %B, %Y') if lead.preferred_date else 'Not specified' }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Message:</div>
+                            <div class="col-md-8">{{ lead.message or 'No message provided' }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Status:</div>
+                            <div class="col-md-8">
+                                <span class="badge bg-{{ 'primary' if lead.status == 'pending' else 'success' if lead.status == 'contacted' else 'warning' if lead.status == 'scheduled' else 'info' if lead.status == 'completed' else 'secondary' }}">
+                                    {{ lead.status.capitalize() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 fw-bold">Created at:</div>
+                            <div class="col-md-8">{{ lead.created_at.strftime('%d %B, %Y %H:%M') }}</div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-secondary">Back to Leads</a>
+                            <a href="{{ url_for('web.contact_lead', lead_id=lead.id) }}" class="btn btn-primary">Contact Patient</a>
+                            <a href="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" class="btn btn-info">Update Status</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

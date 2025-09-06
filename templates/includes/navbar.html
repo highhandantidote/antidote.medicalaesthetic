@@ -1,0 +1,109 @@
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <div class="container">
+        <!-- Logo -->
+        <a class="navbar-brand" href="{{ url_for('web.index') }}">
+            <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}?v=9" alt="Antidote Logo" height="60" class="d-inline-block align-top">
+        </a>
+        
+        <!-- Mobile toggle button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation content -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Center: Search Form -->
+            <div class="mx-auto">
+                <form action="{{ url_for('web.search') }}" method="get" class="d-flex search-form-container">
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               name="q" 
+                               id="searchInput"
+                               placeholder="Search procedures, doctors, or discussions..." 
+                               value="{{ request.args.get('q', '') }}"
+                               autocomplete="off">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <!-- Search Autocomplete Dropdown -->
+                    <div id="searchAutocomplete" class="search-autocomplete"></div>
+                </form>
+            </div>
+            
+            <!-- Right: Navigation Links -->
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <!-- User Menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            {% if current_user.role == 'admin' %}
+                                <!-- Admin Menu Section -->
+                                <li><h6 class="dropdown-header">Admin Access</h6></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_dashboard') }}">
+                                    <i class="fas fa-shield-alt text-danger"></i> Admin Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_credit.credit_dashboard') }}">
+                                    <i class="fas fa-coins text-warning"></i> Credit Management
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_lead_analytics') }}">
+                                    <i class="fas fa-chart-line text-info"></i> Lead Analytics
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_clinic') }}">
+                                    <i class="fas fa-building text-primary"></i> Clinic Management
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_users') }}">
+                                    <i class="fas fa-users text-secondary"></i> User Management
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_procedures') }}">
+                                    <i class="fas fa-stethoscope text-success"></i> Procedure Management
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_community_moderation') }}">
+                                    <i class="fas fa-comments text-info"></i> Community Moderation
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('web.admin_analytics') }}">
+                                    <i class="fas fa-analytics text-dark"></i> Platform Analytics
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">User Menu</h6></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('web.dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('web.profile') }}">
+                                <i class="fas fa-user"></i> Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('web.favorites') }}">
+                                <i class="fas fa-heart"></i> Favorites
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('otp_auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Guest Menu - Unified OTP Authentication -->
+                    <li class="nav-item">
+                        <a class="nav-link auth-btn" href="{{ url_for('otp_auth.auth_entry') }}">
+                            <i class="fas fa-mobile-alt"></i> Join/Login
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <!-- Community Link -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('web.community') }}">
+                        <i class="fas fa-users"></i> Community
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

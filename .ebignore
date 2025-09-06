@@ -1,0 +1,101 @@
+# Elastic Beanstalk ignore file for Antidote Platform
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+
+# Archive files
+archive/
+attached_assets/
+
+# Large media files (deploy to S3 instead)
+*.mp4
+*.avi
+*.mov
+*.wmv
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Node modules (if any)
+node_modules/
+
+# Documentation that's not needed in production
+README.md
+docs/
+*.md
+
+# Git
+.git/
+.gitignore
+
+# Performance analysis files
+PERFORMANCE_*.md
+SEO_*.md
+*_DEBUG_LOG.md
+*_GUIDE.md
+
+# Development scripts
+add_*.py
+bulk_*.py
+batch_*.py
+analyze_*.py
+debug_*.py
+*_backup.py
+automate_*.py
+
+# CSV data files
+*.csv
+
+# SQL backup files
+*.sql
+
+# Development configuration
+config.py.backup
+requirements.txt.backup

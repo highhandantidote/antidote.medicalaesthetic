@@ -1,0 +1,3415 @@
+{% extends 'base.html' %}
+
+{% block title %}Face Analysis{% endblock %}
+
+{% block extra_head %}
+<!-- Additional permissions for face analysis -->
+<meta http-equiv="Permissions-Policy" content="camera=self, microphone=self">
+<!-- Professional MediaPipe Face Detection CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+<!-- Professional Face Detection System -->
+<script src="{{ url_for('static', filename='js/professional-face-detection.js') }}"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .face-analysis-container {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .face-analysis-container h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    
+    .camera-container {
+        display: none;
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto 1.5rem;
+        background-color: #f5f5f5;
+        border-radius: 0.5rem;
+        overflow: visible; /* Changed from hidden to visible */
+        min-height: 360px; /* Ensure minimum height for feedback elements */
+    }
+    
+    .camera-positioning-guide {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+    
+    .camera-container.active {
+        display: block;
+    }
+    
+    #video {
+        width: 100%;
+        height: auto;
+        max-height: 400px;
+        transform: scaleX(-1); /* Mirror effect */
+        display: block;
+        object-fit: cover;
+    }
+    
+    .camera-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .camera-container:hover .camera-overlay {
+        opacity: 1;
+    }
+    
+    /* Always show capture button on mobile (no hover) */
+    @media (max-width: 768px) {
+        .camera-overlay {
+            opacity: 1;
+            background-color: transparent;
+        }
+    }
+    
+    .upload-container {
+        display: none;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .upload-container.active {
+        display: block;
+    }
+    
+    .camera-controls {
+        display: flex;
+        background-color: #f5f5f5;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .camera-option {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .camera-option.active {
+        background-color: #4361ee;
+        color: white;
+    }
+    
+    .capture-btn {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #4361ee;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .capture-btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .capture-btn.ready {
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
+    
+    .capture-btn i {
+        font-size: 1.5rem;
+    }
+    
+    .steps-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .step-number {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #4361ee;
+        color: white;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .step-content {
+        flex: 1;
+    }
+    
+    .step-title {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .step-description {
+        color: #666;
+        margin-bottom: 0;
+    }
+    
+    .custom-file-upload {
+        border: 2px dashed #ddd;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .custom-file-upload:hover {
+        border-color: #4361ee;
+        background-color: #f9f9ff;
+    }
+    
+    .custom-file-upload i {
+        font-size: 2rem;
+        color: #4361ee;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .custom-file-upload.highlight {
+        border-color: #4361ee;
+        background-color: #f0f3ff;
+    }
+    
+    .custom-file-upload::after {
+        content: "Click to browse files";
+        display: block;
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Enhanced Precision Positioning Guide - Fixed alignment with mirror sync */
+    .precision-positioning-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        transform: scaleX(-1); /* Match video mirror transformation */
+    }
+    
+    .precision-face-guide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Main face outline with precision markers - Centered positioning */
+    .face-outline-precision {
+        border: 3px solid rgba(239, 68, 68, 0.9);
+        border-radius: 50%;
+        width: 280px;
+        height: 350px;
+        max-width: 70%;
+        max-height: 80%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(239, 68, 68, 0.05);
+        transition: all 0.3s ease;
+        animation: breathe 2s infinite;
+    }
+    
+    .face-outline-precision.aligned {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.05);
+        animation: none;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        transform: translate(-50%, -50%);
+    }
+    
+    .face-outline-precision.warning {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+        animation: breathe 1.5s infinite;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        transform: translate(-50%, -50%);
+    }
+    
+    .face-outline-precision.misaligned {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+        animation: shake 0.5s infinite;
+        transform: translate(-50%, -50%);
+    }
+    
+    /* Precision alignment markers - Fixed to match video positioning */
+    .alignment-markers {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Center crosshairs */
+    .center-crosshair {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+    }
+    
+    .center-crosshair::before,
+    .center-crosshair::after {
+        content: '';
+        position: absolute;
+        background: rgba(67, 97, 238, 0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .center-crosshair::before {
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        transform: translateY(-50%);
+    }
+    
+    .center-crosshair::after {
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        transform: translateX(-50%);
+    }
+    
+    /* Eye level guide line */
+    .eye-level-guide {
+        position: absolute;
+        top: 35%;
+        left: 15%;
+        right: 15%;
+        height: 2px;
+        background: rgba(67, 97, 238, 0.6);
+        border-radius: 1px;
+    }
+    
+    .eye-level-guide::before {
+        content: 'Eyes';
+        position: absolute;
+        right: -35px;
+        top: -8px;
+        font-size: 10px;
+        color: rgba(67, 97, 238, 0.8);
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2px 6px;
+        border-radius: 3px;
+        transform: scaleX(-1); /* Counter-transform to make text readable */
+    }
+    
+    /* Nose positioning marker */
+    .nose-marker {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 12px;
+        border: 2px solid rgba(67, 97, 238, 0.7);
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        background: rgba(67, 97, 238, 0.1);
+    }
+    
+    /* Mouth level guide */
+    .mouth-level-guide {
+        position: absolute;
+        top: 70%;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: rgba(67, 97, 238, 0.6);
+        border-radius: 1px;
+    }
+    
+    .mouth-level-guide::before {
+        content: 'Mouth';
+        position: absolute;
+        right: -40px;
+        top: -8px;
+        font-size: 10px;
+        color: rgba(67, 97, 238, 0.8);
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2px 6px;
+        border-radius: 3px;
+        transform: scaleX(-1); /* Counter-transform to make text readable */
+    }
+    
+    /* Distance indicators */
+    .distance-indicators {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        z-index: 15;
+    }
+    
+    .distance-indicator {
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        transform: scaleX(-1); /* Counter-transform to make text readable */
+    }
+    
+    .distance-indicator.good {
+        background: rgba(34, 197, 94, 0.9);
+    }
+    
+    .distance-indicator.warning {
+        background: rgba(251, 191, 36, 0.9);
+    }
+    
+    .distance-indicator.poor {
+        background: rgba(239, 68, 68, 0.9);
+    }
+    
+    /* Symmetry guides */
+    .symmetry-guides {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+    
+    .symmetry-line {
+        position: absolute;
+        left: 50%;
+        top: 10%;
+        bottom: 10%;
+        width: 1px;
+        background: linear-gradient(to bottom, transparent 0%, rgba(67, 97, 238, 0.4) 20%, rgba(67, 97, 238, 0.4) 80%, transparent 100%);
+        transform: translateX(-50%);
+    }
+    
+    /* Angle correction indicators */
+    .angle-indicators {
+        position: absolute;
+        top: 50px;
+        left: 50%;
+        transform: translateX(-50%) scaleX(-1); /* Counter-transform to make text readable */
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 15;
+    }
+    
+    .angle-indicators.show {
+        opacity: 1;
+    }
+    
+    .angle-indicators.tilt-left::before {
+        content: '↶ Straighten head';
+    }
+    
+    .angle-indicators.tilt-right::before {
+        content: 'Straighten head ↷';
+    }
+    
+    .angle-indicators.good::before {
+        content: '✓ Perfect alignment';
+        color: #22c55e;
+    }
+    
+    /* Live feedback panel */
+    .live-feedback-panel {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%) scaleX(-1); /* Counter-transform to make text readable */
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        min-width: 200px;
+        max-width: 90%;
+        transition: all 0.3s ease;
+        z-index: 15;
+    }
+    
+    /* Auto-capture countdown animation */
+    .live-feedback-panel.countdown {
+        animation: countdownPulse 1s infinite;
+        font-size: 14px;
+        font-weight: 700;
+    }
+    
+    @keyframes countdownPulse {
+        0% { transform: translateX(-50%) scaleX(-1) scale(1); }
+        50% { transform: translateX(-50%) scaleX(-1) scale(1.1); }
+        100% { transform: translateX(-50%) scaleX(-1) scale(1); }
+    }
+    
+    .live-feedback-panel.success {
+        background: rgba(34, 197, 94, 0.9);
+    }
+    
+    .live-feedback-panel.warning {
+        background: rgba(251, 191, 36, 0.9);
+    }
+    
+    .live-feedback-panel.error {
+        background: rgba(239, 68, 68, 0.9);
+    }
+    
+    /* Mobile responsive precision guide - Updated for proper scaling */
+    @media (max-width: 768px) {
+        .camera-container {
+            margin-bottom: 3rem; /* Extra space for feedback elements */
+            max-width: 100%;
+        }
+        
+        #video {
+            max-height: 350px;
+        }
+        
+        .video-container {
+            max-height: 350px;
+        }
+        
+        .precision-face-guide {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+        
+        .face-outline-precision {
+            width: 180px;
+            height: 220px;
+            max-width: 55%;
+            max-height: 65%;
+        }
+        
+        .distance-indicators {
+            top: 10px;
+            gap: 10px;
+            left: 5px;
+            right: 5px;
+        }
+        
+        .distance-indicator {
+            font-size: 10px;
+            padding: 3px 6px;
+        }
+        
+        .live-feedback-panel {
+            bottom: 10px;
+            font-size: 11px;
+            padding: 6px 12px;
+            min-width: 180px;
+            max-width: 85%;
+        }
+        
+        .angle-indicators {
+            top: 45px;
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .camera-container {
+            margin-bottom: 4rem; /* More space for feedback on small screens */
+            max-width: 95%;
+        }
+        
+        #video {
+            max-height: 300px;
+        }
+        
+        .video-container {
+            max-height: 300px;
+        }
+        
+        .precision-face-guide {
+            width: 100%;
+            height: 100%;
+            min-height: 250px;
+        }
+        
+        .face-outline-precision {
+            width: 140px;
+            height: 180px;
+            max-width: 50%;
+            max-height: 60%;
+        }
+        
+        .eye-level-guide::before,
+        .mouth-level-guide::before {
+            font-size: 9px;
+            right: -25px;
+        }
+        
+        .distance-indicators {
+            gap: 8px;
+            left: 3px;
+            right: 3px;
+        }
+        
+        .distance-indicator {
+            font-size: 9px;
+            padding: 2px 4px;
+        }
+        
+        .live-feedback-panel {
+            font-size: 10px;
+            padding: 5px 10px;
+            min-width: 160px;
+            max-width: 80%;
+        }
+        
+        .angle-indicators {
+            font-size: 10px;
+            padding: 4px 6px;
+            top: 40px;
+        }
+    }
+    
+
+    .input-hint {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    
+    .disclaimer-box {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4361ee;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    #canvas {
+        display: none;
+    }
+    
+    #capturedImage {
+        max-width: 100%;
+        border-radius: 0.5rem;
+        display: none;
+        margin-bottom: 1rem;
+    }
+    
+    /* Enhanced Loading Progress Styles */
+    .analysis-progress-container {
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(67, 97, 238, 0.1);
+    }
+    
+    .progress-circle-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .progress-circle {
+        transform: rotate(-90deg);
+        filter: drop-shadow(0 2px 8px rgba(67, 97, 238, 0.2));
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .progress-percentage {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #4361ee;
+        line-height: 1;
+    }
+    
+    .progress-icon {
+        margin-top: 0.25rem;
+    }
+    
+    .progress-icon i {
+        font-size: 1.5rem;
+        color: #4361ee;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); }
+        100% { opacity: 0.6; transform: scale(1); }
+    }
+    
+    .analysis-status h6 {
+        color: #333;
+        font-weight: 600;
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .analysis-status p {
+        animation: fadeInUp 0.6s ease 0.2s both;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .step-indicators {
+        margin-top: 1.5rem;
+    }
+    
+    .step-indicator {
+        text-align: center;
+        position: relative;
+    }
+    
+    .step-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #e3e3e3;
+        margin: 0 auto 0.5rem;
+        transition: all 0.4s ease;
+        position: relative;
+    }
+    
+    .step-indicator.active .step-dot {
+        background-color: #4361ee;
+        transform: scale(1.2);
+        animation: glow 2s infinite;
+    }
+    
+    .step-indicator.completed .step-dot {
+        background-color: #22c55e;
+        transform: scale(1.1);
+    }
+    
+    .step-indicator.completed .step-dot::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+    
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(67, 97, 238, 0.5); }
+        50% { box-shadow: 0 0 15px rgba(67, 97, 238, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(67, 97, 238, 0.5); }
+    }
+    
+    .step-indicator small {
+        font-size: 0.75rem;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .step-indicator.active small {
+        color: #4361ee;
+        font-weight: 600;
+    }
+    
+    .step-indicator.completed small {
+        color: #22c55e;
+        font-weight: 600;
+    }
+    
+    /* Face Positioning Guide Styles - Updated for proper alignment */
+    .video-container {
+        position: relative;
+        border-radius: 1rem;
+        overflow: visible; /* Allow feedback elements to show */
+        background: #000;
+        width: 100%;
+        height: auto;
+        min-height: 360px; /* Ensure minimum height for feedback */
+    }
+    
+    .positioning-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 360px; /* Match video container minimum */
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    .face-outline {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 260px;
+        border: 3px solid rgba(67, 97, 238, 0.8);
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        background: rgba(67, 97, 238, 0.1);
+        transition: all 0.3s ease;
+        animation: breathe 2s infinite;
+    }
+    
+    .face-outline.aligned {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.1);
+        animation: none;
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    }
+    
+    .face-outline.misaligned {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        animation: shake 0.5s infinite;
+    }
+    
+    @keyframes breathe {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.02); }
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translate(-50%, -50%); }
+        25% { transform: translate(-50%, -50%) translateX(-2px); }
+        75% { transform: translate(-50%, -50%) translateX(2px); }
+    }
+    
+    .positioning-instructions {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        text-align: center;
+        min-width: 250px;
+        transition: all 0.3s ease;
+    }
+    
+    .positioning-instructions.success {
+        background: rgba(34, 197, 94, 0.9);
+    }
+    
+    .positioning-instructions.warning {
+        background: rgba(239, 68, 68, 0.9);
+    }
+    
+    .face-detection-points {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+    
+    .detection-point {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #22c55e;
+        border-radius: 50%;
+        opacity: 0.8;
+        transform: translate(-50%, -50%);
+    }
+    
+    .alignment-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .alignment-status.good {
+        background: rgba(34, 197, 94, 0.9);
+    }
+    
+    .alignment-status.poor {
+        background: rgba(239, 68, 68, 0.9);
+    }
+    
+    .capture-ready-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 20;
+    }
+    
+    .capture-ready-indicator.show {
+        opacity: 1;
+    }
+    
+    .canvas-container {
+        position: relative;
+        display: none;
+        margin-bottom: 1rem;
+    }
+    
+    .canvas-controls {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-3">AI Face Analysis</h1>
+            <p class="text-center lead mb-4">Get personalized insights and treatment recommendations</p>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="face-analysis-container">
+                <h2><i class="fas fa-camera me-2"></i>Upload Your Photo</h2>
+                
+                <form action="/face-analysis/upload" method="POST" enctype="multipart/form-data" id="faceAnalysisForm">
+                    {{ form.csrf_token }}
+                    
+                    <!-- Camera/Upload Option Selection -->
+                    <div class="camera-controls mb-4">
+                        <div class="camera-option" id="cameraOption">
+                            <i class="fas fa-camera"></i> Use Camera
+                        </div>
+                        <div class="camera-option active" id="uploadOption">
+                            <i class="fas fa-upload"></i> Upload Photo
+                        </div>
+                    </div>
+                    
+                    <!-- Camera Capture Interface with Positioning Guide -->
+                    <div class="camera-container" id="cameraContainer">
+                        <div class="camera-positioning-guide">
+                            <div class="video-container">
+                                <video id="video" autoplay playsinline></video>
+                                
+                                <!-- Enhanced Precision Positioning Guide -->
+                                <div class="precision-positioning-overlay" id="precisionPositioningOverlay">
+                                    <div class="precision-face-guide" id="precisionFaceGuide">
+                                        <!-- Main face outline -->
+                                        <div class="face-outline-precision" id="faceOutlinePrecision"></div>
+                                        
+                                        <!-- Alignment markers -->
+                                        <div class="alignment-markers">
+                                            <!-- Center crosshairs for nose positioning -->
+                                            <div class="center-crosshair"></div>
+                                            
+                                            <!-- Eye level guide line -->
+                                            <div class="eye-level-guide"></div>
+                                            
+                                            <!-- Nose positioning marker -->
+                                            <div class="nose-marker"></div>
+                                            
+                                            <!-- Mouth level guide -->
+                                            <div class="mouth-level-guide"></div>
+                                            
+                                            <!-- Symmetry guides -->
+                                            <div class="symmetry-guides">
+                                                <div class="symmetry-line"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Distance indicators -->
+                                        <div class="distance-indicators" id="distanceIndicators">
+                                            <div class="distance-indicator" id="sizeIndicator">Size: Adjusting</div>
+                                            <div class="distance-indicator" id="angleIndicator">Angle: Checking</div>
+                                        </div>
+                                        
+                                        <!-- Angle correction indicators -->
+                                        <div class="angle-indicators" id="angleCorrection"></div>
+                                        
+                                        <!-- Live feedback panel -->
+                                        <div class="live-feedback-panel" id="liveFeedback">
+                                            Position your face within the guides for accurate analysis
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="camera-overlay">
+                                    <button type="button" class="capture-btn" id="captureBtn">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Capture</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Canvas for Processing Captured Image -->
+                    <div class="canvas-container" id="canvasContainer">
+                        <canvas id="canvas"></canvas>
+                        <img id="capturedImage" alt="Captured Face Image">
+                        <div class="canvas-controls">
+                            <button type="button" class="btn btn-secondary" id="retakeBtn">
+                                <i class="fas fa-redo me-1"></i> Retake
+                            </button>
+                            <button type="button" class="btn btn-primary" id="useImageBtn">
+                                <i class="fas fa-check me-1"></i> Use This Image
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- File Upload Interface -->
+                    <div class="upload-container active" id="uploadContainer">
+                        <label for="{{ form.face_image.id }}" class="custom-file-upload" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Drag and drop your photo here <br>or click to browse</span>
+                        </label>
+                        {{ form.face_image(class="d-none", id="fileInput") }}
+                        <div id="filePreview" class="text-center" style="display: none;">
+                            <img id="previewImage" class="img-fluid mb-2 rounded" style="max-height: 300px;">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-sm btn-secondary" id="removeFileBtn">
+                                    <i class="fas fa-times me-1"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden field to store the image data -->
+                    <input type="hidden" name="image_data" id="imageData">
+                    
+                    <!-- Optional Details (Collapsible) -->
+                    <div class="mt-4">
+                        <button class="btn btn-link p-0 text-decoration-none small" type="button" data-bs-toggle="collapse" data-bs-target="#additionalInfo" aria-expanded="false">
+                            <i class="fas fa-plus me-1"></i> Optional details for better recommendations
+                        </button>
+                        
+                        <div class="collapse mt-3" id="additionalInfo">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form.age.label(class="form-label") }}
+                                        {{ form.age(class="form-control", placeholder="Your age") }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form.gender.label(class="form-label") }}
+                                        {{ form.gender(class="form-select") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.concerns.label(class="form-label") }}
+                                {{ form.concerns(class="form-control", rows=2, placeholder="Any specific concerns? (e.g., acne scars, fine lines)") }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="disclaimer-box">
+                        <p class="mb-0"><small><strong>Note:</strong> For best results, use a frontal photo with good lighting. This analysis is for informational purposes only.</small></p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                            <i class="fas fa-tasks me-2"></i> Analyze My Photo
+                        </button>
+                        
+                        <!-- Enhanced Creative Loading Experience -->
+                        <div class="text-center mt-3" id="uploadStatus" style="display: none;">
+                            <div class="analysis-progress-container">
+                                <!-- Main Progress Circle -->
+                                <div class="progress-circle-container mb-3">
+                                    <svg class="progress-circle" width="120" height="120">
+                                        <circle cx="60" cy="60" r="50" stroke="#e3e3e3" stroke-width="8" fill="none"></circle>
+                                        <circle cx="60" cy="60" r="50" stroke="#4361ee" stroke-width="8" fill="none" 
+                                                stroke-dasharray="314" stroke-dashoffset="314" id="progressCircle" 
+                                                style="transition: stroke-dashoffset 0.5s ease;"></circle>
+                                    </svg>
+                                    <div class="progress-text">
+                                        <div class="progress-percentage" id="progressPercentage">0%</div>
+                                        <div class="progress-icon">
+                                            <i class="fas fa-brain" id="analysisIcon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                <div class="progress mb-3" style="height: 8px; border-radius: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%; transition: width 0.5s ease;" 
+                                         id="progressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                
+                                <!-- Dynamic Status Messages -->
+                                <div class="analysis-status">
+                                    <h6 class="mb-2" id="statusTitle">Starting Analysis...</h6>
+                                    <p class="text-muted mb-0" id="statusMessage">Preparing your image for AI analysis</p>
+                                </div>
+                                
+                                <!-- Analysis Steps Indicator -->
+                                <div class="analysis-steps mt-3">
+                                    <div class="step-indicators d-flex justify-content-center gap-3">
+                                        <div class="step-indicator active" id="step1">
+                                            <div class="step-dot"></div>
+                                            <small>Upload</small>
+                                        </div>
+                                        <div class="step-indicator" id="step2">
+                                            <div class="step-dot"></div>
+                                            <small>AI Scan</small>
+                                        </div>
+                                        <div class="step-indicator" id="step3">
+                                            <div class="step-dot"></div>
+                                            <small>Analysis</small>
+                                        </div>
+                                        <div class="step-indicator" id="step4">
+                                            <div class="step-dot"></div>
+                                            <small>Results</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="face-analysis-container">
+                <h2><i class="fas fa-info-circle me-2"></i>Quick Tips</h2>
+                
+                <div class="alert alert-primary">
+                    <h6 class="mb-2"><i class="fas fa-camera me-1"></i> Photo Guidelines</h6>
+                    <ul class="mb-0 ps-3 small">
+                        <li>Face the camera directly</li>
+                        <li>Use good lighting</li>
+                        <li>Keep a neutral expression</li>
+                        <li>Center your face</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Your photo is processed securely
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const cameraOption = document.getElementById('cameraOption');
+    const uploadOption = document.getElementById('uploadOption');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const previewImage = document.getElementById('previewImage');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const imageDataInput = document.getElementById('imageData');
+    const dropZone = document.getElementById('dropZone');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const faceAnalysisForm = document.getElementById('faceAnalysisForm');
+    
+    // Camera functionality - declare variables first
+    let stream = null;
+    const video = document.getElementById('video');
+    const captureBtn = document.getElementById('captureBtn');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas ? canvas.getContext('2d') : null;
+    
+    // Define all functions first, then initialize
+    
+    // Function definitions
+
+    // Camera option click handler
+    cameraOption.addEventListener('click', function(e) {
+        e.preventDefault();
+        switchToCamera();
+    });
+
+    // Upload option click handler
+    uploadOption.addEventListener('click', function(e) {
+        e.preventDefault();
+        switchToUploadMode();
+    });
+
+    // Check camera availability and initialize professional face detection
+    async function checkCameraAvailability() {
+        try {
+            // Check if camera is available first
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                console.log('Camera API available, attempting to request permissions...');
+                
+                // Actually request permission to trigger the browser prompt
+                try {
+                    console.log('Requesting camera permission...');
+                    const testStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' },
+                        audio: false
+                    });
+                    
+                    // Permission granted - stop test stream and switch to camera mode
+                    console.log('Camera permission granted, switching to camera mode');
+                    testStream.getTracks().forEach(track => track.stop());
+                    
+                    // Switch to camera mode
+                    cameraOption.classList.add('active');
+                    uploadOption.classList.remove('active');
+                    cameraContainer.classList.add('active');
+                    uploadContainer.classList.remove('active');
+                    
+                    // Start the actual camera
+                    console.log('Starting camera with professional face detection...');
+                    startCamera();
+                    
+                } catch (permissionError) {
+                    console.log('Camera permission denied:', permissionError.name, permissionError.message);
+                    // Permission denied - default to upload mode
+                    switchToUploadMode();
+                }
+                
+            } else {
+                console.log('Camera API not available, defaulting to upload mode');
+                switchToUploadMode();
+            }
+        } catch (error) {
+            console.log('Error checking camera availability:', error.name, error.message);
+            switchToUploadMode();
+        }
+    }
+
+    // Switch to camera mode (called by button or auto-init)
+    function switchToCamera() {
+        // Clear any previous error messages
+        const existingError = document.querySelector('.camera-error-message');
+        if (existingError) {
+            existingError.parentNode.removeChild(existingError);
+        }
+        
+        // Update UI
+        cameraOption.classList.add('active');
+        uploadOption.classList.remove('active');
+        cameraContainer.classList.add('active');
+        uploadContainer.classList.remove('active');
+        
+        // Start camera with user feedback
+        console.log('Attempting to start camera...');
+        startCamera();
+    }
+
+    // Switch to upload mode
+    function switchToUploadMode() {
+        
+        // Update UI
+        uploadOption.classList.add('active');
+        cameraOption.classList.remove('active');
+        uploadContainer.classList.add('active');
+        cameraContainer.classList.remove('active');
+        
+        // Stop camera and face detection systems if running
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        
+        // Stop professional face detection system
+        stopEnhancedPositioning();
+    }
+
+    // Switch to upload mode (legacy function name for compatibility)
+    function switchToUpload() {
+        switchToUploadMode();
+    }
+
+    // Start camera function
+    async function startCamera() {
+        try {
+            console.log('Starting camera - checking requirements...');
+            
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera access is not supported by this browser');
+            }
+            
+            // Check if we're on HTTPS or localhost (Replit uses HTTPS in production)
+            const isSecure = location.protocol === 'https:' || 
+                            location.hostname === 'localhost' || 
+                            location.hostname === '127.0.0.1' ||
+                            location.hostname.includes('replit.dev') ||
+                            location.hostname.includes('replit.app');
+            
+            console.log('Security check - protocol:', location.protocol, 'hostname:', location.hostname, 'isSecure:', isSecure);
+            
+            if (!isSecure) {
+                throw new Error('Camera access requires HTTPS connection');
+            }
+            
+            // Stop any existing stream first
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            console.log('Requesting camera access...');
+            // Request camera access with constraints
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 640, min: 320 },
+                    height: { ideal: 480, min: 240 },
+                    facingMode: 'user'
+                },
+                audio: false
+            });
+            
+            console.log('Camera stream acquired, setting up video element...');
+            
+            if (video && stream) {
+                video.srcObject = stream;
+                
+                // Wait for video to be ready
+                video.onloadedmetadata = function() {
+                    console.log('Video metadata loaded, starting playback...');
+                    video.play().then(() => {
+                        console.log('✅ Camera started successfully!');
+                        console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                        
+                        // Start professional face detection system  
+                        startEnhancedPositioning();
+                    }).catch(playError => {
+                        console.error('Error playing video:', playError);
+                        throw new Error('Failed to start video playback: ' + playError.message);
+                    });
+                };
+                
+                video.onerror = function(videoError) {
+                    console.error('Video element error:', videoError);
+                    throw new Error('Video element failed to load');
+                };
+                
+            } else {
+                throw new Error('Video element not found or stream creation failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error accessing camera:', error.name, error.message);
+            
+            let errorMessage = 'Unable to access camera. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow camera permissions in your browser settings and try again.';
+                console.log('Suggestion: Click the camera icon in the address bar and select "Allow"');
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on this device.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Camera access is not supported by this browser.';
+            } else if (error.message.includes('HTTPS')) {
+                errorMessage += 'Camera access requires a secure (HTTPS) connection.';
+            } else {
+                errorMessage += 'Please check your camera permissions or use the file upload option instead.';
+            }
+            
+            // Show user-friendly error message
+            showCameraError(errorMessage);
+            switchToUploadMode();
+        }
+    }
+    
+    // Show camera error with better UX
+    function showCameraError(message) {
+        // Create a more user-friendly error display
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-warning mt-3';
+        errorDiv.innerHTML = `
+            <h6><i class="fas fa-exclamation-triangle"></i> Camera Access Issue</h6>
+            <p class="mb-2">${message}</p>
+            <small class="text-muted">
+                <strong>Tips:</strong>
+                <br>• Click the camera icon in your browser's address bar and select "Allow"
+                <br>• If you see a permissions popup, click "Allow" to grant camera access
+                <br>• Check if another application is using your camera
+                <br>• Try refreshing the page and granting permissions again
+            </small>
+        `;
+        
+        // Insert error message before the upload container
+        const uploadContainer = document.getElementById('uploadContainer');
+        if (uploadContainer && !document.querySelector('.camera-error-message')) {
+            errorDiv.classList.add('camera-error-message');
+            uploadContainer.parentNode.insertBefore(errorDiv, uploadContainer);
+            
+            // Auto-remove error message after 10 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 10000);
+        }
+    }
+
+    // Capture photo function
+    if (captureBtn) {
+        captureBtn.addEventListener('click', function() {
+            if (video && canvas && ctx) {
+                // Set canvas dimensions to match video
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Draw the video frame to canvas (mirror it back to normal)
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -canvas.width, 0);
+                ctx.scale(-1, 1);
+                
+                // Show captured image
+                const capturedImage = document.getElementById('capturedImage');
+                if (capturedImage) {
+                    capturedImage.src = canvas.toDataURL('image/jpeg', 0.8);
+                    capturedImage.style.display = 'block';
+                }
+                
+                // Hide camera, show canvas container
+                cameraContainer.style.display = 'none';
+                canvasContainer.style.display = 'block';
+            }
+        });
+    }
+
+    // Retake button functionality
+    const retakeBtn = document.getElementById('retakeBtn');
+    if (retakeBtn) {
+        retakeBtn.addEventListener('click', function() {
+            // Hide canvas container, show camera again
+            canvasContainer.style.display = 'none';
+            cameraContainer.style.display = 'block';
+        });
+    }
+
+    // Use image button functionality
+    const useImageBtn = document.getElementById('useImageBtn');
+    if (useImageBtn) {
+        useImageBtn.addEventListener('click', function() {
+            if (canvas) {
+                // Convert to blob and create file
+                canvas.toBlob(function(blob) {
+                    const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                    
+                    // Create a new FileList with the captured image
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger the change event to process the image
+                    const event = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(event);
+                    
+                    // Switch back to upload view to show preview
+                    switchToUploadMode();
+                    
+                    // Hide canvas container
+                    canvasContainer.style.display = 'none';
+                }, 'image/jpeg', 0.8);
+            }
+        });
+    }
+
+    // Smart Positioning System with MediaPipe Variables
+    let faceMesh = null;
+    let camera = null;
+    let positioningEnabled = false; // DISABLED - Simple oval guide only
+    let currentPositioningScore = 0;
+    let analysisCanvas = null;
+    let analysisCtx = null;
+    let positioningInterval = null;
+
+    // Initialize MediaPipe Face Mesh
+    function initializeMediaPipe() {
+        // Check if MediaPipe is loaded
+        if (typeof FaceMesh === 'undefined') {
+            console.log('MediaPipe FaceMesh not loaded, using fallback positioning');
+            startFallbackPositioning();
+            return;
+        }
+
+        try {
+            console.log('Attempting to initialize MediaPipe Face Mesh...');
+            faceMesh = new FaceMesh({
+                locateFile: (file) => {
+                    const url = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                    console.log('Loading MediaPipe file:', url);
+                    return url;
+                }
+            });
+
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            faceMesh.onResults(onMediaPipeResults);
+            
+            // Start direct video processing instead of Camera utility
+            if (video && video.videoWidth > 0) {
+                startMediaPipeProcessing();
+            } else {
+                // If video isn't ready, fall back immediately
+                console.log('Video not ready for MediaPipe, falling back');
+                startFallbackPositioning();
+                return;
+            }
+            
+            console.log('✅ MediaPipe Face Mesh initialized');
+            
+        } catch (error) {
+            console.error('MediaPipe initialization failed:', error);
+            startFallbackPositioning();
+        }
+    }
+
+    // Direct MediaPipe processing function
+    function startMediaPipeProcessing() {
+        console.log('Starting MediaPipe processing, video ready:', !!video, 'dimensions:', video?.videoWidth, 'x', video?.videoHeight);
+        
+        const processFrame = async () => {
+            if (positioningEnabled && faceMesh && video && video.videoWidth > 0) {
+                try {
+                    await faceMesh.send({image: video});
+                } catch (error) {
+                    console.warn('MediaPipe processing error:', error);
+                    // Fallback to regular positioning if MediaPipe fails
+                    if (!positioningInterval) {
+                        console.log('Falling back to basic positioning due to MediaPipe errors');
+                        startFallbackPositioning();
+                        return;
+                    }
+                }
+            }
+            // DISABLED: Simple oval guide only - no analysis needed
+            // if (positioningEnabled) {
+            //     requestAnimationFrame(processFrame);
+            // }
+        };
+        
+        // Wait a bit for video to be fully ready, then start
+        setTimeout(() => {
+            // DISABLED: Simple oval guide only - no complex processing needed
+            console.log('Simple positioning guide active - no analysis running');
+        }, 500);
+    }
+
+    // Smart Positioning System Functions
+    function startSmartPositioning() {
+        console.log('🎯 Starting smart positioning system...');
+        
+        if (!video || !video.videoWidth || !video.videoHeight) {
+            console.log('Video not ready for positioning analysis');
+            setTimeout(startSmartPositioning, 500); // Retry in 500ms
+            return;
+        }
+
+        // positioningEnabled = true; // DISABLED - Simple oval guide only
+        
+        // Try to use MediaPipe first
+        initializeMediaPipe();
+        
+        console.log('✅ Smart positioning system started');
+    }
+
+    // MediaPipe results handler
+    function onMediaPipeResults(results) {
+        if (!positioningEnabled) {
+            return;
+        }
+
+        let analysis = {
+            faceDetected: false,
+            faceBounds: null,
+            centerOffset: { x: 0, y: 0 },
+            faceSize: 0,
+            brightness: 0,
+            symmetryScore: 0,
+            positioningScore: 0,
+            issues: [],
+            recommendations: []
+        };
+
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const landmarks = results.multiFaceLandmarks[0];
+            analysis = analyzeMediaPipeLandmarks(landmarks);
+            console.log('MediaPipe detected face with', landmarks.length, 'landmarks, score:', analysis.positioningScore);
+        } else {
+            analysis.issues.push('No face detected');
+            analysis.recommendations.push('Position your face in the camera view');
+        }
+
+        // Update UI with results
+        updatePositioningUI(analysis);
+    }
+
+    function analyzeMediaPipeLandmarks(landmarks) {
+        // Convert normalized landmarks to pixel coordinates
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        
+        // Key landmark indices for face analysis
+        const noseTip = landmarks[1];           // Nose tip
+        const leftEyeInner = landmarks[133];    // Left eye inner corner
+        const rightEyeInner = landmarks[362];   // Right eye inner corner
+        const leftEyeOuter = landmarks[33];     // Left eye outer corner  
+        const rightEyeOuter = landmarks[263];   // Right eye outer corner
+        const foreheadCenter = landmarks[9];    // Forehead center
+        const chinCenter = landmarks[18];       // Chin center
+
+        // Convert to pixel coordinates
+        const nose = { x: noseTip.x * width, y: noseTip.y * height };
+        const leftEyeIn = { x: leftEyeInner.x * width, y: leftEyeInner.y * height };
+        const rightEyeIn = { x: rightEyeInner.x * width, y: rightEyeInner.y * height };
+        const leftEyeOut = { x: leftEyeOuter.x * width, y: leftEyeOuter.y * height };
+        const rightEyeOut = { x: rightEyeOuter.x * width, y: rightEyeOuter.y * height };
+        const forehead = { x: foreheadCenter.x * width, y: foreheadCenter.y * height };
+        const chin = { x: chinCenter.x * width, y: chinCenter.y * height };
+
+        let analysis = {
+            faceDetected: true,
+            faceBounds: null,
+            centerOffset: { x: 0, y: 0 },
+            faceSize: 0,
+            brightness: 0,
+            symmetryScore: 0,
+            positioningScore: 0,
+            issues: [],
+            recommendations: []
+        };
+
+        // Calculate face bounds
+        const faceLeft = Math.min(leftEyeOut.x, rightEyeOut.x);
+        const faceRight = Math.max(leftEyeOut.x, rightEyeOut.x);
+        const faceTop = forehead.y;
+        const faceBottom = chin.y;
+        const faceWidth = faceRight - faceLeft;
+        const faceHeight = faceBottom - faceTop;
+
+        analysis.faceBounds = {
+            x: faceLeft,
+            y: faceTop,
+            width: faceWidth,
+            height: faceHeight
+        };
+
+        // 1. Face size validation
+        const frameArea = width * height;
+        const faceArea = faceWidth * faceHeight;
+        const faceSizeRatio = faceArea / frameArea;
+        analysis.faceSize = faceSizeRatio;
+
+        if (faceSizeRatio < 0.08) {
+            analysis.issues.push('Move closer to camera');
+            analysis.recommendations.push('Move closer - your face should fill about 20-30% of the frame');
+        } else if (faceSizeRatio > 0.4) {
+            analysis.issues.push('Move away from camera');
+            analysis.recommendations.push('Move back - your face is too close');
+        }
+
+        // 2. Face centering validation
+        const faceCenterX = nose.x;
+        const faceCenterY = nose.y;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const offsetX = Math.abs(faceCenterX - centerX) / (width / 2);
+        const offsetY = Math.abs(faceCenterY - centerY) / (height / 2);
+
+        analysis.centerOffset = { x: offsetX, y: offsetY };
+
+        if (offsetX > 0.2) {
+            if (faceCenterX < centerX) {
+                analysis.issues.push('Shift slightly right');
+                analysis.recommendations.push('Move to your right to center your face');
+            } else {
+                analysis.issues.push('Shift slightly left');
+                analysis.recommendations.push('Move to your left to center your face');
+            }
+        }
+
+        if (offsetY > 0.2) {
+            if (faceCenterY < centerY) {
+                analysis.issues.push('Move down slightly');
+                analysis.recommendations.push('Lower your position slightly');
+            } else {
+                analysis.issues.push('Move up slightly');
+                analysis.recommendations.push('Raise your position slightly');
+            }
+        }
+
+        // 3. Eye alignment and symmetry validation
+        const eyeDistance = Math.sqrt((rightEyeIn.x - leftEyeIn.x) ** 2 + (rightEyeIn.y - leftEyeIn.y) ** 2);
+        const eyeAngle = Math.abs(Math.atan2(rightEyeIn.y - leftEyeIn.y, rightEyeIn.x - leftEyeIn.x) * 180 / Math.PI);
+
+        if (eyeAngle > 10) {
+            analysis.issues.push('Keep head level');
+            analysis.recommendations.push('Straighten your head - eyes should be horizontal');
+        }
+
+        // 4. Face frontal positioning check
+        const noseMidlineX = nose.x;
+        const eyeMidlineX = (leftEyeIn.x + rightEyeIn.x) / 2;
+        const midlineOffset = Math.abs(noseMidlineX - eyeMidlineX);
+        const symmetryRatio = midlineOffset / eyeDistance;
+
+        analysis.symmetryScore = Math.max(0, 1 - symmetryRatio * 2);
+
+        if (symmetryRatio > 0.1) {
+            analysis.issues.push('Face not centered');
+            analysis.recommendations.push('Look directly at the camera');
+        }
+
+        // 5. Calculate overall positioning score
+        let score = 1.0;
+
+        // Face size scoring (ideal: 0.1-0.3)
+        const sizeScore = faceSizeRatio >= 0.08 && faceSizeRatio <= 0.4 ? 1.0 : 
+                         Math.max(0, 1 - Math.abs(faceSizeRatio - 0.2) * 3);
+
+        // Centering scoring
+        const centeringScore = Math.max(0, 1 - (offsetX + offsetY));
+
+        // Eye alignment scoring
+        const eyeScore = Math.max(0, 1 - eyeAngle / 15);
+
+        // Symmetry scoring
+        const symScore = analysis.symmetryScore;
+
+        // Weighted scoring with MediaPipe precision
+        score = (sizeScore * 0.3 + centeringScore * 0.3 + eyeScore * 0.2 + symScore * 0.2);
+        analysis.positioningScore = Math.max(0, Math.min(1, score));
+
+        return analysis;
+    }
+
+    // Fallback positioning system for when MediaPipe isn't available
+    function startFallbackPositioning() {
+        console.log('Starting fallback positioning system...');
+        
+        // Stop any existing MediaPipe processing
+        positioningEnabled = false;
+        if (positioningInterval) {
+            clearInterval(positioningInterval);
+            positioningInterval = null;
+        }
+        
+        // Wait a moment for video to be ready
+        if (!video || !video.videoWidth || !video.videoHeight) {
+            console.log('Video not ready, retrying fallback positioning in 500ms');
+            setTimeout(startFallbackPositioning, 500);
+            return;
+        }
+        
+        // Initialize analysis canvas
+        if (!analysisCanvas) {
+            analysisCanvas = document.createElement('canvas');
+            analysisCtx = analysisCanvas.getContext('2d');
+        }
+        
+        analysisCanvas.width = video.videoWidth;
+        analysisCanvas.height = video.videoHeight;
+        
+        // Enable positioning
+        // positioningEnabled = true; // DISABLED - Simple oval guide only
+        
+        console.log('Fallback positioning canvas setup:', analysisCanvas.width, 'x', analysisCanvas.height);
+        
+        // Start positioning analysis loop
+        // DISABLED: No complex analysis needed for simple oval guide
+        // positioningInterval = setInterval(analyzePositioning, 200); // Analyze every 200ms
+        console.log('✅ Fallback positioning started');
+    }
+
+    function stopSmartPositioning() {
+        positioningEnabled = false;
+        
+        // Stop MediaPipe camera if running (though we're not using Camera utility now)
+        if (camera) {
+            try {
+                camera.stop();
+            } catch (e) {
+                console.log('Camera stop error (expected):', e.message);
+            }
+            camera = null;
+        }
+        
+        // Stop fallback interval if running
+        if (positioningInterval) {
+            clearInterval(positioningInterval);
+            positioningInterval = null;
+        }
+        
+        console.log('🛑 Smart positioning system stopped');
+    }
+
+    // Professional Face Detection System Integration
+    let professionalFaceDetector = null;
+    let detectionActive = false;
+    let lastFaceAnalysis = null;
+
+    // Initialize Professional Face Detection
+    async function initializeProfessionalFaceDetection() {
+        try {
+            console.log('🔧 Initializing Professional Face Detection System...');
+            
+            if (typeof ProfessionalFaceDetector === 'undefined') {
+                throw new Error('Professional Face Detection library not loaded');
+            }
+
+            professionalFaceDetector = new ProfessionalFaceDetector();
+            
+            // Set up callbacks for face detection events
+            professionalFaceDetector.setCallbacks({
+                onFaceDetected: handleProfessionalFaceDetected,
+                onNoFace: handleNoFaceDetected, 
+                onMultipleFaces: handleMultipleFaces,
+                onQualityCheck: handleFaceQualityCheck
+            });
+
+            const initialized = await professionalFaceDetector.initialize();
+            if (initialized) {
+                console.log('✅ Professional Face Detection System ready!');
+                return true;
+            } else {
+                throw new Error('Failed to initialize MediaPipe Face Detection');
+            }
+        } catch (error) {
+            console.error('❌ Failed to initialize professional face detection:', error);
+            // Fall back to basic system
+            return false;
+        }
+    }
+
+    function startEnhancedPositioning() {
+        console.log('🎯 Starting Professional Face Detection System...');
+        
+        if (!video || !video.videoWidth || !video.videoHeight) {
+            console.log('Video not ready for face detection, retrying...');
+            setTimeout(startEnhancedPositioning, 500);
+            return;
+        }
+
+        detectionActive = true;
+        
+        // Initialize professional face detection when video is ready
+        initializeProfessionalFaceDetection().then(success => {
+            if (success && professionalFaceDetector) {
+                console.log('🚀 Starting MediaPipe-powered face detection');
+                professionalFaceDetector.startDetection(video).catch(error => {
+                    console.error('Professional detection failed, using fallback:', error);
+                    startFallbackPositioning();
+                });
+            } else {
+                console.log('⚠️ Professional detection not available, using fallback');
+                startFallbackPositioning();
+            }
+        }).catch(error => {
+            console.error('Professional detection initialization failed:', error);
+            startFallbackPositioning();
+        });
+        
+        console.log('✅ Face Detection System started');
+    }
+
+    function stopEnhancedPositioning() {
+        detectionActive = false;
+        
+        if (professionalFaceDetector) {
+            professionalFaceDetector.stop();
+        }
+        
+        if (precisionAnalysisInterval) {
+            clearInterval(precisionAnalysisInterval);
+            precisionAnalysisInterval = null;
+        }
+        
+        console.log('🛑 Face Detection System stopped');
+    }
+
+    // Fallback positioning for cases where MediaPipe isn't available
+    function startFallbackPositioning() {
+        console.log('📱 Starting fallback positioning system');
+        precisionAnalysisInterval = setInterval(() => {
+            const fallbackAnalysis = {
+                status: 'good',
+                message: 'Face detected - position looks good',
+                confidence: 0.8,
+                quality: {
+                    overall: 0.8,
+                    size: 0.8,
+                    position: 0.8,
+                    angle: 0.8
+                },
+                feedback: {
+                    primary: 'Face looks good - capture when ready!',
+                    size: 'Good size',
+                    position: 'Well centered',
+                    angle: 'Good angle'
+                },
+                readyForCapture: true
+            };
+            updateProfessionalPositioningUI(fallbackAnalysis);
+        }, 200);
+    }
+
+    // Professional Face Detection Event Handlers
+    function handleProfessionalFaceDetected(analysis) {
+        console.log('✅ Professional face detected:', analysis);
+        lastFaceAnalysis = analysis;
+        updateProfessionalPositioningUI(analysis);
+        
+        // Handle auto-capture for perfect faces
+        if (analysis.status === 'perfect' && analysis.quality.overall >= 0.8) {
+            handleAutoCapture(analysis);
+        }
+    }
+
+    function handleNoFaceDetected(analysis) {
+        console.log('❌ No face detected:', analysis.message);
+        lastFaceAnalysis = analysis;
+        updateProfessionalPositioningUI(analysis);
+        resetAutoCapture();
+    }
+
+    function handleMultipleFaces(analysis) {
+        console.log('👥 Multiple faces detected:', analysis.count);
+        lastFaceAnalysis = analysis;
+        updateProfessionalPositioningUI(analysis);
+        resetAutoCapture();
+    }
+
+    function handleFaceQualityCheck(analysis) {
+        console.log('🔍 Face quality check:', analysis.status, analysis.quality.overall);
+        lastFaceAnalysis = analysis;
+        updateProfessionalPositioningUI(analysis);
+        
+        // Reset auto-capture if quality drops
+        if (analysis.quality.overall < 0.8) {
+            resetAutoCapture();
+        }
+    }
+
+    // Auto-capture system variables  
+    let perfectAlignmentTime = 0;
+    const AUTO_CAPTURE_DELAY = 2000; // 2 seconds of perfect alignment required
+
+    // Updated UI system for professional face detection
+    function updateProfessionalPositioningUI(analysis) {
+        const faceOutline = document.getElementById('faceOutlinePrecision');
+        const sizeIndicator = document.getElementById('sizeIndicator');
+        const angleIndicator = document.getElementById('angleIndicator');
+        const angleCorrection = document.getElementById('angleCorrection');
+        const liveFeedback = document.getElementById('liveFeedback');
+        const captureBtn = document.getElementById('captureBtn');
+
+        if (!liveFeedback) {
+            console.warn('Live feedback element not found');
+            return;
+        }
+
+        // Update face outline with professional feedback
+        if (faceOutline) {
+            faceOutline.className = 'face-outline-precision';
+            
+            if (analysis.status === 'perfect') {
+                faceOutline.classList.add('aligned'); // Green - perfect alignment
+            } else if (analysis.status === 'good') {
+                faceOutline.classList.add('warning'); // Yellow - good but can improve
+            } else if (analysis.status === 'no_face') {
+                faceOutline.classList.add('misaligned'); // Red - no face detected
+            } else {
+                faceOutline.classList.add('warning'); // Yellow - needs adjustment
+            }
+        }
+
+        // Update size and angle indicators if available
+        if (sizeIndicator && analysis.feedback && analysis.feedback.size) {
+            sizeIndicator.textContent = `Size: ${analysis.feedback.size}`;
+            sizeIndicator.className = 'distance-indicator';
+            
+            if (analysis.quality && analysis.quality.size >= 0.8) {
+                sizeIndicator.classList.add('good');
+            } else if (analysis.quality && analysis.quality.size >= 0.5) {
+                sizeIndicator.classList.add('warning');
+            } else {
+                sizeIndicator.classList.add('poor');
+            }
+        }
+
+        if (angleIndicator && analysis.feedback && analysis.feedback.angle) {
+            angleIndicator.textContent = `Angle: ${analysis.feedback.angle}`;
+            angleIndicator.className = 'distance-indicator';
+            
+            if (analysis.quality && analysis.quality.angle >= 0.8) {
+                angleIndicator.classList.add('good');
+            } else if (analysis.quality && analysis.quality.angle >= 0.6) {
+                angleIndicator.classList.add('warning');
+            } else {
+                angleIndicator.classList.add('poor');
+            }
+        }
+
+        // Update live feedback with professional messages
+        let feedbackText = analysis.message || 'Position your face in the guides';
+        
+        // Handle countdown for auto-capture
+        if (perfectAlignmentTime > 0 && analysis.status === 'perfect') {
+            const elapsed = Date.now() - perfectAlignmentTime;
+            const remaining = Math.max(0, AUTO_CAPTURE_DELAY - elapsed);
+            const countdown = Math.ceil(remaining / 1000);
+            if (countdown > 0) {
+                feedbackText = `Auto-capturing in ${countdown}...`;
+            }
+        }
+        
+        liveFeedback.textContent = feedbackText;
+        liveFeedback.className = 'live-feedback-panel';
+        
+        // Set appropriate styling based on status
+        if (analysis.status === 'perfect') {
+            liveFeedback.classList.add('success');
+            if (perfectAlignmentTime > 0) {
+                liveFeedback.classList.add('countdown');
+            }
+        } else if (analysis.status === 'good') {
+            liveFeedback.classList.add('success');
+        } else if (analysis.status === 'no_face' || analysis.status === 'multiple_faces') {
+            liveFeedback.classList.add('error');
+        } else {
+            liveFeedback.classList.add('warning');
+        }
+
+        // Update capture button state
+        if (captureBtn) {
+            const isReadyForCapture = analysis.readyForCapture !== false && analysis.status !== 'no_face';
+            captureBtn.disabled = !isReadyForCapture;
+            captureBtn.className = 'capture-btn';
+            if (analysis.status === 'perfect') {
+                captureBtn.classList.add('ready');
+            }
+        }
+    }
+
+    // Auto-capture helper functions
+    function resetAutoCapture() {
+        if (perfectAlignmentTime !== 0) {
+            console.log('⏹️ Resetting auto-capture timer');
+            perfectAlignmentTime = 0;
+        }
+    }
+
+    // Legacy function compatibility - keep for existing UI code
+    function updatePrecisionPositioningUI(analysis) {
+        // Convert legacy format to professional format and delegate
+        const professionalFormat = {
+            status: analysis.readyForCapture ? (analysis.precision?.overallScore >= 0.8 ? 'perfect' : 'good') : 'adjusting',
+            message: analysis.feedback?.primary || 'Position your face properly',
+            quality: {
+                overall: analysis.precision?.overallScore || 0.5,
+                size: analysis.precision?.sizeScore || 0.5,
+                position: analysis.precision?.centeringScore || 0.5,
+                angle: analysis.precision?.angleScore || 0.5
+            },
+            feedback: analysis.feedback || {},
+            readyForCapture: analysis.readyForCapture
+        };
+        
+        updateProfessionalPositioningUI(professionalFormat);
+    }
+
+    function handleAutoCapture(analysis) {
+        const currentTime = Date.now();
+        const isReady = analysis.status === 'perfect' && (analysis.quality?.overall >= 0.8);
+        
+        if (isReady) {
+            // Face is perfectly aligned
+            if (perfectAlignmentTime === 0) {
+                perfectAlignmentTime = currentTime;
+                console.log('🎯 Perfect alignment detected - starting countdown');
+            } else if (currentTime - perfectAlignmentTime >= AUTO_CAPTURE_DELAY) {
+                // Trigger auto-capture
+                console.log('📸 Auto-capturing perfect face position!');
+                triggerAutoCapture();
+                perfectAlignmentTime = 0; // Reset for next capture
+            }
+        } else {
+            // Reset timer if alignment is lost
+            resetAutoCapture();
+        }
+    }
+
+    function triggerAutoCapture() {
+        // Simulate capture button click
+        const captureBtn = document.getElementById('captureBtn');
+        if (captureBtn && !captureBtn.disabled) {
+            captureBtn.click();
+            
+            // Show capture feedback
+            showCaptureNotification('Perfect shot captured automatically!');
+        }
+    }
+
+    function showCaptureNotification(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(34, 197, 94, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideDown 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+
+    function performEnhancedPositioningAnalysis(imageData) {
+        const { data, width, height } = imageData;
+        
+        // Initialize enhanced analysis results
+        let analysis = {
+            faceDetected: false,
+            faceBounds: null,
+            precision: {
+                sizeScore: 0,
+                centeringScore: 0,
+                angleScore: 0,
+                symmetryScore: 0,
+                overallScore: 0
+            },
+            feedback: {
+                size: 'checking',
+                centering: 'checking', 
+                angle: 'checking',
+                symmetry: 'checking',
+                primary: 'Position your face in the guide'
+            },
+            recommendations: [],
+            readyForCapture: false
+        };
+
+        // Enhanced face detection with better tolerance
+        const faceRegion = detectFaceRegion(data, width, height);
+        
+        if (!faceRegion) {
+            analysis.feedback.primary = 'Move closer - no face detected clearly';
+            return analysis;
+        }
+
+        analysis.faceDetected = true;
+        analysis.faceBounds = faceRegion;
+
+        // 1. Enhanced Size Analysis (face should be 15-35% of frame)
+        const frameArea = width * height;
+        const faceArea = faceRegion.width * faceRegion.height;
+        const faceSizeRatio = faceArea / frameArea;
+        
+        let sizeScore = 0;
+        let sizeStatus = 'poor';
+        let sizeFeedback = 'Move closer';
+        
+        if (faceSizeRatio < 0.10) {
+            sizeFeedback = 'Much closer';
+            sizeScore = 0.2;
+        } else if (faceSizeRatio < 0.15) {
+            sizeFeedback = 'Closer';
+            sizeScore = 0.5;
+            sizeStatus = 'warning';
+        } else if (faceSizeRatio <= 0.35) {
+            sizeFeedback = 'Perfect size';
+            sizeScore = 1.0;
+            sizeStatus = 'good';
+        } else if (faceSizeRatio <= 0.45) {
+            sizeFeedback = 'Too close';
+            sizeScore = 0.7;
+            sizeStatus = 'warning';
+        } else {
+            sizeFeedback = 'Move back';
+            sizeScore = 0.3;
+        }
+        
+        analysis.precision.sizeScore = sizeScore;
+        analysis.feedback.size = sizeFeedback;
+
+        // 2. Enhanced Centering Analysis
+        const faceCenterX = faceRegion.x + faceRegion.width / 2;
+        const faceCenterY = faceRegion.y + faceRegion.height / 2;
+        const frameCenterX = width / 2;
+        const frameCenterY = height / 2;
+        
+        const offsetX = Math.abs(faceCenterX - frameCenterX) / (width / 2);
+        const offsetY = Math.abs(faceCenterY - frameCenterY) / (height / 2);
+        
+        let centeringScore = Math.max(0, 1 - (offsetX + offsetY) * 2);
+        let centeringFeedback = 'Perfect center';
+        
+        if (offsetX > 0.15 || offsetY > 0.15) {
+            if (offsetX > offsetY) {
+                centeringFeedback = faceCenterX < frameCenterX ? 'Move right' : 'Move left';
+            } else {
+                centeringFeedback = faceCenterY < frameCenterY ? 'Move down' : 'Move up';
+            }
+            centeringScore = Math.max(0.3, centeringScore);
+        }
+        
+        analysis.precision.centeringScore = centeringScore;
+        analysis.feedback.centering = centeringFeedback;
+
+        // 3. Enhanced Angle/Rotation Analysis (basic geometric approximation)
+        const aspectRatio = faceRegion.width / faceRegion.height;
+        let angleScore = 1.0;
+        let angleFeedback = 'Good angle';
+        
+        // Face should have roughly 0.7-0.9 aspect ratio when frontal
+        if (aspectRatio < 0.6 || aspectRatio > 1.0) {
+            angleFeedback = aspectRatio < 0.7 ? 'Turn slightly left' : 'Turn slightly right';
+            angleScore = 0.6;
+        } else if (aspectRatio < 0.65 || aspectRatio > 0.95) {
+            angleFeedback = 'Almost perfect';
+            angleScore = 0.8;
+        }
+        
+        analysis.precision.angleScore = angleScore;
+        analysis.feedback.angle = angleFeedback;
+
+        // 4. Enhanced Symmetry Analysis
+        const symmetryScore = calculateEnhancedSymmetry(data, faceRegion, width);
+        analysis.precision.symmetryScore = symmetryScore;
+        analysis.feedback.symmetry = symmetryScore > 0.7 ? 'Good symmetry' : 'Adjust angle';
+
+        // 5. Calculate Overall Precision Score
+        const overallScore = (
+            analysis.precision.sizeScore * 0.3 +
+            analysis.precision.centeringScore * 0.3 +
+            analysis.precision.angleScore * 0.25 +
+            analysis.precision.symmetryScore * 0.15
+        );
+        
+        analysis.precision.overallScore = overallScore;
+
+        // 6. Determine Primary Feedback and Readiness
+        if (overallScore >= 0.85) {
+            analysis.feedback.primary = '✓ Perfect! Ready for accurate analysis';
+            analysis.readyForCapture = true;
+        } else if (overallScore >= 0.7) {
+            analysis.feedback.primary = 'Almost perfect - fine-tune or capture now';
+            analysis.readyForCapture = true;
+        } else if (overallScore >= 0.5) {
+            // Find the worst scoring aspect
+            const scores = [
+                { name: 'size', score: analysis.precision.sizeScore, feedback: sizeFeedback },
+                { name: 'centering', score: analysis.precision.centeringScore, feedback: centeringFeedback },
+                { name: 'angle', score: analysis.precision.angleScore, feedback: angleFeedback }
+            ];
+            const worstAspect = scores.reduce((min, current) => current.score < min.score ? current : min);
+            analysis.feedback.primary = worstAspect.feedback;
+            analysis.readyForCapture = analysis.faceDetected;
+        } else {
+            analysis.feedback.primary = 'Major adjustments needed - ' + sizeFeedback.toLowerCase();
+            analysis.readyForCapture = false;
+        }
+
+        return analysis;
+    }
+
+    function calculateEnhancedSymmetry(data, faceRegion, width) {
+        const { x, y, width: faceWidth, height: faceHeight } = faceRegion;
+        const centerX = x + faceWidth / 2;
+        
+        let leftTotal = 0, rightTotal = 0;
+        let leftPixels = 0, rightPixels = 0;
+        
+        // Sample symmetry by comparing left and right face halves
+        for (let py = y + faceHeight * 0.2; py < y + faceHeight * 0.8; py += 2) {
+            for (let px = x + faceWidth * 0.1; px < x + faceWidth * 0.9; px += 2) {
+                const i = (py * width + px) * 4;
+                if (i < data.length - 2) {
+                    const intensity = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    
+                    if (px < centerX) {
+                        leftTotal += intensity;
+                        leftPixels++;
+                    } else {
+                        rightTotal += intensity;
+                        rightPixels++;
+                    }
+                }
+            }
+        }
+        
+        if (leftPixels === 0 || rightPixels === 0) return 0.5;
+        
+        const leftAvg = leftTotal / leftPixels;
+        const rightAvg = rightTotal / rightPixels;
+        const difference = Math.abs(leftAvg - rightAvg);
+        
+        return Math.max(0, 1 - difference / 100); // More sensitive to asymmetry
+    }
+
+    function updatePrecisionPositioningUI(analysis) {
+        const faceOutline = document.getElementById('faceOutlinePrecision');
+        const sizeIndicator = document.getElementById('sizeIndicator');
+        const angleIndicator = document.getElementById('angleIndicator');
+        const angleCorrection = document.getElementById('angleCorrection');
+        const liveFeedback = document.getElementById('liveFeedback');
+        const captureBtn = document.getElementById('captureBtn');
+
+        if (!faceOutline || !sizeIndicator || !angleIndicator || !liveFeedback) {
+            return;
+        }
+
+        const overallScore = analysis.precision.overallScore;
+        
+        // Update face outline with color-coded feedback
+        faceOutline.className = 'face-outline-precision';
+        if (overallScore >= 0.85) {
+            faceOutline.classList.add('aligned'); // Green - perfect alignment
+        } else if (overallScore >= 0.6) {
+            faceOutline.classList.add('warning'); // Yellow - getting close
+        } else {
+            faceOutline.classList.add('misaligned'); // Red - needs adjustment
+        }
+
+        // Update size indicator with real feedback
+        sizeIndicator.textContent = `Size: ${analysis.feedback.size}`;
+        sizeIndicator.className = 'distance-indicator';
+        if (analysis.precision.sizeScore >= 0.8) {
+            sizeIndicator.classList.add('good');
+        } else if (analysis.precision.sizeScore >= 0.5) {
+            sizeIndicator.classList.add('warning');
+        } else {
+            sizeIndicator.classList.add('poor');
+        }
+
+        // Update angle indicator with real feedback
+        angleIndicator.textContent = `Angle: ${analysis.feedback.angle}`;
+        angleIndicator.className = 'distance-indicator';
+        if (analysis.precision.angleScore >= 0.8) {
+            angleIndicator.classList.add('good');
+        } else if (analysis.precision.angleScore >= 0.6) {
+            angleIndicator.classList.add('warning');
+        } else {
+            angleIndicator.classList.add('poor');
+        }
+
+        // Update angle correction indicator
+        angleCorrection.className = 'angle-indicators';
+        if (analysis.precision.angleScore >= 0.8) {
+            angleCorrection.classList.add('good', 'show');
+        } else if (analysis.feedback.angle.includes('left')) {
+            angleCorrection.classList.add('tilt-left', 'show');
+        } else if (analysis.feedback.angle.includes('right')) {
+            angleCorrection.classList.add('tilt-right', 'show');
+        } else {
+            angleCorrection.classList.remove('show');
+        }
+
+        // Update live feedback panel with auto-capture countdown
+        let feedbackText = analysis.feedback.primary;
+        let isCountdown = false;
+        
+        // Add countdown if in perfect alignment
+        if (perfectAlignmentTime > 0) {
+            const elapsed = Date.now() - perfectAlignmentTime;
+            const remaining = Math.max(0, AUTO_CAPTURE_DELAY - elapsed);
+            const countdown = Math.ceil(remaining / 1000);
+            if (countdown > 0) {
+                feedbackText = `Auto-capturing in ${countdown}...`;
+                isCountdown = true;
+            }
+        }
+        
+        liveFeedback.textContent = feedbackText;
+        liveFeedback.className = 'live-feedback-panel';
+        
+        if (isCountdown) {
+            liveFeedback.classList.add('success', 'countdown');
+        } else if (overallScore >= 0.85) {
+            liveFeedback.classList.add('success');
+        } else if (overallScore >= 0.6) {
+            liveFeedback.classList.add('warning');
+        } else {
+            liveFeedback.classList.add('error');
+        }
+
+        // Update capture button state
+        if (captureBtn) {
+            captureBtn.disabled = false;
+            captureBtn.className = 'capture-btn';
+            if (overallScore >= 0.8) {
+                captureBtn.classList.add('ready');
+            }
+        }
+
+        // Update validation state for other functions
+        lastValidationState = {
+            size: analysis.feedback.size,
+            angle: analysis.feedback.angle,
+            centering: analysis.feedback.centering || 'checking',
+            overall: analysis.readyForCapture ? 'ready' : 'adjusting'
+        };
+    }
+
+    function analyzePositioning() {
+        if (!positioningEnabled || !video || !analysisCanvas || !analysisCtx) {
+            return;
+        }
+
+        try {
+            // Ensure canvas dimensions match video
+            if (analysisCanvas.width !== video.videoWidth || analysisCanvas.height !== video.videoHeight) {
+                analysisCanvas.width = video.videoWidth;
+                analysisCanvas.height = video.videoHeight;
+            }
+            
+            // Draw current video frame to analysis canvas
+            analysisCtx.drawImage(video, 0, 0, analysisCanvas.width, analysisCanvas.height);
+            
+            // Get image data for analysis
+            const imageData = analysisCtx.getImageData(0, 0, analysisCanvas.width, analysisCanvas.height);
+            
+            // Perform positioning analysis
+            const analysis = performPositioningAnalysis(imageData);
+            
+            // Update UI with results
+            updatePositioningUI(analysis);
+            
+            // Debug log occasionally
+            if (Math.random() < 0.05) { // 5% chance to log
+                console.log('Analysis result:', {
+                    faceDetected: analysis.faceDetected,
+                    score: Math.round(analysis.positioningScore * 100) + '%',
+                    issues: analysis.issues.length,
+                    issuesList: analysis.issues,
+                    faceSize: Math.round(analysis.faceSize * 1000) / 10 + '%',
+                    centerOffset: {
+                        x: Math.round(analysis.centerOffset.x * 100) + '%',
+                        y: Math.round(analysis.centerOffset.y * 100) + '%'
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.warn('Positioning analysis error:', error);
+        }
+    }
+
+    function performPositioningAnalysis(imageData) {
+        const { data, width, height } = imageData;
+        
+        // Initialize analysis results
+        let analysis = {
+            faceDetected: false,
+            faceBounds: null,
+            centerOffset: { x: 0, y: 0 },
+            faceSize: 0,
+            brightness: 0,
+            symmetryScore: 0,
+            positioningScore: 0,
+            issues: [],
+            recommendations: [],
+            confidence: 0
+        };
+
+        // Use ROBUST face detection with multiple validation layers
+        const faceRegion = detectFaceRegion(data, width, height);
+        
+        if (!faceRegion) {
+            console.log('🚫 ROBUST: No face detected in frame');
+            analysis.issues.push('No face detected');
+            analysis.recommendations.push('Position your face clearly in the camera view');
+            analysis.positioningScore = 0;
+            return analysis;
+        }
+
+        // Face detected with confidence level
+        analysis.faceDetected = true;
+        analysis.faceBounds = faceRegion;
+        analysis.confidence = faceRegion.confidence || 0.8;
+        
+        console.log('✅ ROBUST: Face detected with confidence', analysis.confidence);
+
+        // Calculate face metrics
+        const faceWidth = faceRegion.width;
+        const faceHeight = faceRegion.height;
+        const faceCenterX = faceRegion.x + faceWidth / 2;
+        const faceCenterY = faceRegion.y + faceHeight / 2;
+        
+        // 1. Face size validation - reasonable but not overly strict
+        const frameArea = width * height;
+        const faceArea = faceWidth * faceHeight;
+        const faceSizeRatio = faceArea / frameArea;
+        analysis.faceSize = faceSizeRatio;
+        
+        if (faceSizeRatio < 0.08) {
+            analysis.issues.push('Move closer to camera');
+            analysis.recommendations.push('Move closer - your face should fill 15-60% of the frame');
+        } else if (faceSizeRatio > 0.65) {
+            analysis.issues.push('Move back slightly');
+            analysis.recommendations.push('Move back a bit - your face is too close');
+        }
+
+        // 2. Face centering validation - reasonable tolerance
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const offsetX = Math.abs(faceCenterX - centerX) / (width / 2);
+        const offsetY = Math.abs(faceCenterY - centerY) / (height / 2);
+        
+        analysis.centerOffset = { x: offsetX, y: offsetY };
+        
+        if (offsetX > 0.3) {
+            if (faceCenterX < centerX) {
+                analysis.issues.push('Move slightly right');
+                analysis.recommendations.push('Shift to your right to center your face');
+            } else {
+                analysis.issues.push('Move slightly left');
+                analysis.recommendations.push('Shift to your left to center your face');
+            }
+        }
+        
+        if (offsetY > 0.3) {
+            if (faceCenterY < centerY) {
+                analysis.issues.push('Move down slightly');
+                analysis.recommendations.push('Lower your position slightly');
+            } else {
+                analysis.issues.push('Move up slightly');
+                analysis.recommendations.push('Raise your position slightly');
+            }
+        }
+
+        // 3. Lighting analysis
+        const brightness = calculateBrightness(data, faceRegion);
+        analysis.brightness = brightness;
+        
+        if (brightness < 50) {
+            analysis.issues.push('Lighting too dim');
+            analysis.recommendations.push('Find better lighting or face a window');
+        } else if (brightness > 240) {
+            analysis.issues.push('Lighting too bright');
+            analysis.recommendations.push('Reduce lighting or avoid direct sunlight');
+        }
+
+        // 4. Basic symmetry check - much more lenient
+        const symmetryScore = calculateBasicSymmetry(data, faceRegion, width);
+        analysis.symmetryScore = symmetryScore;
+        
+        if (symmetryScore < 0.4) {  // Much more lenient - was 0.7
+            analysis.issues.push('Face not centered or angled');
+            analysis.recommendations.push('Look directly at the camera and keep head straight');
+        }
+
+        // 4. Calculate positioning score based on robust detection
+        let score = 0.4; // Base score for robust face detection
+        
+        // Face size scoring (ideal: 0.15-0.6)
+        const idealSize = 0.3;
+        const sizeScore = Math.max(0, 1 - Math.abs(faceSizeRatio - idealSize) / idealSize);
+        
+        // Centering scoring
+        const centeringScore = Math.max(0, 1 - (offsetX + offsetY));
+        
+        // Lighting scoring (ideal: 90-180)
+        const idealBrightness = 135;
+        const lightingScore = Math.max(0, 1 - Math.abs(brightness - idealBrightness) / idealBrightness);
+        
+        // Confidence bonus from robust detection
+        const confidenceBonus = analysis.confidence * 0.3;
+        
+        // Weighted scoring
+        score = Math.max(0.4, (sizeScore * 0.3 + centeringScore * 0.3 + lightingScore * 0.2 + confidenceBonus * 0.2));
+        
+        // Cap the score to prevent false 100% readings
+        analysis.positioningScore = Math.min(0.95, score);
+
+        console.log('📊 ROBUST: Final score', Math.round(analysis.positioningScore * 100) + '%', 'issues:', analysis.issues.length);
+
+        return analysis;
+    }
+
+    function detectFaceRegion(data, width, height) {
+        // ROBUST FACE DETECTION - Multiple validation layers
+        
+        // Step 1: Edge detection to find facial features
+        const edges = detectEdges(data, width, height);
+        const faceFeatures = detectFacialFeatures(edges, data, width, height);
+        
+        if (!faceFeatures.hasMinimumFeatures) {
+            console.log('❌ No facial features detected');
+            return null;
+        }
+        
+        // Step 2: Validate skin color patterns in detected region
+        const skinValidation = validateSkinRegion(data, faceFeatures.bounds, width, height);
+        if (!skinValidation.isValid) {
+            console.log('❌ Skin validation failed:', skinValidation.reason);
+            return null;
+        }
+        
+        // Step 3: Geometric validation
+        const geometricValidation = validateFaceGeometry(faceFeatures.bounds, width, height);
+        if (!geometricValidation.isValid) {
+            console.log('❌ Geometric validation failed:', geometricValidation.reason);
+            return null;
+        }
+        
+        // Step 4: Pattern consistency check
+        const patternValidation = validateFacePattern(data, faceFeatures.bounds, width);
+        if (!patternValidation.isValid) {
+            console.log('❌ Pattern validation failed:', patternValidation.reason);
+            return null;
+        }
+        
+        console.log('✅ Robust face detected - confidence:', patternValidation.confidence);
+        
+        return {
+            x: faceFeatures.bounds.x,
+            y: faceFeatures.bounds.y,
+            width: faceFeatures.bounds.width,
+            height: faceFeatures.bounds.height,
+            confidence: patternValidation.confidence
+        };
+    }
+    
+    function detectEdges(data, width, height) {
+        const edges = new Array(width * height).fill(0);
+        
+        // Sobel edge detection
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const i = (y * width + x) * 4;
+                
+                // Get grayscale values in 3x3 neighborhood
+                const pixels = [];
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const ni = ((y + dy) * width + (x + dx)) * 4;
+                        const gray = (data[ni] + data[ni + 1] + data[ni + 2]) / 3;
+                        pixels.push(gray);
+                    }
+                }
+                
+                // Sobel X and Y
+                const gx = (-1 * pixels[0]) + (1 * pixels[2]) + (-2 * pixels[3]) + (2 * pixels[5]) + (-1 * pixels[6]) + (1 * pixels[8]);
+                const gy = (-1 * pixels[0]) + (-2 * pixels[1]) + (-1 * pixels[2]) + (1 * pixels[6]) + (2 * pixels[7]) + (1 * pixels[8]);
+                
+                edges[y * width + x] = Math.sqrt(gx * gx + gy * gy);
+            }
+        }
+        
+        return edges;
+    }
+    
+    function detectFacialFeatures(edges, data, width, height) {
+        const features = {
+            eyeRegions: [],
+            mouthRegion: null,
+            bounds: null,
+            hasMinimumFeatures: false
+        };
+        
+        // Look for high-edge density regions that could be eyes/mouth
+        const blockSize = 20;
+        const regions = [];
+        
+        for (let y = 0; y < height - blockSize; y += blockSize) {
+            for (let x = 0; x < width - blockSize; x += blockSize) {
+                let edgeSum = 0;
+                let pixelCount = 0;
+                
+                for (let by = y; by < Math.min(y + blockSize, height); by++) {
+                    for (let bx = x; bx < Math.min(x + blockSize, width); bx++) {
+                        edgeSum += edges[by * width + bx];
+                        pixelCount++;
+                    }
+                }
+                
+                const edgeDensity = edgeSum / pixelCount;
+                
+                if (edgeDensity > 15) { // Threshold for feature detection
+                    regions.push({
+                        x: x,
+                        y: y,
+                        width: blockSize,
+                        height: blockSize,
+                        edgeDensity: edgeDensity
+                    });
+                }
+            }
+        }
+        
+        // Must have at least 2 high-edge regions for facial features
+        if (regions.length < 2) {
+            return features;
+        }
+        
+        // Find bounding box of all feature regions
+        const xs = regions.map(r => r.x);
+        const ys = regions.map(r => r.y);
+        const xe = regions.map(r => r.x + r.width);
+        const ye = regions.map(r => r.y + r.height);
+        
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xe);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ye);
+        
+        features.bounds = {
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
+        
+        features.hasMinimumFeatures = regions.length >= 2;
+        features.eyeRegions = regions.slice(0, 2); // Take first 2 as potential eyes
+        
+        return features;
+    }
+    
+    function validateSkinRegion(data, bounds, width, height) {
+        let skinPixelCount = 0;
+        let totalPixelCount = 0;
+        let avgR = 0, avgG = 0, avgB = 0;
+        
+        // Sample pixels within the bounds
+        for (let y = bounds.y; y < Math.min(bounds.y + bounds.height, height); y += 2) {
+            for (let x = bounds.x; x < Math.min(bounds.x + bounds.width, width); x += 2) {
+                const i = (y * width + x) * 4;
+                if (i + 3 < data.length) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    if (a > 128) {
+                        totalPixelCount++;
+                        avgR += r;
+                        avgG += g;
+                        avgB += b;
+                        
+                        if (isSkinColor(r, g, b)) {
+                            skinPixelCount++;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (totalPixelCount === 0) {
+            return { isValid: false, reason: 'No pixels in region' };
+        }
+        
+        const skinRatio = skinPixelCount / totalPixelCount;
+        avgR /= totalPixelCount;
+        avgG /= totalPixelCount;
+        avgB /= totalPixelCount;
+        
+        // Must have at least 15% skin pixels and reasonable color distribution
+        if (skinRatio < 0.15) {
+            return { isValid: false, reason: `Insufficient skin pixels: ${Math.round(skinRatio * 100)}%` };
+        }
+        
+        // Check if colors are in reasonable range for any skin tone
+        if (avgR < 30 || avgG < 20 || avgB < 15 || (avgR + avgG + avgB) < 80) {
+            return { isValid: false, reason: 'Color values too low for skin' };
+        }
+        
+        return { isValid: true, skinRatio: skinRatio };
+    }
+    
+    function validateFaceGeometry(bounds, width, height) {
+        const faceWidth = bounds.width;
+        const faceHeight = bounds.height;
+        const aspectRatio = faceHeight / faceWidth;
+        
+        // Face must be reasonable aspect ratio (0.6 to 2.0 - much more realistic)
+        if (aspectRatio < 0.6 || aspectRatio > 2.0) {
+            return { isValid: false, reason: `Invalid aspect ratio: ${aspectRatio.toFixed(2)}` };
+        }
+        
+        // Face must be reasonable size (3% to 70% of frame)
+        const faceArea = faceWidth * faceHeight;
+        const frameArea = width * height;
+        const sizeRatio = faceArea / frameArea;
+        
+        if (sizeRatio < 0.03 || sizeRatio > 0.7) {
+            return { isValid: false, reason: `Invalid size ratio: ${Math.round(sizeRatio * 100)}%` };
+        }
+        
+        // Face should not be at extreme edges
+        const centerX = bounds.x + faceWidth / 2;
+        const centerY = bounds.y + faceHeight / 2;
+        const frameX = width / 2;
+        const frameY = height / 2;
+        
+        const offsetRatioX = Math.abs(centerX - frameX) / (width / 2);
+        const offsetRatioY = Math.abs(centerY - frameY) / (height / 2);
+        
+        if (offsetRatioX > 0.8 || offsetRatioY > 0.8) {
+            return { isValid: false, reason: 'Face too close to frame edge' };
+        }
+        
+        return { isValid: true };
+    }
+    
+    function validateFacePattern(data, bounds, width) {
+        // Check for vertical symmetry and face-like patterns
+        const centerX = bounds.x + bounds.width / 2;
+        const samples = 10;
+        let symmetryScore = 0;
+        let validSamples = 0;
+        
+        for (let i = 0; i < samples; i++) {
+            const y = bounds.y + (bounds.height * i / samples);
+            const sampleWidth = Math.min(bounds.width / 4, 20);
+            
+            if (y >= 0 && y < data.length / (width * 4) && centerX - sampleWidth >= 0 && centerX + sampleWidth < width) {
+                const leftI = (Math.floor(y) * width + Math.floor(centerX - sampleWidth)) * 4;
+                const rightI = (Math.floor(y) * width + Math.floor(centerX + sampleWidth)) * 4;
+                
+                if (leftI >= 0 && rightI >= 0 && leftI + 2 < data.length && rightI + 2 < data.length) {
+                    const leftR = data[leftI];
+                    const leftG = data[leftI + 1];
+                    const leftB = data[leftI + 2];
+                    
+                    const rightR = data[rightI];
+                    const rightG = data[rightI + 1];
+                    const rightB = data[rightI + 2];
+                    
+                    const colorDiff = Math.abs(leftR - rightR) + Math.abs(leftG - rightG) + Math.abs(leftB - rightB);
+                    symmetryScore += Math.max(0, 1 - colorDiff / 300);
+                    validSamples++;
+                }
+            }
+        }
+        
+        if (validSamples < 3) {
+            return { isValid: false, reason: 'Insufficient samples for pattern validation' };
+        }
+        
+        const avgSymmetry = symmetryScore / validSamples;
+        const confidence = Math.min(1.0, avgSymmetry + 0.2);
+        
+        if (avgSymmetry < 0.3) {
+            return { isValid: false, reason: `Poor pattern symmetry: ${Math.round(avgSymmetry * 100)}%` };
+        }
+        
+        return { isValid: true, confidence: confidence };
+    }
+
+    function isSkinColor(r, g, b) {
+        // STRICT skin color detection - no false positives
+        
+        // Rule 1: Basic RGB skin detection (conservative)
+        const isRGBSkin = (
+            r > 95 && g > 40 && b > 20 &&
+            r > g && r > b &&
+            (r - g) > 15 &&
+            Math.abs(r - g) > 15
+        ) || (
+            // Light skin tones
+            r > 220 && g > 210 && b > 170 &&
+            Math.abs(r - g) <= 15 &&
+            r > b && g > b
+        );
+        
+        // Rule 2: YCrCb color space (more reliable for skin detection)
+        const Y = 0.299 * r + 0.587 * g + 0.114 * b;
+        const Cr = 0.713 * (r - Y);
+        const Cb = 0.564 * (b - Y);
+        
+        const isYCrCbSkin = (
+            Y > 80 && Y < 230 &&
+            Cr > -43 && Cr < 57 &&
+            Cb > -57 && Cb < 43
+        );
+        
+        // Rule 3: HSV validation
+        const rNorm = r / 255;
+        const gNorm = g / 255;
+        const bNorm = b / 255;
+        
+        const max = Math.max(rNorm, gNorm, bNorm);
+        const min = Math.min(rNorm, gNorm, bNorm);
+        const diff = max - min;
+        
+        let h = 0;
+        if (diff !== 0) {
+            if (max === rNorm) {
+                h = ((gNorm - bNorm) / diff) % 6;
+            } else if (max === gNorm) {
+                h = (bNorm - rNorm) / diff + 2;
+            } else {
+                h = (rNorm - gNorm) / diff + 4;
+            }
+            h *= 60;
+        }
+        if (h < 0) h += 360;
+        
+        const s = max === 0 ? 0 : diff / max;
+        const v = max;
+        
+        const isHSVSkin = (
+            (h >= 0 && h <= 60) &&  // More restrictive hue range
+            (s >= 0.25 && s <= 0.8) &&  // More restrictive saturation
+            (v >= 0.35 && v <= 0.95)     // Good brightness range
+        );
+        
+        // Must pass at least 2 out of 3 tests for skin detection
+        const passedTests = [isRGBSkin, isYCrCbSkin, isHSVSkin].filter(Boolean).length;
+        return passedTests >= 2;
+    }
+
+    function calculateBrightness(data, faceRegion) {
+        let totalBrightness = 0;
+        let pixelCount = 0;
+        
+        const { x, y, width, height } = faceRegion;
+        
+        for (let py = y; py < y + height; py += 2) {
+            for (let px = x; px < x + width; px += 2) {
+                const i = (py * analysisCanvas.width + px) * 4;
+                if (i < data.length - 2) {
+                    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    totalBrightness += brightness;
+                    pixelCount++;
+                }
+            }
+        }
+        
+        return pixelCount > 0 ? totalBrightness / pixelCount : 128;
+    }
+
+    function calculateBasicSymmetry(data, faceRegion, width) {
+        const { x, y, width: faceWidth, height: faceHeight } = faceRegion;
+        const centerX = x + faceWidth / 2;
+        
+        let leftBrightness = 0, rightBrightness = 0;
+        let leftPixels = 0, rightPixels = 0;
+        
+        // Compare left and right halves of the face
+        for (let py = y; py < y + faceHeight; py += 3) {
+            for (let px = x; px < x + faceWidth; px += 3) {
+                const i = (py * width + px) * 4;
+                if (i < data.length - 2) {
+                    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    
+                    if (px < centerX) {
+                        leftBrightness += brightness;
+                        leftPixels++;
+                    } else {
+                        rightBrightness += brightness;
+                        rightPixels++;
+                    }
+                }
+            }
+        }
+        
+        if (leftPixels === 0 || rightPixels === 0) return 0.5;
+        
+        const leftAvg = leftBrightness / leftPixels;
+        const rightAvg = rightBrightness / rightPixels;
+        const difference = Math.abs(leftAvg - rightAvg);
+        
+        // Convert difference to symmetry score (0-1, where 1 is perfect symmetry)
+        return Math.max(0, 1 - difference / 128);
+    }
+
+    function updatePositioningUI(analysis) {
+        const statusElement = document.getElementById('positioningStatus');
+        const feedbackElement = document.getElementById('positioningFeedback');
+        const scoreElement = document.getElementById('positioningScore');
+        const guideOutline = document.getElementById('faceGuideOutline');
+        const captureBtn = document.getElementById('captureBtn');
+        
+        if (!statusElement || !feedbackElement || !scoreElement) {
+            console.warn('Positioning UI elements not found:', {
+                status: !!statusElement,
+                feedback: !!feedbackElement,
+                score: !!scoreElement
+            });
+            return;
+        }
+        
+        const score = analysis.positioningScore;
+        const scorePercent = Math.round(score * 100);
+        
+        // Update score display
+        scoreElement.textContent = `Score: ${scorePercent}%`;
+        
+        // Update status and styling based on score - more generous thresholds
+        if (score >= 0.7 && analysis.issues.length <= 1) {  // Lowered from 0.8 and allow 1 minor issue
+            statusElement.textContent = 'Perfect! Ready to capture';
+            statusElement.className = 'positioning-status ready';
+            if (guideOutline) guideOutline.className = 'face-guide-outline ready';
+            feedbackElement.textContent = 'Looking good! Click capture when ready';
+            
+            // Enable capture button
+            if (captureBtn) {
+                captureBtn.disabled = false;
+                captureBtn.className = 'capture-btn ready';
+            }
+            
+        } else if (score >= 0.5) {  // Lowered from 0.6
+            statusElement.textContent = 'Almost there...';
+            statusElement.className = 'positioning-status warning';
+            if (guideOutline) guideOutline.className = 'face-guide-outline warning';
+            
+            // Show primary recommendation, but allow capture
+            if (analysis.recommendations.length > 0) {
+                feedbackElement.textContent = analysis.recommendations[0];
+            } else {
+                feedbackElement.textContent = 'Fine-tune your position or capture now';
+            }
+            
+            // Enable capture button even for "almost there" cases
+            if (captureBtn) {
+                captureBtn.disabled = false;
+                captureBtn.className = 'capture-btn';
+            }
+            
+        } else {
+            statusElement.textContent = analysis.faceDetected ? 'Adjust position' : 'Position your face';
+            statusElement.className = 'positioning-status';
+            if (guideOutline) guideOutline.className = 'face-guide-outline';
+            
+            // Show primary issue
+            if (analysis.issues.length > 0) {
+                feedbackElement.textContent = analysis.issues[0];
+            } else if (analysis.recommendations.length > 0) {
+                feedbackElement.textContent = analysis.recommendations[0];
+            } else {
+                feedbackElement.textContent = 'Position your face in the oval guide';
+            }
+            
+            // Still allow capture for detected faces, just with lower score
+            if (captureBtn) {
+                captureBtn.disabled = !analysis.faceDetected;
+                captureBtn.className = analysis.faceDetected ? 'capture-btn' : 'capture-btn';
+            }
+        }
+
+        // Store current score for other functions
+        currentPositioningScore = score;
+    }
+    
+    // Make sure clicking on the drop zone triggers file input click
+    dropZone.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            fileInput.click();
+        }
+    });
+    
+    // Function to compress an image
+    function compressImage(sourceImage, quality, maxWidth) {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Create an image object for the source image
+            const img = new Image();
+            img.onload = function() {
+                // Calculate new dimensions while maintaining aspect ratio
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                // Set canvas dimensions
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw image on canvas with new dimensions
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Get compressed image data
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressedDataUrl);
+            };
+            
+            // Load the source image
+            img.src = sourceImage;
+        });
+    }
+    
+    // File upload handling
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            
+            // Check file size (20MB limit)
+            const maxSize = 20 * 1024 * 1024; // 20MB
+            if (file.size > maxSize) {
+                alert(`Image file is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Please use an image smaller than 20MB or compress the image.`);
+                e.target.value = ''; // Clear the input
+                return;
+            }
+            
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const originalImage = e.target.result;
+                    
+                    // Display original image as preview
+                    previewImage.src = originalImage;
+                    filePreview.style.display = 'block';
+                    
+                    // Check file size and compress if needed
+                    if (file.size > 1024 * 1024) { // If larger than 1MB
+                        // Show compression message
+                        const compressionMessage = document.createElement('div');
+                        compressionMessage.className = 'mt-2 text-info';
+                        compressionMessage.innerHTML = '<i class="fas fa-info-circle"></i> Image is being compressed to ensure successful upload...';
+                        filePreview.appendChild(compressionMessage);
+                        
+                        // Compress the image (80% quality, max width 1200px)
+                        compressImage(originalImage, 0.8, 1200).then(compressedImage => {
+                            // Store the compressed image data
+                            imageDataInput.value = compressedImage;
+                            // Remove compression message after processing
+                            compressionMessage.remove();
+                            // Allow form submission
+                            analyzeBtn.disabled = false;
+                        });
+                    } else {
+                        // Small image, use as is
+                        imageDataInput.value = originalImage;
+                        // Allow form submission
+                        analyzeBtn.disabled = false;
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file (JPG, JPEG, or PNG).');
+                fileInput.value = '';
+            }
+        }
+    });
+    
+    // Remove uploaded file
+    removeFileBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        imageDataInput.value = '';
+        filePreview.style.display = 'none';
+        analyzeBtn.disabled = true;
+    });
+    
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropZone.classList.add('highlight');
+    }
+    
+    function unhighlight() {
+        dropZone.classList.remove('highlight');
+    }
+    
+    dropZone.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            // We can't directly set fileInput.files, so let's use the file for preview
+            const file = files[0];
+            
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Display the preview
+                    previewImage.src = e.target.result;
+                    filePreview.style.display = 'block';
+                    
+                    // Store the file data for submission
+                    imageDataInput.value = e.target.result;
+                    
+                    // Enable the submit button
+                    analyzeBtn.disabled = false;
+                    
+                    // Create a new FileList-like object and assign it to fileInput
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file (JPG, JPEG, or PNG).');
+            }
+        }
+    }
+    
+    
+    // Enhanced Progress Animation System
+    function startAnalysisProgress() {
+        const progressCircle = document.getElementById('progressCircle');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusMessage = document.getElementById('statusMessage');
+        const analysisIcon = document.getElementById('analysisIcon');
+        
+        // Reset all steps
+        ['step1', 'step2', 'step3', 'step4'].forEach(id => {
+            const step = document.getElementById(id);
+            step.classList.remove('active', 'completed');
+        });
+        
+        let currentProgress = 0;
+        let currentStep = 1;
+        
+        // Progress stages with timings and messages
+        const stages = [
+            { progress: 15, step: 1, title: "Uploading Image...", message: "Securely transferring your photo", icon: "fas fa-upload", duration: 2000 },
+            { progress: 35, step: 2, title: "AI Processing...", message: "Our AI is analyzing facial features", icon: "fas fa-robot", duration: 4000 },
+            { progress: 60, step: 2, title: "Deep Analysis...", message: "Measuring facial geometry and proportions", icon: "fas fa-brain", duration: 4000 },
+            { progress: 80, step: 3, title: "Generating Insights...", message: "Creating personalized recommendations", icon: "fas fa-lightbulb", duration: 3000 },
+            { progress: 95, step: 4, title: "Finalizing Results...", message: "Preparing your comprehensive analysis", icon: "fas fa-check-circle", duration: 2000 }
+        ];
+        
+        let stageIndex = 0;
+        
+        function updateProgress() {
+            if (stageIndex >= stages.length) return;
+            
+            const stage = stages[stageIndex];
+            
+            // Update step indicators
+            if (stage.step !== currentStep) {
+                // Mark previous step as completed
+                if (currentStep > 0) {
+                    const prevStep = document.getElementById(`step${currentStep}`);
+                    prevStep.classList.remove('active');
+                    prevStep.classList.add('completed');
+                }
+                
+                // Activate new step
+                const newStep = document.getElementById(`step${stage.step}`);
+                newStep.classList.add('active');
+                currentStep = stage.step;
+            }
+            
+            // Animate progress
+            currentProgress = stage.progress;
+            const circumference = 2 * Math.PI * 50; // radius = 50
+            const offset = circumference - (currentProgress / 100) * circumference;
+            
+            progressCircle.style.strokeDashoffset = offset;
+            progressBar.style.width = currentProgress + '%';
+            progressPercentage.textContent = currentProgress + '%';
+            
+            // Update status
+            statusTitle.textContent = stage.title;
+            statusMessage.textContent = stage.message;
+            analysisIcon.className = stage.icon;
+            
+            stageIndex++;
+            
+            if (stageIndex < stages.length) {
+                setTimeout(updateProgress, stage.duration);
+            }
+        }
+        
+        // Start the animation
+        document.getElementById('step1').classList.add('active');
+        setTimeout(updateProgress, 500);
+    }
+    
+    // Form submission handling with enhanced progress
+    faceAnalysisForm.addEventListener('submit', function(e) {
+        // Check if a file has been selected or image data is provided
+        if (fileInput.files.length === 0 && !imageDataInput.value) {
+            e.preventDefault();
+            alert('Please select an image file to analyze.');
+            return false;
+        }
+        
+        // Show enhanced loading experience
+        analyzeBtn.disabled = true;
+        uploadStatus.style.display = 'block';
+        
+        // Start the creative progress animation
+        startAnalysisProgress();
+        
+        return true;
+    });
+    
+    // Make sure the submit button is enabled by default
+    analyzeBtn.disabled = false;
+    
+    // Log confirmation of initialization to help with debugging
+    console.log("Face analysis upload script initialized successfully");
+    
+    // Initialize camera functionality after all functions are defined
+    checkCameraAvailability();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+/* Remove or hide available badges */
+.available-badge {
+    display: none !important;
+}
+
+.badge-available {
+    display: none !important;
+}
+
+/* Hide specific availability indicators */
+.availability-indicator.available {
+    display: none !important;
+}
+
+.status-available {
+    display: none !important;
+}
+
+/* Hide available text in doctor cards */
+.doctor-card .available-text,
+.clinic-card .available-text {
+    display: none !important;
+}
+
+/* Remove available status from listings */
+.listing-available {
+    display: none !important;
+}

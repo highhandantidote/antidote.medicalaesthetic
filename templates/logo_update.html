@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Logo{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Update Website Logo</h2>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Instructions:</strong></p>
+                        <ol>
+                            <li>Copy your SVG logo code below</li>
+                            <li>Click "Save SVG Logo"</li>
+                            <li>The logo will be automatically updated on the website</li>
+                        </ol>
+                    </div>
+
+                    <form id="svgForm" action="/update-logo" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-4">
+                            <label for="svgContent" class="form-label">SVG Logo Code</label>
+                            <textarea class="form-control font-monospace" id="svgContent" name="svgContent" rows="10" placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'></textarea>
+                            <div class="form-text">Paste your full SVG code here, starting with &lt;svg and ending with &lt;/svg&gt;</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Save SVG Logo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">Current Logo</h4>
+                    <div class="text-center py-3 bg-light rounded">
+                        <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}" alt="Current Logo" style="max-height: 100px;">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">Direct File Update Method</h4>
+                    <p>If you prefer to directly replace the logo file:</p>
+                    <ol>
+                        <li>Create an SVG file named <code>antidote-logo.svg</code></li>
+                        <li>Upload it to <code>/static/images/</code> directory</li>
+                        <li>Update the reference in <code>templates/base.html</code> to point to your SVG file</li>
+                    </ol>
+                    
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-2">Change this line in base.html:</p>
+                        <pre class="mb-0"><code>&lt;img src="{{ '{{' }} url_for('static', filename='images/antidote-logo-new.png') {{ '}}' }}" alt="Antidote" height="60" class="me-2"&gt;</code></pre>
+                        
+                        <p class="mb-2 mt-3">To this:</p>
+                        <pre class="mb-0"><code>&lt;img src="{{ '{{' }} url_for('static', filename='images/antidote-logo.svg') {{ '}}' }}" alt="Antidote" height="60" class="me-2"&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

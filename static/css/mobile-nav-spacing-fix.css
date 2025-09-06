@@ -1,0 +1,48 @@
+/* Mobile Navigation Spacing Fix */
+.mobile-bottom-nav .nav-container {
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
+    padding: 0 10px !important;
+}
+
+.mobile-bottom-nav .nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    min-width: 65px !important;
+    max-width: 65px !important;
+    flex: 0 0 auto !important;
+    position: relative !important;
+}
+
+/* Treatments button - allow it to be slightly wider */
+.mobile-bottom-nav .nav-item.book-appointment {
+    min-width: 85px !important;
+    max-width: 85px !important;
+    background: #00a0b0 !important;
+    color: white !important;
+    border-radius: 16px !important;
+    padding: 6px 12px !important;
+    box-shadow: 0 2px 8px rgba(0,160,176,0.3) !important;
+}
+
+.mobile-bottom-nav .nav-item.book-appointment .nav-text {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* Ensure consistent spacing */
+@media (max-width: 768px) {
+    .mobile-bottom-nav .nav-container {
+        gap: 0 !important;
+        justify-content: space-around !important;
+    }
+}

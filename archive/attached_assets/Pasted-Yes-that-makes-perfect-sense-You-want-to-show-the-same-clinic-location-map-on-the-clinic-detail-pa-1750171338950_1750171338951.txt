@@ -1,0 +1,65 @@
+Yes, that makes perfect sense! You want to show the same clinic location map on the clinic detail page (/clinic/view/26) so patients can see where the clinic is located when viewing the clinic profile. This creates consistency across the platform - whether someone is looking at a specific treatment package or the clinic's main profile, they'll see the same location information.
+
+Let me implement this by adding the location section to the clinic detail page template.
+
+
+Searched for "clinic detail page template with "What Our Patients Have to Say" section"
+I found the clinic profile template. Let me add the location section after the "What Our Patients Say" section in the clinic detail page.
+
+
+Opened templates/clinic_profile.html
+Let me find the "What Our Patients Say" section in the clinic profile template and add the location section after it.
+
+
+Opened templates/clinic_profile.html
+I need to find the "What Our Patients Say" section in the clinic profile template to add the location section after it.
+
+
+Executed grep -n -A 5 -B 5 "What Our Patients" templates/clinic_profile.html
+I'll add the clinic location section after the "What Our Patients Say" section. Let me find the end of that section and add the location map.
+
+
+Opened templates/clinic_profile.html
+I'll add the clinic location section after the "What Our Patients Say" section. Let me insert the location map component before the closing div and CTA footer.
+
+
+Edited templates/clinic_profile.html
+Now I need to add the Leaflet CSS and JavaScript dependencies to the clinic profile template, and include the map loading functionality. Let me add the required dependencies and scripts.
+
+
+Opened templates/clinic_profile.html
+I'll add the Leaflet CSS and JavaScript dependencies to the clinic profile template and include the map loading functionality.
+
+
+Edited templates/clinic_profile.html
+Now I'll add the Leaflet JavaScript library and the map loading functionality to the clinic profile template.
+
+
+Opened templates/clinic_profile.html
+I'll add the Leaflet JavaScript library and the map loading functionality to the clinic profile template.
+
+
+Edited templates/clinic_profile.html
+Now I'll add the map loading functionality to the clinic profile template. I need to add the map loading functions that work with the server-side geocoding endpoint.
+
+
+Edited templates/clinic_profile.html
+Now I'll test the clinic location map functionality on the clinic detail page to ensure it's working properly.
+
+
+Restarted Start application
+
+Took a screenshot
+Checkpoint made
+just now
+•
+Show clinic location on a map to assist patients in finding the clinic
+Screenshot
+Load preview
+✓ Added clinic location map section to clinic detail page
+✓ Positioned after "What Our Patients Say" section
+✓ Uses same address-based geocoding as treatment packages
+✓ Includes Leaflet map library and interactive features
+✓ Added proper error handling and fallback options
+
+Is the clinic location map now displaying properly on the clinic detail page, showing the same location as the treatment packages?

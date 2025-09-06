@@ -1,0 +1,29 @@
+In my Flask app Antidote, the login issue for testuser@antidote.com has been resolved, and Dr. John Smith (ID 3) is displayed on the Rhinoplasty Procedure Detail Page (/procedure/2). Complete the end-to-end testing to confirm full functionality before moving on:
+1. Log in as testuser@antidote.com (password: Test@1234) at http://localhost:5000/login:
+   - Confirm "Test User" appears in the navigation bar.
+2. Navigate to http://localhost:5000/procedure/2 (Rhinoplasty).
+3. Verify the page details:
+   - Confirm the procedure name is "Rhinoplasty."
+   - Confirm Dr. John Smith (ID 3) is listed under "Doctors Who Perform This Procedure."
+4. Test the review submission:
+   - Click "Write a Review" on the Reviews tab and confirm the modal appears.
+   - Enter rating 4 (select 4 stars) and comment "Great experience."
+   - Submit the review and verify it appears in the Reviews tab with the correct rating and comment.
+5. Check the browser console (F12 > Console) for errors during the process.
+6. Check the Network tab (F12 > Network) for a POST request to /submit-review, confirming a 200 response.
+7. Verify server logs:
+   tail -n 50 /tmp/replit-nix-errors.log
+8. Verify the database for the submitted review:
+   SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND procedure_id = 2 LIMIT 5;
+   - Expect: A review with rating=4, comment="Great experience", user_id=1, procedure_id=2.
+9. Provide a screenshot of /procedure/2 showing:
+   - The doctors list with Dr. John Smith.
+   - The review form modal (after clicking "Write a Review").
+   - The submitted review in the Reviews tab.
+10. Share observations for each step, including:
+    - Login success and "Test User" visibility.
+    - Procedure name and doctors list content.
+    - Review modal appearance, submission success, and review display.
+    - Any errors in the console, network, or server logs.
+11. Update models.py, routes.py, templates, or the database if any issues arise.
+12. If all tests pass, confirm that the Procedure Detail Page functionality is fully resolved and ready to move on to the next task.

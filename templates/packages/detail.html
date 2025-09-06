@@ -1,0 +1,1462 @@
+{% extends "base.html" %}
+
+{% block title %}{{ package.title }} - {{ package.clinic_name }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- Leaflet CSS for OpenStreetMap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+<style>
+.package-hero {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.price-section {
+    text-align: right;
+}
+
+.discount-badge {
+    background: #FF4757;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.current-price {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.original-price {
+    text-decoration: line-through;
+    opacity: 0.7;
+    font-size: 1.2rem;
+}
+
+.results-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+}
+
+.results-carousel {
+    overflow-x: auto;
+    display: flex;
+    gap: 20px;
+    padding: 10px 0;
+}
+
+.result-item {
+    min-width: 400px;
+    max-width: 400px;
+    height: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px;
+    background: white;
+}
+
+.before-after-toggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.media-container {
+    width: 100%;
+    height: 200px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.media-container img, .media-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.procedure-breakdown-card {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.procedure-item {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    color: #333;
+    border-left: 4px solid #4A90E2;
+}
+
+.show-more-btn {
+    color: #4A90E2;
+    cursor: pointer;
+    text-decoration: underline;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.sticky-buttons {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.map-container {
+    height: 300px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.highlight-item {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.highlight-item h6 {
+    color: #4A90E2;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- 1. Package Header -->
+    <div class="package-hero">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 mb-3">{{ package.title }}
+                    {% if package.actual_treatment_name %}
+                        <span class="text-muted" style="font-weight: 400; font-size: 0.8em;">
+                            ({{ package.actual_treatment_name }})
+                        </span>
+                    {% endif %}
+                </h1>
+                <p class="mb-3 opacity-90">{{ package.description }}</p>
+                <p class="mb-2">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    {{ package.clinic_address or (package.clinic_name + ', ' + package.clinic_city) }}
+                </p>
+                <p class="mb-0">
+                    <a href="{{ url_for('clinic.clinic_profile', slug=package.clinic_slug or package.clinic_id) }}" 
+                       class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-building me-1"></i>
+                        View {{ package.clinic_name }} Profile
+                    </a>
+                </p>
+            </div>
+            <div class="col-md-4 price-section">
+                {% if package.discount_percentage %}
+                <div class="discount-badge">{{ package.discount_percentage }}% OFF</div>
+                {% endif %}
+                <div class="current-price">
+                    ₹{{ "{:,.0f}".format(package.price_discounted or package.price_actual) }}
+                </div>
+                {% if package.price_discounted %}
+                <div class="original-price">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Results (Before and After Images) - Using package_doctor_gallery data -->
+    {% if package_gallery and package_gallery|length > 0 %}
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-4">{{ package.title }} Results</h3>
+        <div class="results-carousel">
+            {% for result in package_gallery %}
+            <div class="result-item">
+                <h6 class="fw-bold">{{ result.title or 'Treatment Results' }}</h6>
+                <p class="text-muted small mb-2">{% if result.doctor_name %}Dr. {{ result.doctor_name }}{% if result.doctor_specialty %} - {{ result.doctor_specialty }}{% endif %}{% else %}Expert Practitioner{% endif %}</p>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <label class="small text-muted d-block mb-2">BEFORE</label>
+                            <div class="media-container">
+                                {% if result.before_image_url %}
+                                <img src="{{ result.before_image_url }}" alt="Before" class="img-fluid">
+                                {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <label class="small text-muted d-block mb-2">AFTER</label>
+                            <div class="media-container">
+                                {% if result.after_image_url %}
+                                <img src="{{ result.after_image_url }}" alt="After" class="img-fluid">
+                                {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if result.description %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">{{ result.description }}</small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% elif package.results_gallery %}
+    <!-- Fallback to package.results_gallery JSON data -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-4">{{ package.title }} Results</h3>
+        <div class="results-carousel">
+            {% for result in package.results_gallery %}
+            <div class="result-item">
+                <h6 class="fw-bold">{{ result.title or 'Treatment Results' }}</h6>
+                <p class="text-muted small mb-2">Dr. {{ result.doctor_name or 'Expert Practitioner' }}</p>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <label class="small text-muted d-block mb-2">BEFORE</label>
+                            <div class="media-container">
+                                {% if result.before_image %}
+                                <img src="{{ result.before_image }}" alt="Before" class="img-fluid">
+                                {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <label class="small text-muted d-block mb-2">AFTER</label>
+                            <div class="media-container">
+                                {% if result.after_image %}
+                                <img src="{{ result.after_image }}" alt="After" class="img-fluid">
+                                {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fas fa-image fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if result.description %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">{{ result.description }}</small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Default results section when no gallery data exists -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-4">{{ package.title }} Results</h3>
+        <div class="results-carousel">
+            <div class="result-item">
+                <h6 class="fw-bold">{{ package.category or 'Treatment' }} - Natural Enhancement</h6>
+                <p class="text-muted small">Professional treatment results</p>
+                <div class="media-container">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                    <div class="mt-2 small text-muted">Before/After Images Coming Soon</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 5. About the Procedure -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-3">About the Procedure</h3>
+        <div class="procedure-content" id="about-content">
+            <div class="text-muted">
+                {% if package.about_procedure %}
+                    {% set lines = package.about_procedure.split('\n') %}
+                    {% if lines|length > 3 %}
+                        {{ (lines[:3]|join('\n') + '...')|safe }}
+                    {% else %}
+                        {{ package.about_procedure|safe }}
+                    {% endif %}
+                {% else %}
+                <p>Comprehensive {{ package.title.lower() }} package using premium techniques and advanced technology for natural-looking results.<br>Our expert practitioners use the latest technology and advanced techniques to minimize bruising and ensure optimal healing.<br>This procedure delivers the best possible outcomes with minimal downtime and maximum satisfaction.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if (package.about_procedure and package.about_procedure.split('\n')|length > 3) %}
+        <button class="show-more-btn" onclick="toggleAboutContent()">Show more</button>
+        {% endif %}
+    </div>
+
+
+
+    <!-- 5. Key Highlights -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-3">Key Highlights</h3>
+        <div class="highlights-grid">
+            {% if package.key_highlights %}
+                {% set highlights_data = package.key_highlights %}
+                {% if highlights_data is string %}
+                    {% set highlights_data = highlights_data|from_json %}
+                {% endif %}
+                
+                {% if highlights_data and highlights_data is iterable and highlights_data|length > 0 %}
+                    {% if highlights_data.highlights %}
+                        {% for highlight in highlights_data.highlights %}
+                            {% if highlight is mapping %}
+                            <div class="highlight-item">
+                                <h6>{{ highlight.title|title }}</h6>
+                                <p class="text-muted mb-0">{{ highlight.value }}</p>
+                                {% if highlight.explanation and highlight.explanation.strip() %}
+                                <small class="text-muted d-block mt-2" style="font-size: 0.8em;">{{ highlight.explanation }}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% for highlight in highlights_data %}
+                            {% if highlight is mapping %}
+                            <div class="highlight-item">
+                                <h6>{{ highlight.title|title }}</h6>
+                                <p class="text-muted mb-0">{{ highlight.value }}</p>
+                                {% if highlight.explanation and highlight.explanation.strip() %}
+                                <small class="text-muted d-block mt-2" style="font-size: 0.8em;">{{ highlight.explanation }}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                    <!-- Legacy format support -->
+                    {% if highlights_data is mapping %}
+                        {% for key, value in highlights_data.items() %}
+                        <div class="highlight-item">
+                            <h6>{{ key|title }}</h6>
+                            <p class="text-muted mb-0">{{ value }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Default highlights when no data exists -->
+                        <div class="highlight-item">
+                            <h6>Procedure Type</h6>
+                            <p class="text-muted mb-0">{{ package.category or 'Professional Treatment' }}</p>
+                        </div>
+                        <div class="highlight-item">
+                            <h6>Recovery Time</h6>
+                            <p class="text-muted mb-0">{{ package.downtime or 'Minimal downtime' }}</p>
+                        </div>
+                        <div class="highlight-item">
+                            <h6>Duration</h6>
+                            <p class="text-muted mb-0">{{ package.duration or 'Professional consultation required' }}</p>
+                        </div>
+                        <div class="highlight-item">
+                            <h6>Anesthetic</h6>
+                            <p class="text-muted mb-0">{{ package.anesthetic_type or 'As per medical requirement' }}</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+            <!-- Default highlights when no data exists -->
+            <div class="highlight-item">
+                <h6>Procedure Type</h6>
+                <p class="text-muted mb-0">{{ package.category or 'Professional Treatment' }}</p>
+            </div>
+            <div class="highlight-item">
+                <h6>Recovery Time</h6>
+                <p class="text-muted mb-0">{{ package.downtime or 'Minimal downtime' }}</p>
+            </div>
+            <div class="highlight-item">
+                <h6>Duration</h6>
+                <p class="text-muted mb-0">{{ package.duration or 'Professional consultation required' }}</p>
+            </div>
+            <div class="highlight-item">
+                <h6>Anesthetic</h6>
+                <p class="text-muted mb-0">{{ package.anesthetic_type or 'As per medical requirement' }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 6. Procedure Information & Pricing -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-4">Procedure Information & Pricing</h3>
+        
+        <!-- Main Package Card -->
+        <div class="procedure-breakdown-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">{{ package.title }}</h6>
+                    <small>₹{{ "{:,.0f}".format(package.price_actual) }}</small>
+                </div>
+                <div class="text-end">
+                    {% if package.discount_percentage %}
+                    <span class="badge bg-danger">{{ package.discount_percentage }}% OFF</span>
+                    {% endif %}
+                    <div class="h5 mb-0">₹{{ "{:,.0f}".format(package.price_discounted or package.price_actual) }}</div>
+                    {% if package.price_discounted %}
+                    <small>You save ₹{{ "{:,.0f}".format(package.price_actual - package.price_discounted) }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Individual Procedures -->
+        {% if package.procedure_breakdown and package.procedure_breakdown is iterable and package.procedure_breakdown|length > 0 %}
+            {% for procedure in package.procedure_breakdown %}
+            <div class="procedure-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">{{ procedure.name or 'Treatment Component' }}</h6>
+                        {% if procedure.description %}
+                        <small class="text-muted">{{ procedure.description }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        {% if procedure.discount_percentage %}
+                        <span class="badge bg-danger">{{ procedure.discount_percentage }}% OFF</span>
+                        {% endif %}
+                        {% set original_price = procedure.price_actual or procedure.price %}
+                        {% set discounted_price = (original_price * (100 - (procedure.discount_percentage or 0)) / 100) if procedure.discount_percentage else original_price %}
+                        <div class="fw-bold">₹{{ "{:,.0f}".format(discounted_price|float) }}</div>
+                        {% if procedure.discount_percentage %}
+                        <small class="text-decoration-line-through text-muted">₹{{ "{:,.0f}".format(original_price|float) }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <!-- Default breakdown -->
+        <div class="procedure-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Complete {{ package.title }} (Main Procedure)</span>
+                <span>₹{{ "{:,.0f}".format(((package.price_discounted or package.price_actual)|float * 0.7)|int) }} <span class="badge bg-danger">15% OFF</span></span>
+            </div>
+        </div>
+        <div class="procedure-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Pre & Post Consultation</span>
+                <span>₹{{ "{:,.0f}".format(((package.price_discounted or package.price_actual)|float * 0.2)|int) }} <span class="badge bg-danger">10% OFF</span></span>
+            </div>
+        </div>
+        <div class="procedure-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Aftercare & Follow-up</span>
+                <span>₹{{ "{:,.0f}".format(((package.price_discounted or package.price_actual)|float * 0.1)|int) }} <span class="badge bg-danger">5% OFF</span></span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 8. VAT, Anesthetic type, After Care Kit -->
+    <div class="section-card">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="fw-bold">VAT Information</h6>
+                <p class="text-muted small">
+                    {% if package.vat_amount %}
+                    VAT: ₹{{ "{:,.0f}".format(package.vat_amount) }} (included)
+                    {% else %}
+                    All inclusive pricing
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">Anesthetic Type</h6>
+                <p class="text-muted small">{{ package.anesthetic_type or 'Topical numbing included' }}</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">After Care Kit</h6>
+                <p class="text-muted small">{{ package.aftercare_kit or 'Complimentary healing balm' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Recommended For -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-3">Recommended For</h3>
+        <div class="recommended-content" id="recommended-content">
+            <div class="text-muted">
+                {% if package.recommended_for %}
+                    {% set lines = package.recommended_for.split('\n') %}
+                    {% if lines|length > 3 %}
+                        <p>{{ (lines[:3]|join('<br>') + '...')|safe }}</p>
+                    {% else %}
+                        <p>{{ package.recommended_for|safe }}</p>
+                    {% endif %}
+                {% else %}
+                <p>Individuals seeking natural enhancement and improved aesthetic appearance.<br>Those looking for professional, safe procedures with proven results.<br>Candidates who desire subtle, natural-looking outcomes with minimal downtime.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if (package.recommended_for and package.recommended_for.split('\n')|length > 3) %}
+        <button class="show-more-btn" onclick="toggleRecommendedContent()">See more</button>
+        {% endif %}
+    </div>
+
+    <!-- 10. Downtime -->
+    <div class="alert alert-warning">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-clock me-3 mt-1"></i>
+            <div>
+                <h6 class="fw-bold">Downtime: {{ package.downtime or 'Minimal (24-48 hours)' }}</h6>
+                <p class="mb-0 small">{{ package.downtime_description or 'Initial swelling for 1-2 days. Avoid strenuous exercise for 24 hours. Do not have spa for 6 hours post-treatment.' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Precautions & Side Effects -->
+    <div class="alert alert-info">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-circle me-3 mt-1"></i>
+            <div>
+                <h6 class="fw-bold">Precautions & Side Effects</h6>
+                <p class="mb-0 small">
+                    {% if package.precautions %}
+                    {{ package.precautions }}
+                    {% else %}
+                    Temporary swelling, bruising, or redness may occur. Avoid blood-thinning medications 1 week prior. Rare risks include infection or allergic reaction. Do not massage lips for 48 hours. Avoid extreme temperatures for 24 hours.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. Ratings & Reviews -->
+    {% if clinic_data %}
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-4">Clinic Ratings</h3>
+        
+        <!-- Overall Rating Display -->
+        {% if clinic_data.google_rating and clinic_data.google_review_count %}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="display-6 fw-bold text-primary me-3">{{ "%.1f"|format(clinic_data.google_rating) }}</span>
+                    <div>
+                        <div class="text-warning mb-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= clinic_data.google_rating %}
+                                    <i class="fas fa-star"></i>
+                                {% elif i - 0.5 <= clinic_data.google_rating %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted small">Based on {{ clinic_data.google_review_count }} Google reviews</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                {% if clinic_data.last_review_sync %}
+                <div class="text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-sync me-1"></i>Last updated: {{ clinic_data.last_review_sync.strftime('%B %d, %Y') }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- What Our Patients Say -->
+        <h4 class="h6 fw-bold mb-3">What Users Said About Doctors</h4>
+        {% if google_reviews %}
+        <div class="reviews-horizontal-container">
+            <div class="reviews-scroll-wrapper" id="reviewsScrollWrapper">
+                {% for review in google_reviews %}
+                <div class="review-bubble">
+                    <div class="review-header d-flex align-items-center mb-3">
+                        <div class="review-avatar me-3">
+                            {% if review.profile_photo_url %}
+                                <img src="{{ review.profile_photo_url }}" alt="{{ review.author_name }}" class="rounded-circle">
+                            {% else %}
+                                <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center">
+                                    {{ review.author_name[0].upper() if review.author_name else 'U' }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="reviewer-name mb-1">{{ review.author_name }}</h6>
+                            {% if review.rating %}
+                            <div class="rating-stars mb-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="review-time text-muted">{{ review.relative_time_description if review.relative_time_description else 'Recent' }}</small>
+                        </div>
+                    </div>
+                    {% if review.text %}
+                    <div class="review-content">
+                        {% set review_text = review.text %}
+                        {% if review_text|length > 200 %}
+                            <p class="review-text mb-2">{{ review_text[:200] }}...</p>
+                            <button class="read-more-btn btn-link p-0" onclick="toggleReviewText(this)">
+                                Read more
+                            </button>
+                            <p class="review-text-full mb-0 d-none">{{ review_text }}</p>
+                        {% else %}
+                            <p class="review-text mb-0">{{ review_text }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if clinic_data.google_rating and clinic_data.google_review_count %}
+        <div class="text-center mt-4 pt-3 border-top">
+            <div class="d-flex align-items-center justify-content-center">
+                <div class="me-3">
+                    <span class="h4 mb-0 fw-bold text-warning">{{ clinic_data.google_rating|round(1) }}</span>
+                    <span class="text-muted">/5</span>
+                </div>
+                <div class="text-start">
+                    <div class="rating-display mb-1">
+                        <span class="rating-badge">
+                            {{ clinic_data.google_rating|round(1) }}
+                        </span>
+                    </div>
+                    <div class="small text-muted">
+                        Based on {{ clinic_data.google_review_count }} Google reviews
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-4">
+            <div class="text-muted">
+                <i class="fas fa-star fa-2x mb-3 text-muted"></i>
+                <p>Reviews are being loaded...</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 13. Clinic Location Map -->
+    <div class="section-card">
+        <h3 class="h5 fw-bold mb-3">📍 {{ package.clinic_name }} Location</h3>
+        <div class="map-container" id="clinic-map" style="height: 300px; border-radius: 10px; overflow: hidden; border: 1px solid #ddd;">
+            <!-- OpenStreetMap will be loaded here -->
+            <div id="map" style="height: 100%; width: 100%;">
+                <div id="map-loading" class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading map...</span>
+                        </div>
+                        <p class="text-muted mt-2">Loading map...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 text-center">
+            <p class="text-muted mb-1">{{ package.clinic_name }}</p>
+            <p class="small text-muted" id="clinic-address">{{ package.clinic_address or (package.clinic_name + ', ' + (package.clinic_city or 'Location not available')) }}</p>
+            <button class="btn btn-outline-primary btn-sm" onclick="openDirections()" id="directions-btn" style="display: none;">
+                <i class="fas fa-directions"></i> Get Directions
+            </button>
+        </div>
+    </div>
+
+    <!-- 13. Antidote Disclaimer -->
+    <div class="alert alert-light border">
+        <h6 class="fw-bold text-primary">Antidote Disclaimer</h6>
+        <p class="small text-muted mb-0">
+            Antidote is a platform that connects patients with verified medical professionals. All procedures are performed by licensed practitioners. Results may vary based on individual factors. Please consult with the medical team for personalized advice and treatment plans.
+        </p>
+    </div>
+
+    <!-- Add padding for sticky buttons -->
+    <div style="height: 80px;"></div>
+</div>
+
+<!-- 14. Sticky Action Buttons -->
+<div class="sticky-buttons">
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <button class="btn btn-success btn-lg w-100" onclick="instantContact({{ package.id }}, 'whatsapp')" id="whatsapp-btn">
+                    <i class="fab fa-whatsapp me-2"></i>
+                    <span class="btn-text">WhatsApp</span>
+                </button>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-primary btn-lg w-100" onclick="instantContact({{ package.id }}, 'call')" id="call-btn">
+                    <i class="fas fa-phone me-2"></i>
+                    <span class="btn-text">Call</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Leaflet JavaScript for OpenStreetMap -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
+<script>
+// Before/After media toggle functionality
+function showBefore(index) {
+    const container = document.getElementById(`media-${index}`);
+    const beforeMedia = container.querySelectorAll('.before-media, .before-video');
+    const afterMedia = container.querySelectorAll('.after-media, .after-video');
+    
+    beforeMedia.forEach(media => media.style.display = 'block');
+    afterMedia.forEach(media => media.style.display = 'none');
+}
+
+function showAfter(index) {
+    const container = document.getElementById(`media-${index}`);
+    const beforeMedia = container.querySelectorAll('.before-media, .before-video');
+    const afterMedia = container.querySelectorAll('.after-media, .after-video');
+    
+    beforeMedia.forEach(media => media.style.display = 'none');
+    afterMedia.forEach(media => media.style.display = 'block');
+}
+
+// Show more/less functionality
+function toggleDescription(index) {
+    const descElement = document.getElementById(`desc-${index}`);
+    const btn = descElement.nextElementSibling;
+    const fullText = descElement.getAttribute('data-full-text');
+    const shortText = fullText.substring(0, 100) + '...';
+    
+    if (btn.textContent === 'Show more') {
+        descElement.textContent = fullText;
+        btn.textContent = 'Show less';
+    } else {
+        descElement.textContent = shortText;
+        btn.textContent = 'Show more';
+    }
+}
+
+function toggleAboutContent() {
+    const content = document.getElementById('about-content');
+    const btn = content.nextElementSibling;
+    const contentDiv = content.querySelector('div');
+    
+    if (btn.textContent === 'Show more') {
+        // Show full content
+        contentDiv.innerHTML = {{ package.about_procedure|safe|tojson }};
+        btn.textContent = 'Show less';
+    } else {
+        // Show truncated content
+        {% if package.about_procedure %}
+        {% set lines = package.about_procedure.split('\n') %}
+        {% if lines|length > 3 %}
+        contentDiv.innerHTML = {{ (lines[:3]|join('\n') + '...')|safe|tojson }};
+        {% else %}
+        contentDiv.innerHTML = {{ package.about_procedure|safe|tojson }};
+        {% endif %}
+        {% endif %}
+        btn.textContent = 'Show more';
+    }
+}
+
+function toggleRecommendedContent() {
+    const content = document.getElementById('recommended-content');
+    const btn = content.nextElementSibling;
+    const contentDiv = content.querySelector('div');
+    
+    if (btn.textContent === 'See more') {
+        // Show full content
+        contentDiv.innerHTML = '<p>' + {{ package.recommended_for|safe|tojson }} + '</p>';
+        btn.textContent = 'See less';
+    } else {
+        // Show truncated content
+        {% if package.recommended_for %}
+        {% set lines = package.recommended_for.split('\n') %}
+        {% if lines|length > 3 %}
+        contentDiv.innerHTML = '<p>' + {{ (lines[:3]|join('<br>') + '...')|safe|tojson }} + '</p>';
+        {% else %}
+        contentDiv.innerHTML = '<p>' + {{ package.recommended_for|safe|tojson }} + '</p>';
+        {% endif %}
+        {% endif %}
+        btn.textContent = 'See more';
+    }
+}
+
+// Map functionality with stored coordinates (with geocoding fallback)
+function loadMap() {
+    const clinicAddress = "{{ package.clinic_address or (package.clinic_name + ', ' + (package.clinic_city or 'Location not available')) }}";
+    const clinicName = "{{ package.clinic_name }}";
+    
+    // Check if we have stored coordinates first
+    {% if package.clinic_latitude and package.clinic_longitude %}
+    const storedLat = {{ package.clinic_latitude }};
+    const storedLng = {{ package.clinic_longitude }};
+    
+    console.log('Loading map with stored coordinates:', storedLat, storedLng);
+    
+    // Hide loading spinner
+    const loadingElement = document.getElementById('map-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+    
+    // Initialize the map with stored coordinates
+    const map = L.map('map').setView([storedLat, storedLng], 15);
+    
+    // Add CartoDB tiles with English labels
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Create custom clinic icon with proper positioning
+    const clinicIcon = L.divIcon({
+        html: '<i class="fas fa-map-marker-alt" style="color: #4A90E2; font-size: 30px;"></i>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30], // Anchor point at bottom center of the icon
+        popupAnchor: [0, -30], // Popup appears above the icon
+        className: 'custom-div-icon'
+    });
+    
+    // Add marker for clinic
+    L.marker([storedLat, storedLng], { icon: clinicIcon }).addTo(map)
+        .bindPopup(`
+            <div class="text-center p-2">
+                <strong style="color: #4A90E2;">${clinicName}</strong><br>
+                <small class="text-muted">${clinicAddress}</small><br>
+                <button class="btn btn-primary btn-sm mt-2" onclick="openDirections(${storedLat}, ${storedLng})">
+                    <i class="fas fa-directions"></i> Get Directions
+                </button>
+            </div>
+        `)
+        .openPopup();
+        
+    // Add clinic service area circle
+    L.circle([storedLat, storedLng], {
+        color: '#4A90E2',
+        fillColor: '#4A90E2',
+        fillOpacity: 0.1,
+        radius: 1000,
+        weight: 2
+    }).addTo(map);
+    
+    console.log('Map loaded successfully with stored coordinates');
+    
+    {% else %}
+    // Fallback to geocoding if no stored coordinates
+    console.log('No stored coordinates, falling back to geocoding with address:', clinicAddress);
+    
+    fetch('/geocode', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({
+            address: clinicAddress
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const lat = data.latitude;
+            const lng = data.longitude;
+            
+            console.log('Geocoded coordinates:', lat, lng);
+            
+            // Hide loading spinner
+            const loadingElement = document.getElementById('map-loading');
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+            
+            // Initialize the map
+            const map = L.map('map').setView([lat, lng], 15);
+            
+            // Add CartoDB tiles with English labels
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Create custom clinic icon with proper positioning
+            const clinicIcon = L.divIcon({
+                html: '<i class="fas fa-map-marker-alt" style="color: #4A90E2; font-size: 30px;"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 30], // Anchor point at bottom center of the icon
+                popupAnchor: [0, -30], // Popup appears above the icon
+                className: 'custom-div-icon'
+            });
+            
+            // Add marker for clinic
+            L.marker([lat, lng], { icon: clinicIcon }).addTo(map)
+                .bindPopup(`
+                    <div class="text-center p-2">
+                        <strong style="color: #4A90E2;">${clinicName}</strong><br>
+                        <small class="text-muted">${clinicAddress}</small><br>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="openDirections(${lat}, ${lng})">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </button>
+                    </div>
+                `)
+                .openPopup();
+                
+            // Add clinic service area circle
+            L.circle([lat, lng], {
+                color: '#4A90E2',
+                fillColor: '#4A90E2',
+                fillOpacity: 0.1,
+                radius: 1000,
+                weight: 2
+            }).addTo(map);
+            
+            console.log('Map loaded successfully with geocoded coordinates');
+        } else {
+            throw new Error(data.error || 'Geocoding failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading map:', error);
+        document.getElementById('map').innerHTML = `
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <div class="text-center">
+                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-2">${clinicName}</p>
+                    <p class="small text-muted mb-3">${clinicAddress}</p>
+                    <p class="small text-warning">Map temporarily unavailable</p>
+                    <button class="btn btn-primary btn-sm" onclick="openAddressInMaps()">
+                        <i class="fas fa-external-link-alt"></i> Open in Maps
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    {% endif %}
+}
+
+// Open directions function
+function openDirections(lat, lng) {
+    if (lat && lng) {
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        window.open(url, '_blank');
+    } else {
+        openAddressInMaps();
+    }
+}
+
+// Fallback function to open address in external maps
+function openAddressInMaps() {
+    const address = "{{ package.clinic_address or (package.clinic_name + ', ' + package.clinic_city) }}";
+    const encodedAddress = encodeURIComponent(address);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    window.open(googleMapsUrl, '_blank');
+}
+
+// Contact clinic functionality with message templates
+function contactClinic(actionType, packageId) {
+    // Prepare message templates
+    const chatTemplate = `{{ package.chat_message_template or "Hi! I'm interested in the " + package.title + " package. Could you provide more information about the procedure and schedule a consultation?" }}`;
+    const callTemplate = `{{ package.call_message_template or "I would like to inquire about the " + package.title + " package and discuss scheduling a consultation." }}`;
+    
+    fetch(`/packages/contact/${packageId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            action_type: actionType,
+            message_template: actionType === 'chat' ? chatTemplate : callTemplate
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (actionType === 'chat') {
+                const whatsappNumber = data.whatsapp_number || '{{ package.whatsapp_number }}';
+                const message = encodeURIComponent(chatTemplate);
+                window.open(`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
+            } else if (actionType === 'call') {
+                const phoneNumber = data.phone_number || '{{ package.custom_phone_number }}';
+                window.open(`tel:${phoneNumber}`, '_self');
+            }
+            
+            // Show success message
+            setTimeout(() => {
+                alert('Your inquiry has been submitted! You can now contact the clinic directly.');
+            }, 500);
+        } else {
+            alert(data.message || 'Error submitting inquiry. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting inquiry. Please try again.');
+    });
+}
+
+// Toggle review text function for package reviews
+function togglePackageReviewText(reviewIndex) {
+    const shortText = document.getElementById(`package-review-text-${reviewIndex}`);
+    const fullText = document.getElementById(`package-review-text-full-${reviewIndex}`);
+    const toggleBtn = document.getElementById(`package-toggle-btn-${reviewIndex}`);
+    
+    if (fullText.classList.contains('d-none')) {
+        // Show full text
+        shortText.classList.add('d-none');
+        fullText.classList.remove('d-none');
+        toggleBtn.textContent = 'Read less';
+    } else {
+        // Show short text
+        shortText.classList.remove('d-none');
+        fullText.classList.add('d-none');
+        toggleBtn.textContent = 'Read more';
+    }
+}
+
+// Simplified instant contact function
+async function instantContact(packageId, contactType) {
+    const btn = contactType === 'whatsapp' ? document.getElementById('whatsapp-btn') : document.getElementById('call-btn');
+    const btnText = btn.querySelector('.btn-text');
+    const originalText = btnText.textContent;
+    
+    // Show loading state
+    btnText.textContent = 'Connecting...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch(`/instant-contact/${packageId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+                contact_type: contactType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Success! Open contact immediately
+            if (contactType === 'whatsapp') {
+                window.open(data.whatsapp_url, '_blank');
+                
+                // Show success feedback
+                btnText.textContent = '✓ Connected';
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+                
+                // Optional: Show toast notification
+                showToast('Connecting to clinic WhatsApp...', 'success');
+                
+            } else if (contactType === 'call') {
+                window.location.href = data.tel_url;
+                
+                // Show success feedback
+                btnText.textContent = '✓ Calling';
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+                
+                // Optional: Show toast notification
+                showToast('Calling clinic...', 'success');
+            }
+            
+        } else if (data.requires_auth) {
+            // User needs to authenticate
+            if (confirm('Please sign in to get clinic contact details. Would you like to sign in now?')) {
+                window.location.href = data.redirect_url;
+            }
+            
+        } else {
+            // Other error
+            alert(data.message || 'Unable to connect. Please try again.');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Connection error. Please try again.');
+    } finally {
+        // Reset button state
+        btnText.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'info'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+// Initialize page functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-load map using address-based geocoding
+    // Wait for Leaflet to be fully loaded
+    if (typeof L !== 'undefined') {
+        loadMap();
+    } else {
+        // Wait a bit for Leaflet to load
+        setTimeout(function() {
+            if (typeof L !== 'undefined') {
+                loadMap();
+            } else {
+                console.error('Leaflet library not loaded');
+                // Show fallback if Leaflet fails to load
+                document.getElementById('map').innerHTML = `
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <div class="text-center">
+                            <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-2">{{ package.clinic_name }}</p>
+                            <p class="small text-muted mb-3">{{ package.clinic_address or (package.clinic_name + ', ' + (package.clinic_city or 'Location not available')) }}</p>
+                            <button class="btn btn-primary btn-sm" onclick="openAddressInMaps()">
+                                <i class="fas fa-external-link-alt"></i> Open in Maps
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }, 500);
+    }
+});
+
+// Toggle review text functionality
+function toggleReviewText(button) {
+    const reviewContent = button.closest('.review-content');
+    const shortText = reviewContent.querySelector('.review-text');
+    const fullText = reviewContent.querySelector('.review-text-full');
+    
+    if (fullText.classList.contains('d-none')) {
+        shortText.classList.add('d-none');
+        fullText.classList.remove('d-none');
+        button.textContent = 'Read less';
+    } else {
+        shortText.classList.remove('d-none');
+        fullText.classList.add('d-none');
+        button.textContent = 'Read more';
+    }
+}
+</script>
+
+<style>
+/* Reviews Horizontal Layout - Matching Screenshot Design */
+.reviews-horizontal-container {
+    overflow: hidden;
+    padding: 10px 0;
+}
+
+.reviews-scroll-wrapper {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 10px 0 20px 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.reviews-scroll-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.reviews-scroll-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.reviews-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.reviews-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.review-bubble {
+    flex: 0 0 320px;
+    background: white;
+    border: 2px solid #f0c674;
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.review-bubble:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.review-bubble:before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 30px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-left: 2px solid #f0c674;
+    border-bottom: 2px solid #f0c674;
+    transform: rotate(-45deg);
+    border-radius: 0 0 0 4px;
+}
+
+.review-avatar img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border: 2px solid #f8f9fa;
+}
+
+.avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border: 2px solid #f8f9fa;
+}
+
+.reviewer-name {
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+    margin: 0;
+}
+
+.rating-stars {
+    color: #f0c674;
+}
+
+.rating-stars i {
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+.review-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.5;
+    font-size: 14px;
+    margin: 0;
+}
+
+.read-more-btn {
+    color: #28a745;
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 500;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.read-more-btn:hover {
+    color: #1e7e34;
+    text-decoration: underline;
+}
+
+.review-text-full {
+    color: #555;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .review-bubble {
+        flex: 0 0 280px;
+        padding: 15px;
+    }
+    
+    .reviews-scroll-wrapper {
+        gap: 15px;
+    }
+    
+    .review-avatar img,
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .avatar-placeholder {
+        font-size: 16px;
+    }
+    
+    .reviewer-name {
+        font-size: 15px;
+    }
+    
+    /* Match procedure and recommended content font size to general app content on tablets/mobile */
+    .procedure-content .text-muted,
+    .procedure-content .text-muted p,
+    .recommended-content .text-muted,
+    .recommended-content .text-muted p {
+        font-size: 13px !important;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    .review-bubble {
+        flex: 0 0 260px;
+        padding: 12px;
+    }
+    
+    .reviewer-name {
+        font-size: 14px;
+    }
+    
+    .review-text {
+        font-size: 13px;
+    }
+    
+    /* Match procedure and recommended content font size to general app content on mobile */
+    .procedure-content .text-muted,
+    .procedure-content .text-muted p,
+    .recommended-content .text-muted,
+    .recommended-content .text-muted p {
+        font-size: 12px !important;
+        line-height: 1.4;
+    }
+    
+    /* Expand mobile CTA buttons to fill more bottom space */
+    .sticky-buttons .container {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .sticky-buttons .row {
+        --bs-gutter-x: 8px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .sticky-buttons .col-6 {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+}
+
+/* Package detail page font size optimizations */
+.mb-3.opacity-90 {
+    font-size: 13px !important;
+}
+
+p.mb-0:has(.fas.fa-map-marker-alt) {
+    font-size: 12px !important;
+}
+
+/* Fallback for address without :has() support */
+p.mb-0 .fas.fa-map-marker-alt {
+    font-size: 12px !important;
+}
+
+p.mb-0 {
+    font-size: 12px !important;
+}
+
+#clinic-address.small.text-muted {
+    font-size: 12px !important;
+}
+</style>
+
+<!-- Enhanced Lead Modal already included in base.html -->
+
+
+{% endblock %}

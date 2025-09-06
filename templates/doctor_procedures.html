@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}My Procedures | Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">My Procedures</h3>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProcedureModal">
+                        <i class="fas fa-plus"></i> Add Procedure
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if doctor_procedures %}
+                        <div class="row">
+                            {% for doctor_procedure in doctor_procedures %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card bg-dark border-secondary h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title">{{ doctor_procedure.procedure.procedure_name }}</h5>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-dark" type="button" id="dropdownMenuButton{{ doctor_procedure.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ doctor_procedure.id }}">
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProcedureModal{{ doctor_procedure.id }}">
+                                                                <i class="fas fa-edit me-2"></i> Edit Details
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <form action="{{ url_for('web.remove_doctor_procedure', doctor_id=doctor.id, procedure_id=doctor_procedure.procedure.id) }}" method="POST">
+                                                                <button type="submit" class="dropdown-item text-danger">
+                                                                    <i class="fas fa-trash-alt me-2"></i> Remove
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            
+                                            <p class="card-text small">{{ doctor_procedure.procedure.short_description }}</p>
+                                            
+                                            <div class="mt-3">
+                                                <span class="badge bg-primary me-2">₹{{ doctor_procedure.procedure.min_cost|int }} - ₹{{ doctor_procedure.procedure.max_cost|int }}</span>
+                                                <span class="badge bg-info">{{ doctor_procedure.procedure.body_part or "N/A" }}</span>
+                                            </div>
+                                            
+                                            <div class="mt-3">
+                                                <a href="{{ url_for('web.procedure_detail', procedure_id=doctor_procedure.procedure.id) }}" class="btn btn-sm btn-outline-light">
+                                                    View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Edit Procedure Modal -->
+                                <div class="modal fade" id="editProcedureModal{{ doctor_procedure.id }}" tabindex="-1" aria-labelledby="editProcedureModalLabel{{ doctor_procedure.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content bg-dark text-white">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editProcedureModalLabel{{ doctor_procedure.id }}">Edit Procedure Details</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{ url_for('web.update_doctor_procedure', doctor_id=doctor.id, procedure_id=doctor_procedure.procedure.id) }}" method="POST">
+                                                    <div class="mb-3">
+                                                        <label for="customPrice" class="form-label">Custom Price (optional)</label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">₹</span>
+                                                            <input type="number" class="form-control" id="customPrice" name="custom_price" placeholder="Leave blank to use default price range">
+                                                        </div>
+                                                        <div class="form-text text-muted">Default price range: ₹{{ doctor_procedure.procedure.min_cost|int }} - ₹{{ doctor_procedure.procedure.max_cost|int }}</div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="experienceYears" class="form-label">Years of Experience with this Procedure</label>
+                                                        <input type="number" class="form-control" id="experienceYears" name="experience_years" min="0" max="{{ doctor.experience }}" value="{{ doctor.experience }}">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="specialNotes" class="form-label">Special Notes or Expertise</label>
+                                                        <textarea class="form-control" id="specialNotes" name="special_notes" rows="3" placeholder="Highlight your unique approach or expertise with this procedure"></textarea>
+                                                    </div>
+                                                    <div class="mb-3 form-check">
+                                                        <input type="checkbox" class="form-check-input" id="featuredProcedure" name="is_featured">
+                                                        <label class="form-check-label" for="featuredProcedure">Feature this procedure on your profile</label>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You haven't added any procedures yet. Add procedures that you perform to appear in search results and attract patient leads.
+                        </div>
+                        <div class="text-center mt-4">
+                            <p>Adding procedures to your profile helps patients find you when searching for specific treatments.</p>
+                            <button class="btn btn-primary btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#addProcedureModal">
+                                <i class="fas fa-plus-circle me-2"></i> Add Your First Procedure
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h4 class="mb-0">Procedure Performance</h4>
+                </div>
+                <div class="card-body">
+                    {% if doctor_procedures %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Most Viewed Procedures</h5>
+                                <div class="chart-container" style="position: relative; height:250px;">
+                                    <canvas id="procedureViewsChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Lead Conversion by Procedure</h5>
+                                <div class="chart-container" style="position: relative; height:250px;">
+                                    <canvas id="procedureLeadsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-chart-bar me-2"></i> Procedure performance analytics will be available once you add procedures to your profile.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Procedure Modal -->
+<div class="modal fade" id="addProcedureModal" tabindex="-1" aria-labelledby="addProcedureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProcedureModalLabel">Add Procedure</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.add_doctor_procedure', doctor_id=doctor.id) }}" method="POST">
+                    <div class="mb-3">
+                        <label for="procedureSelect" class="form-label">Select Procedure</label>
+                        <select class="form-select" id="procedureSelect" name="procedure_id" required>
+                            <option value="" selected disabled>-- Select a procedure --</option>
+                            {% for procedure in all_procedures %}
+                                {% if procedure not in [dp.procedure for dp in doctor_procedures] %}
+                                    <option value="{{ procedure.id }}">{{ procedure.procedure_name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customPrice" class="form-label">Custom Price (optional)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input type="number" class="form-control" id="customPrice" name="custom_price" placeholder="Leave blank to use default price range">
+                        </div>
+                        <div class="form-text text-muted">If left blank, the procedure's default price range will be used</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="experienceYears" class="form-label">Years of Experience with this Procedure</label>
+                        <input type="number" class="form-control" id="experienceYears" name="experience_years" min="0" max="{{ doctor.experience }}" value="{{ doctor.experience }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="specialNotes" class="form-label">Special Notes or Expertise</label>
+                        <textarea class="form-control" id="specialNotes" name="special_notes" rows="3" placeholder="Highlight your unique approach or expertise with this procedure"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="featuredProcedure" name="is_featured">
+                        <label class="form-check-label" for="featuredProcedure">Feature this procedure on your profile</label>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Procedure</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Only initialize charts if we have procedures
+        {% if doctor_procedures %}
+            // Sample data for the charts
+            const procedureNames = [
+                {% for dp in doctor_procedures[:5] %}
+                    "{{ dp.procedure.procedure_name }}",
+                {% endfor %}
+            ];
+            
+            // Mock data for views
+            const procedureViews = [
+                {% for dp in doctor_procedures[:5] %}
+                    {{ range(50, 500)|random }},
+                {% endfor %}
+            ];
+            
+            // Mock data for lead conversion
+            const procedureLeads = [
+                {% for dp in doctor_procedures[:5] %}
+                    {{ range(5, 50)|random }},
+                {% endfor %}
+            ];
+            
+            // Views chart
+            const viewsCtx = document.getElementById('procedureViewsChart').getContext('2d');
+            new Chart(viewsCtx, {
+                type: 'bar',
+                data: {
+                    labels: procedureNames,
+                    datasets: [{
+                        label: 'Profile Views',
+                        data: procedureViews,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(75, 192, 192, 0.5)',
+                            'rgba(153, 102, 255, 0.5)',
+                            'rgba(255, 159, 64, 0.5)',
+                            'rgba(255, 99, 132, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Leads chart
+            const leadsCtx = document.getElementById('procedureLeadsChart').getContext('2d');
+            new Chart(leadsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: procedureNames,
+                    datasets: [{
+                        label: 'Lead Conversions',
+                        data: procedureLeads,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(75, 192, 192, 0.5)',
+                            'rgba(153, 102, 255, 0.5)',
+                            'rgba(255, 159, 64, 0.5)',
+                            'rgba(255, 99, 132, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

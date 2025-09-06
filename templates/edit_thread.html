@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Thread - Antidote{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.community_dashboard') }}">Community Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit Thread</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Edit Thread</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Enhanced form with image upload -->
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input name="title" id="title" class="form-control" value="{{ thread.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content</label>
+                            <textarea name="content" id="content" class="form-control" rows="8">{{ thread.content }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                {% for category in categories %}
+                                    <option value="{{ category.name }}" {% if thread.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Update Image (optional)</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            {% if thread.photo_url %}
+                            <div class="mt-2">
+                                <p>Current image:</p>
+                                <img src="/static/media/{{ thread.photo_url }}" alt="Thread image" style="max-width: 100%; max-height: 200px;">
+                            </div>
+                            {% endif %}
+                            <div id="image-preview-container" class="mt-2" style="display: none;">
+                                <p>New image preview:</p>
+                                <img id="image-preview" src="" alt="Image Preview" style="max-width: 100%; max-height: 200px;">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_anonymous" name="is_anonymous" {% if thread.is_anonymous %}checked{% endif %}>
+                            <label class="form-check-label" for="is_anonymous">Post Anonymously</label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('web.community_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

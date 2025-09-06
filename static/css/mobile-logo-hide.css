@@ -1,0 +1,44 @@
+/* Hide navbar logo on mobile view for internal pages */
+@media (max-width: 768px) {
+    /* Hide logo on all pages except homepage */
+    body:not(.homepage) .navbar-brand {
+        display: none !important;
+    }
+    
+    /* Force back button visibility when logo is hidden */
+    body:not(.homepage) .mobile-back-btn {
+        margin-right: 0 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 99999 !important;
+    }
+    
+    /* Adjust navbar content alignment when logo is hidden */
+    body:not(.homepage) .navbar .d-flex.align-items-center {
+        justify-content: flex-start !important;
+    }
+    
+    /* Ensure search form gets proper positioning without logo */
+    body:not(.homepage) .search-form-container {
+        margin-left: 0 !important;
+    }
+    
+    /* Force toggle button to stay on the right side */
+    .navbar-toggler {
+        margin-left: auto !important;
+        order: 999 !important;
+    }
+    
+    /* Ensure proper spacing between elements */
+    .navbar .container > .d-flex {
+        width: 100% !important;
+    }
+}
+
+/* Hide logo on very small screens for internal pages only */
+@media (max-width: 480px) {
+    body:not(.homepage) .navbar-brand {
+        display: none !important;
+    }
+}

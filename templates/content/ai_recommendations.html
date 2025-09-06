@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ seo_data.title }}{% endblock %}
+{% block meta_description %}{{ seo_data.description }}{% endblock %}
+{% block meta_keywords %}{{ seo_data.keywords }}{% endblock %}
+{% block canonical_url %}{{ url_for('content.ai_recommendations_landing', _external=True) }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section bg-gradient-primary text-white py-5 mb-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Antidote AI Recommendations</h1>
+            <p class="lead mb-4">Get personalized treatment recommendations powered by artificial intelligence. Our smart system analyzes your needs and suggests the best procedures for you.</p>
+            <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn btn-light btn-lg">Try AI Recommendations</a>
+        </div>
+    </div>
+
+    <!-- AI Features -->
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-brain text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Smart Analysis</h4>
+                        <p class="text-muted">Advanced AI algorithms analyze your facial features and aesthetic goals.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-camera text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Face Analysis</h4>
+                        <p class="text-muted">Upload photos for detailed facial analysis and treatment recommendations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-star text-primary mb-3" style="font-size: 3rem;"></i>
+                        <h4>Personalized Results</h4>
+                        <p class="text-muted">Get customized treatment plans based on your unique features and preferences.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Procedures -->
+    <div class="container mb-5">
+        <h2 class="text-center mb-4">AI-Recommended Procedures</h2>
+        <div class="row">
+            {% for procedure in procedures %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if procedure.image_url %}
+                    <img src="{{ procedure.image_url }}" class="card-img-top" alt="{{ procedure.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ procedure.name }}</h5>
+                        <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-primary btn-sm">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

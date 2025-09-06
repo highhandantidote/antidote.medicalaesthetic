@@ -1,0 +1,269 @@
+<!-- Enhanced Lead Generation Modal with Firebase OTP Verification -->
+<div class="modal fade" id="enhancedLeadModal" tabindex="-1" aria-labelledby="leadModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leadModalTitle">Contact Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- User Status Detection Script -->
+            <script>
+                // Set user authentication status for lead modal
+                window.currentUserData = {
+                    isAuthenticated: {% if current_user.is_authenticated %}true{% else %}false{% endif %},
+                    {% if current_user.is_authenticated %}
+                    name: "{{ current_user.name or '' }}",
+                    phone: "{{ current_user.phone_number or '' }}",
+                    email: "{{ current_user.email or '' }}",
+                    profileCompleted: {{ current_user.profile_completed|lower if current_user.profile_completed else 'false' }}
+                    {% endif %}
+                };
+                console.log('User authentication status:', window.currentUserData);
+            </script>
+            
+            <div class="modal-body">
+                <!-- Progress Indicators -->
+                <div class="progress-steps mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="step-indicator active" data-step="1">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Contact Info</div>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-indicator" data-step="2">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Verify Phone</div>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step-indicator" data-step="3">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div id="leadModalError" class="alert alert-danger" style="display: none;"></div>
+                <div id="leadModalSuccess" class="alert alert-success" style="display: none;"></div>
+
+                <!-- Step 1: Contact Form -->
+                <div id="contact-form">
+                    <form id="enhancedLeadForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contactName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="contactName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contactPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="contactPhone" placeholder="+91 9876543210" required>
+                                    <div class="form-text">We'll send an OTP to verify your number</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="contactEmail" placeholder="your@email.com">
+                            <div class="form-text">Optional - for appointment confirmations</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contactMessage" class="form-label">Message</label>
+                            <textarea class="form-control" id="contactMessage" rows="3" placeholder="Tell us about your interests or questions..."></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary btn-lg" id="submitContactBtn" onclick="submitContactForm()">
+                                <i class="fas fa-mobile-alt me-2"></i>Send OTP & Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 2: OTP Verification -->
+                <div id="otp-verification" style="display: none;">
+                    <div class="text-center mb-4">
+                        <div class="otp-icon mb-3">
+                            <i class="fas fa-sms fa-3x text-primary"></i>
+                        </div>
+                        <h5>Verify Your Phone Number</h5>
+                        <p class="text-muted">We've sent a 6-digit code to <br><strong id="otpPhoneDisplay"></strong></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="otpCode" class="form-label text-center d-block">Enter 6-Digit OTP</label>
+                        <input type="text" class="form-control form-control-lg text-center" id="otpCode" maxlength="6" placeholder="000000" style="font-size: 1.5rem; letter-spacing: 0.5rem;">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success btn-lg" id="verifyOtpBtn" onclick="verifyOtp()">
+                            <i class="fas fa-check-circle me-2"></i>Verify & Submit
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-secondary" id="resendOtpBtn" onclick="resendOtp()">
+                            <i class="fas fa-redo me-2"></i>Resend OTP
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted" id="otpCountdown"></small>
+                    </div>
+                </div>
+
+                <!-- Step 3: Success & Contact Options -->
+                <div id="success-message" style="display: none;">
+                    <div class="text-center mb-4">
+                        <div class="success-icon mb-3">
+                            <i class="fas fa-check-circle fa-4x text-success"></i>
+                        </div>
+                        <h4 class="text-success">Inquiry Submitted Successfully!</h4>
+                        <p class="text-muted">Your verified contact request has been sent to <strong id="successClinicName"></strong>.</p>
+                    </div>
+                    
+                    <div class="contact-options">
+                        <h6 class="mb-3">Connect with the clinic now:</h6>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <a href="#" id="successWhatsappBtn" class="btn btn-success w-100" target="_blank" style="display: none;">
+                                    <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="#" id="successCallBtn" class="btn btn-primary w-100" style="display: none;">
+                                    <i class="fas fa-phone me-2"></i>Call Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>What happens next?</strong><br>
+                        The clinic will receive your verified contact details and may reach out to you directly. You can also contact them using the buttons above.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="w-100 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Your information is secure and verified via OTP
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- reCAPTCHA container (invisible) -->
+<div id="recaptcha-container"></div>
+
+<!-- Enhanced Lead Modal JavaScript -->
+<script src="{{ url_for('static', filename='js/enhanced-lead-modal.js') }}"></script>
+
+<style>
+.progress-steps {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active .step-circle {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.step-indicator.completed .step-circle {
+    background-color: #198754;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.step-indicator.active .step-label {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.step-indicator.completed .step-label {
+    color: #198754;
+    font-weight: 600;
+}
+
+.step-line {
+    height: 2px;
+    background-color: #dee2e6;
+    flex: 1;
+    margin: 0 15px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.otp-icon, .success-icon {
+    opacity: 0.8;
+}
+
+#otpCode:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.contact-options {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.modal-lg {
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .modal-lg {
+        max-width: 95%;
+        margin: 10px auto;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+    }
+    
+    .step-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 0.875rem;
+    }
+}
+</style>

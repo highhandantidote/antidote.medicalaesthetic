@@ -1,0 +1,912 @@
+{% extends 'base.html' %}
+
+{% block title %}Community - Medical Support Platform{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+/* Enhanced Community Styles with Teal Theme */
+:root {
+    --community-primary: #0d9488;
+    --community-primary-light: #14b8a6;
+    --community-primary-dark: #0f766e;
+    --community-secondary: #06b6d4;
+    --community-accent: #f0fdfa;
+    --community-border: #a7f3d0;
+    --community-text: #1f2937;
+    --community-text-light: #6b7280;
+    --community-success: #10b981;
+    --community-warning: #f59e0b;
+    --community-error: #ef4444;
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.community-header {
+    background: linear-gradient(135deg, var(--community-primary) 0%, var(--community-secondary) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 24px 24px;
+}
+
+.community-stats {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 0.25rem;
+}
+
+.thread-card {
+    background: white !important;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 150px;
+    padding: 1.5rem;
+}
+
+.thread-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--community-primary-light);
+}
+
+.thread-card-header {
+    padding: 0 0 1rem 0;
+}
+
+.thread-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937 !important;
+    text-decoration: none;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.thread-title:hover {
+    color: var(--community-primary);
+    text-decoration: none;
+}
+
+.thread-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--community-text-light);
+    margin-bottom: 1rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--community-primary), var(--community-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.thread-content {
+    padding: 0 1.5rem;
+    color: var(--community-text);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.thread-actions {
+    padding: 1rem 1.5rem;
+    background: var(--community-accent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--community-text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: rgba(13, 148, 136, 0.1);
+    color: var(--community-primary);
+}
+
+.action-btn.active {
+    background: var(--community-primary);
+    color: white;
+}
+
+.thread-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.thread-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-category {
+    background: rgba(13, 148, 136, 0.1);
+    color: var(--community-primary);
+}
+
+.badge-doctor {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--community-success);
+}
+
+.badge-trending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--community-warning);
+}
+
+.search-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    border: 2px solid var(--community-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    width: 100%;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--community-primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.filter-section {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.filter-dropdown {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--community-border);
+    border-radius: 8px;
+    background: white;
+    color: var(--community-text);
+    font-size: 0.875rem;
+}
+
+.create-btn {
+    background: linear-gradient(135deg, var(--community-primary), var(--community-secondary));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.create-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.trending-sidebar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+}
+
+.trending-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trending-item:last-child {
+    border-bottom: none;
+}
+
+.trending-tag {
+    color: var(--community-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.trending-count {
+    background: rgba(13, 148, 136, 0.1);
+    color: var(--community-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--community-text-light);
+}
+
+.empty-state-icon {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 2rem;
+    background: var(--community-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--community-primary);
+    font-size: 2rem;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.page-btn {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--community-border);
+    background: white;
+    color: var(--community-text);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.page-btn:hover {
+    background: var(--community-accent);
+    text-decoration: none;
+}
+
+.page-btn.active {
+    background: var(--community-primary);
+    color: white;
+    border-color: var(--community-primary);
+}
+
+.floating-create {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+}
+
+.floating-create .create-btn {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-large);
+}
+
+@media (max-width: 768px) {
+    .community-header {
+        padding: 1.5rem 0;
+        margin-bottom: 1rem;
+    }
+    
+    .thread-card {
+        margin-bottom: 1rem;
+        border-radius: 12px;
+    }
+    
+    .thread-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .floating-create {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+/* Animation for loading new content */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reaction buttons */
+.reaction-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--community-border);
+    background: white;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reaction-btn:hover {
+    background: var(--community-accent);
+}
+
+.reaction-btn.active {
+    background: var(--community-primary);
+    color: white;
+    border-color: var(--community-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Community Header -->
+<div class="community-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 mb-0">Medical Community</h1>
+                <p class="lead mb-0">Connect, share experiences, and get expert advice from doctors and patients</p>
+            </div>
+            <div class="col-lg-4">
+                <button class="create-btn w-100" id="createThreadBtn">
+                    <i data-feather="plus"></i>
+                    Start New Discussion
+                </button>
+            </div>
+        </div>
+        
+        <!-- Community Stats -->
+        <div class="community-stats">
+            <div class="row">
+                <div class="col-3">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ threads|length if threads else 0 }}</span>
+                        <div class="stat-label">Active Discussions</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <span class="stat-number">1.2k</span>
+                        <div class="stat-label">Community Members</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <span class="stat-number">45</span>
+                        <div class="stat-label">Expert Doctors</div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="stat-item">
+                        <span class="stat-number">98%</span>
+                        <div class="stat-label">Response Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Search and Filters -->
+            <div class="search-section">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="position-relative">
+                            <input type="text" 
+                                   class="search-input" 
+                                   placeholder="Search discussions, procedures, experiences..."
+                                   id="searchInput"
+                                   value="{{ search_query or '' }}">
+                            <i data-feather="search" 
+                               style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--community-text-light);"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <select class="filter-dropdown w-100" id="sortFilter">
+                            <option value="trending" {% if current_sort == 'trending' %}selected{% endif %}>🔥 Trending</option>
+                            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>⏰ Latest</option>
+                            <option value="most_voted" {% if current_sort == 'most_voted' %}selected{% endif %}>👍 Most Voted</option>
+                            <option value="most_replies" {% if current_sort == 'most_replies' %}selected{% endif %}>💬 Most Discussed</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <select class="filter-dropdown" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if current_category == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    
+                    <select class="filter-dropdown" id="filterType">
+                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Discussions</option>
+                        {% if current_user %}
+                        <option value="saved" {% if filter_type == 'saved' %}selected{% endif %}>💾 Saved</option>
+                        <option value="following" {% if filter_type == 'following' %}selected{% endif %}>🔔 Following</option>
+                        {% endif %}
+                    </select>
+                    
+                    <div class="ms-auto">
+                        <span class="text-muted">{{ threads|length if threads else 0 }} discussions found</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thread List -->
+            <div id="threadsList">
+                {% if threads %}
+                    {% for thread in threads %}
+                    <div class="thread-card fade-in" data-thread-id="{{ thread.id }}">
+                        <div class="thread-card-header">
+                            <a href="{{ url_for('community_enhanced.view_thread', thread_id=thread.id) }}" class="thread-title">
+                                {{ thread.title }}
+                            </a>
+                            
+                            <div class="thread-meta">
+                                <div class="user-avatar">
+                                    {{ (thread.user.username or thread.user.name)[0].upper() if not thread.is_anonymous else 'A' }}
+                                </div>
+                                <span>
+                                    {% if thread.is_anonymous %}
+                                        Anonymous
+                                    {% else %}
+                                        {{ thread.user.username or thread.user.name }}
+                                    {% endif %}
+                                </span>
+                                <span>•</span>
+                                <span>{{ thread.created_at.strftime('%b %d, %Y') }}</span>
+                                {% if thread.doctor_verified %}
+                                <span class="thread-badge badge-doctor">✓ Doctor Verified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="thread-content">
+                            {{ thread.content[:200] }}{% if thread.content|length > 200 %}...{% endif %}
+                        </div>
+                        
+                        {% if thread.photo_url %}
+                        <div class="px-3 mb-3">
+                            <img src="{{ thread.photo_url }}" class="img-fluid rounded" style="max-height: 200px; width: auto;">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="thread-actions">
+                            <div class="action-group">
+                                <button class="action-btn vote-btn" data-thread-id="{{ thread.id }}" data-action="upvote">
+                                    <i data-feather="arrow-up"></i>
+                                    <span>{{ thread.upvotes or 0 }}</span>
+                                </button>
+                                <button class="action-btn" data-thread-id="{{ thread.id }}" data-action="reply">
+                                    <i data-feather="message-circle"></i>
+                                    <span>{{ thread.reply_count or 0 }}</span>
+                                </button>
+                                <button class="action-btn" data-thread-id="{{ thread.id }}" data-action="view">
+                                    <i data-feather="eye"></i>
+                                    <span>{{ thread.view_count or 0 }}</span>
+                                </button>
+                            </div>
+                            
+                            <div class="action-group">
+                                {% if current_user %}
+                                <button class="action-btn save-btn {% if user_saves and thread.id in user_saves %}active{% endif %}" 
+                                        data-thread-id="{{ thread.id }}" data-action="save">
+                                    <i data-feather="bookmark"></i>
+                                </button>
+                                <button class="action-btn follow-btn {% if user_follows and thread.id in user_follows %}active{% endif %}" 
+                                        data-thread-id="{{ thread.id }}" data-action="follow">
+                                    <i data-feather="bell"></i>
+                                </button>
+                                {% endif %}
+                                
+                                <div class="thread-badges">
+                                    {% if thread.category %}
+                                    <span class="thread-badge badge-category">{{ thread.category.name }}</span>
+                                    {% endif %}
+                                    {% if thread.trending_score and thread.trending_score > 10 %}
+                                    <span class="thread-badge badge-trending">🔥 Trending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Reaction Bar -->
+                        <div class="px-3 pb-3">
+                            <div class="reaction-bar">
+                                <button class="reaction-btn" data-thread-id="{{ thread.id }}" data-reaction="heart">
+                                    ❤️ <span>0</span>
+                                </button>
+                                <button class="reaction-btn" data-thread-id="{{ thread.id }}" data-reaction="thumbs_up">
+                                    👍 <span>0</span>
+                                </button>
+                                <button class="reaction-btn" data-thread-id="{{ thread.id }}" data-reaction="clap">
+                                    👏 <span>0</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i data-feather="message-square"></i>
+                        </div>
+                        <h3>No discussions yet</h3>
+                        <p>Be the first to start a conversation in our medical community.</p>
+                        <button class="create-btn" id="emptyCreateBtn">
+                            <i data-feather="plus"></i>
+                            Start First Discussion
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination and pagination.pages > 1 %}
+            <div class="pagination-container">
+                <div class="pagination">
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('community_enhanced.index', page=pagination.prev_num) }}" class="page-btn">
+                        <i data-feather="chevron-left"></i>
+                    </a>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <a href="{{ url_for('community_enhanced.index', page=page_num) }}" class="page-btn">{{ page_num }}</a>
+                            {% else %}
+                            <span class="page-btn active">{{ page_num }}</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="page-btn">...</span>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('community_enhanced.index', page=pagination.next_num) }}" class="page-btn">
+                        <i data-feather="chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Trending Topics -->
+            <div class="trending-sidebar">
+                <h5 class="mb-3">🔥 Trending Topics</h5>
+                {% if trending_tags %}
+                    {% for tag in trending_tags %}
+                    <div class="trending-item">
+                        <a href="?search={{ tag.tag }}" class="trending-tag">#{{ tag.tag }}</a>
+                        <span class="trending-count">{{ tag.count }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No trending topics yet</p>
+                {% endif %}
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="trending-sidebar">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="location.href='{{ url_for('web.doctors') }}'">
+                        <i data-feather="users"></i> Find Doctors
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="location.href='{{ url_for('web.procedures') }}'">
+                        <i data-feather="search"></i> Browse Procedures
+                    </button>
+                    {% if current_user %}
+                    <button class="btn btn-outline-success" onclick="location.href='{{ url_for('community_enhanced.index', filter='saved') }}'">
+                        <i data-feather="bookmark"></i> Saved Discussions
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Community Guidelines -->
+            <div class="trending-sidebar">
+                <h5 class="mb-3">Community Guidelines</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">✓ Be respectful and supportive</li>
+                    <li class="mb-2">✓ Share authentic experiences</li>
+                    <li class="mb-2">✓ Protect patient privacy</li>
+                    <li class="mb-2">✓ Consult doctors for medical advice</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Create Button (Mobile) -->
+<div class="floating-create d-lg-none">
+    <button class="create-btn" id="floatingCreateBtn">
+        <i data-feather="plus"></i>
+    </button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Create thread buttons
+    document.getElementById('createThreadBtn').addEventListener('click', function() {
+        window.location.href = '{{ url_for("community_enhanced.create_thread") }}';
+    });
+    
+    if (document.getElementById('emptyCreateBtn')) {
+        document.getElementById('emptyCreateBtn').addEventListener('click', function() {
+            window.location.href = '{{ url_for("community_enhanced.create_thread") }}';
+        });
+    }
+    
+    if (document.getElementById('floatingCreateBtn')) {
+        document.getElementById('floatingCreateBtn').addEventListener('click', function() {
+            window.location.href = '{{ url_for("community_enhanced.create_thread") }}';
+        });
+    }
+    
+    // Search and filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const sortFilter = document.getElementById('sortFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const filterType = document.getElementById('filterType');
+    
+    function updateFilters() {
+        const params = new URLSearchParams();
+        if (searchInput.value) params.set('search', searchInput.value);
+        if (sortFilter.value) params.set('sort', sortFilter.value);
+        if (categoryFilter.value) params.set('category_id', categoryFilter.value);
+        if (filterType.value) params.set('filter', filterType.value);
+        
+        window.location.href = '{{ url_for("community_enhanced.index") }}?' + params.toString();
+    }
+    
+    // Event listeners for filters
+    sortFilter.addEventListener('change', updateFilters);
+    categoryFilter.addEventListener('change', updateFilters);
+    filterType.addEventListener('change', updateFilters);
+    
+    // Search with debouncing
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(updateFilters, 500);
+    });
+    
+    // Action buttons functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.vote-btn')) {
+            handleVote(e.target.closest('.vote-btn'));
+        } else if (e.target.closest('.save-btn')) {
+            handleSave(e.target.closest('.save-btn'));
+        } else if (e.target.closest('.follow-btn')) {
+            handleFollow(e.target.closest('.follow-btn'));
+        } else if (e.target.closest('.reaction-btn')) {
+            handleReaction(e.target.closest('.reaction-btn'));
+        }
+    });
+    
+    function handleVote(btn) {
+        {% if current_user %}
+        const threadId = btn.dataset.threadId;
+        const action = btn.dataset.action;
+        
+        fetch('{{ url_for("community_enhanced.vote_thread") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                thread_id: parseInt(threadId),
+                vote_type: action
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.querySelector('span').textContent = data.upvotes;
+                btn.classList.toggle('active', data.user_vote === action);
+            } else {
+                alert(data.message || 'Error voting on thread');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Please try again later');
+        });
+        {% else %}
+        alert('Please log in to vote on discussions');
+        {% endif %}
+    }
+    
+    function handleSave(btn) {
+        {% if current_user %}
+        const threadId = btn.dataset.threadId;
+        
+        fetch('{{ url_for("community_enhanced.save_thread") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                thread_id: parseInt(threadId)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active', data.saved);
+            }
+        })
+        .catch(console.error);
+        {% else %}
+        alert('Please log in to save discussions');
+        {% endif %}
+    }
+    
+    function handleFollow(btn) {
+        {% if current_user %}
+        const threadId = btn.dataset.threadId;
+        
+        fetch('{{ url_for("community_enhanced.follow_thread") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                thread_id: parseInt(threadId)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active', data.following);
+            }
+        })
+        .catch(console.error);
+        {% else %}
+        alert('Please log in to follow discussions');
+        {% endif %}
+    }
+    
+    function handleReaction(btn) {
+        {% if current_user %}
+        const threadId = btn.dataset.threadId;
+        const reaction = btn.dataset.reaction;
+        
+        fetch('{{ url_for("community_enhanced.react_to_thread") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                thread_id: parseInt(threadId),
+                reaction_type: reaction
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.querySelector('span').textContent = data.count;
+                btn.classList.toggle('active', data.reacted);
+            }
+        })
+        .catch(console.error);
+        {% else %}
+        alert('Please log in to react to discussions');
+        {% endif %}
+    }
+});
+</script>
+{% endblock %}

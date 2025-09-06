@@ -1,0 +1,29 @@
+Finalize Seeding, Test Community Analytics Dashboard, and Optimize:
+
+1. Review Current State:
+   - Confirm `test_report.md` reflects the template fix and partial seeding, with performance metrics (e.g., load times <2s, API response times <500ms).
+   - Check `antidote_full_test_20250421_234956.log` for errors (e.g., not-null constraints) and debug traces.
+
+2. Finalize Database Seeding:
+   - Resolve not-null constraints in `procedures` table—update `seed_minimal_data.py` or `add_procedures_small.py` to include all required fields (e.g., name, body_part_id, description). Seed 117 procedures, spot-check IDs 1, 13, 50 with: SELECT id, procedure_name, body_part_id FROM procedures WHERE id IN (1, 13, 50).
+   - Seed 6 threads (including “Test Thread”) with `seed_community_threads.py`, ensuring all fields (e.g., title, content, procedure_id, keywords) are defined. Spot-check with: SELECT id, title, content, created_at, procedure_id, keywords FROM threads LIMIT 6, confirming “cost” with 2 mentions and body part distribution (5 Face, 1 Breast).
+   - Verify `/api/community/trends` returns “cost” with 2 mentions.
+
+3. Test Community Analytics Dashboard:
+   - Verify `/dashboard/community` in `dashboard_community.html`:
+     - Ensure “Top Trends” bar chart renders “cost” with 2 mentions, with <200ms rendering, labels, and tooltips.
+     - Confirm body part distribution pie chart renders Face: 5, Breast: 1, with <200ms rendering, legend, and tooltips.
+     - Check filter dropdown updates to 5 threads for “Face” with <100ms lag, logging changes with timestamps.
+   - Ensure `/community` in `community.html` shows only discussions (search, threads, “Create Thread”) with no analytics.
+
+4. Optimize and Stabilize:
+   - Optimize with minified CSS/JavaScript and lazy loading for charts on `/dashboard/community`.
+   - Update `static/js/community-analytics.js` with timestamped filter logs, debounce filter events, and debug logs for data loading.
+   - Confirm real-time polling logs an update after 5 minutes with `/api/community/trends`.
+
+5. Respond:
+   - Summarize: “Great fix switching to dashboard_community.html and cleaning community.html! Resolve not-null constraints in seeding—seed 117 procedures and 6 threads, then test /dashboard/community for charts (e.g., ‘cost’ at 2 mentions, Face: 5, Breast: 1) and filters. Ensure /community has discussions only. I’ll confirm once working.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `dashboard_community.html`, `seed_minimal_data.py`, `seed_community_threads.py`, `static/js/community-analytics.js`, console output, and screenshots of `/community` (discussions) and `/dashboard/community` (analytics).
+
+6. Next Steps:
+   - Proceed with seeding and testing—focus on data integrity first.

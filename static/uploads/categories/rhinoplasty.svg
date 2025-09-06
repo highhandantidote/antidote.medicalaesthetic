@@ -1,0 +1,35 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f4d1ae;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8c4a0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="medicalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8ed8d2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5baba3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#medicalGradient)" opacity="0.1"/>
+  
+  <!-- Face profile -->
+  <path d="M60 70 Q100 50 140 70 L140 130 Q100 150 60 130 Z" 
+        fill="url(#skinGradient)" stroke="#d4b08a" stroke-width="2"/>
+  
+  <!-- Nose outline -->
+  <path d="M90 90 Q100 85 110 90 L108 110 Q100 115 92 110 Z" 
+        fill="url(#skinGradient)" stroke="#d4b08a" stroke-width="2"/>
+  
+  <!-- Surgical guidelines -->
+  <path d="M90 90 L110 90" stroke="#8ed8d2" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>
+  <path d="M92 110 L108 110" stroke="#8ed8d2" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>
+  <path d="M100 85 L100 115" stroke="#8ed8d2" stroke-width="1" stroke-dasharray="3,2" opacity="0.7"/>
+  
+  <!-- Medical cross -->
+  <g transform="translate(100, 140)">
+    <circle r="15" fill="white" opacity="0.9"/>
+    <rect x="-7" y="-1.5" width="14" height="3" fill="url(#medicalGradient)"/>
+    <rect x="-1.5" y="-7" width="3" height="14" fill="url(#medicalGradient)"/>
+  </g>
+</svg>

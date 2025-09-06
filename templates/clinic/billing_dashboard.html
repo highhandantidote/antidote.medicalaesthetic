@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Credit Billing Dashboard - {{ clinic.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Credit Billing Dashboard</h2>
+                    <p class="text-muted">{{ clinic.name }} - Manage your credits and lead costs</p>
+                </div>
+                <div>
+                    <a href="/clinic/disputes" class="btn btn-outline-warning me-2">
+                        <i class="fas fa-exclamation-triangle"></i> Dispute Leads
+                    </a>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#topupModal">
+                        <i class="fas fa-plus"></i> Top Up Credits
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Balance Alert -->
+    {% if credit_balance < 500 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert {% if credit_balance < 0 %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                <div class="flex-grow-1">
+                    {% if credit_balance < 0 %}
+                    <strong>Negative Balance Alert!</strong><br>
+                    Your account is overdrawn by {{ credit_balance|abs|format_credits }} credits (₹{{ credit_balance|abs|format_credits }}).
+                    New leads will continue to be charged, increasing the negative balance.
+                    {% else %}
+                    <strong>Low Credit Balance!</strong><br>
+                    You have {{ credit_balance|format_credits }} credits remaining. Consider topping up to avoid service interruption.
+                    {% endif %}
+                </div>
+                <button class="btn {% if credit_balance < 0 %}btn-light{% else %}btn-warning{% endif %} btn-sm" data-bs-toggle="modal" data-bs-target="#topupModal">
+                    Top Up Now
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ credit_balance|format_credits }}</h4>
+                            <p class="card-text">Current Credits</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small class="text-light">≈ ₹{{ credit_balance|format_credits }} value</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ monthly_stats.leads_generated }}</h4>
+                            <p class="card-text">Leads This Month</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-plus fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small class="text-light">{{ monthly_stats.credits_spent|format_credits }} credits spent</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ monthly_stats.credits_purchased|format_credits }}</h4>
+                            <p class="card-text">Credits Purchased</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small class="text-light">This month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">₹100-500</h4>
+                            <p class="card-text">Lead Cost Range</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-tag fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                    <small>Dynamic pricing based on package value</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Tiers Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Dynamic Lead Pricing Tiers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for (min_price, max_price), cost in pricing_tiers.items() %}
+                        <div class="col-md-2 col-sm-4 col-6 mb-3">
+                            <div class="text-center p-3 border rounded">
+                                <div class="fw-bold text-primary">{{ cost }} Credits</div>
+                                <small class="text-muted">
+                                    {% if max_price == float('inf') %}
+                                    ₹{{ '{:,}'.format(min_price) }}+
+                                    {% else %}
+                                    ₹{{ '{:,}'.format(min_price) }}-{{ '{:,}'.format(max_price-1) }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        Lead costs are calculated automatically based on your package prices. Higher value packages generate higher cost leads.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Transactions</h5>
+                    <a href="/clinic/transactions" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Credits</th>
+                                    <th>Lead Info</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>
+                                        <small>{{ transaction.created_at.strftime('%d %b %Y') }}</small><br>
+                                        <small class="text-muted">{{ transaction.created_at.strftime('%I:%M %p') }}</small>
+                                    </td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'deduction' %}
+                                        <span class="badge bg-danger">Lead Cost</span>
+                                        {% elif transaction.transaction_type == 'credit' %}
+                                        <span class="badge bg-success">Purchase</span>
+                                        {% elif transaction.transaction_type == 'bonus' %}
+                                        <span class="badge bg-info">Bonus</span>
+                                        {% elif transaction.transaction_type == 'refund' %}
+                                        <span class="badge bg-warning">Refund</span>
+                                        {% elif transaction.transaction_type == 'admin_adjustment' %}
+                                        <span class="badge bg-secondary">Admin</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ transaction.description or 'No description' }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold {% if transaction.amount < 0 %}text-danger{% else %}text-success{% endif %}">
+                                            {{ transaction.amount|format_credits }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if transaction.patient_name %}
+                                        <small>
+                                            <strong>{{ transaction.patient_name }}</strong><br>
+                                            <span class="text-muted">{{ transaction.procedure_name or 'General inquiry' }}</span>
+                                        </small>
+                                        {% else %}
+                                        <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if transaction.status == 'completed' %}bg-success{% elif transaction.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ transaction.status.title() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No transactions yet</h5>
+                        <p class="text-muted">Your credit transactions will appear here</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Up Credits Modal -->
+<div class="modal fade" id="topupModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Top Up Credits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {% for package in credit_packages %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 {% if package.popular %}border-primary{% endif %} credit-package" 
+                             data-credits="{{ package.credits }}" 
+                             data-amount="{{ package.price }}" 
+                             data-bonus="{{ package.bonus }}">
+                            {% if package.popular %}
+                            <div class="card-header bg-primary text-white text-center">
+                                <small><i class="fas fa-star"></i> Most Popular</small>
+                            </div>
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h4 class="card-title">{{ package.credits|format_credits }}</h4>
+                                <p class="card-text">Credits</p>
+                                {% if package.bonus > 0 %}
+                                <div class="badge bg-success mb-2">+{{ package.bonus|format_credits }} Bonus</div>
+                                <h5 class="text-success">{{ package.total|format_credits }} Total</h5>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <h5 class="text-primary">₹{{ '{:,}'.format(package.price) }}</h5>
+                                    <small class="text-muted">₹1 per credit</small>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn {% if package.popular %}btn-primary{% else %}btn-outline-primary{% endif %} w-100 purchase-btn">
+                                    Purchase Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div id="payment-status" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Handle credit package purchases
+    $('.purchase-btn').click(function() {
+        const card = $(this).closest('.credit-package');
+        const credits = card.data('credits');
+        const amount = card.data('amount');
+        const bonus = card.data('bonus');
+        
+        // Disable all purchase buttons
+        $('.purchase-btn').prop('disabled', true).text('Processing...');
+        
+        // Show confirmation
+        const totalCredits = credits + bonus;
+        const confirmMsg = `Purchase ${credits.toLocaleString()} credits${bonus > 0 ? ' + ' + bonus.toLocaleString() + ' bonus' : ''} for ₹${amount.toLocaleString()}?`;
+        
+        if (!confirm(confirmMsg)) {
+            $('.purchase-btn').prop('disabled', false).text('Purchase Now');
+            return;
+        }
+        
+        // Initiate payment
+        $.post('/clinic/purchase-credits', {
+            credits: credits,
+            amount: amount
+        })
+        .done(function(response) {
+            if (response.success) {
+                // Initialize Razorpay
+                const options = {
+                    key: response.key,
+                    amount: response.amount * 100,
+                    currency: 'INR',
+                    name: '{{ clinic.name }}',
+                    description: `${credits.toLocaleString()} Credits Purchase`,
+                    order_id: response.order_id,
+                    handler: function(paymentResponse) {
+                        // Payment successful
+                        showPaymentSuccess(credits, bonus);
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    },
+                    prefill: {
+                        name: '{{ clinic.name }}',
+                        email: '{{ clinic.email or "" }}'
+                    },
+                    theme: {
+                        color: '#007bff'
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+                
+                rzp.on('payment.failed', function(response) {
+                    showPaymentError('Payment failed. Please try again.');
+                });
+            } else {
+                showPaymentError(response.error);
+            }
+        })
+        .fail(function() {
+            showPaymentError('Network error. Please try again.');
+        })
+        .always(function() {
+            $('.purchase-btn').prop('disabled', false).text('Purchase Now');
+        });
+    });
+    
+    function showPaymentSuccess(credits, bonus) {
+        const totalCredits = credits + bonus;
+        const html = `<div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            Payment successful! ${totalCredits.toLocaleString()} credits have been added to your account.
+        </div>`;
+        $('#payment-status').html(html);
+    }
+    
+    function showPaymentError(error) {
+        const html = `<div class="alert alert-danger">
+            <i class="fas fa-times-circle me-2"></i>
+            ${error}
+        </div>`;
+        $('#payment-status').html(html);
+    }
+    
+    // Auto-refresh balance every 30 seconds
+    setInterval(function() {
+        $.get('/clinic/low-balance-alert')
+            .done(function(response) {
+                if (response.has_alert && response.balance !== {{ credit_balance }}) {
+                    // Balance changed, reload page
+                    location.reload();
+                }
+            });
+    }, 30000);
+});
+</script>
+
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}

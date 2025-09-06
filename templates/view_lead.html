@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}View Lead | Doctor Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 lead-detail-page" data-lead-id="{{ lead.id }}">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Lead Details</h3>
+                    <div>
+                        <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Leads
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-darker text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Patient Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="avatar-placeholder">
+                                            <i class="fas fa-user fa-3x"></i>
+                                        </div>
+                                    </div>
+                                    <table class="table table-dark">
+                                        <tr>
+                                            <th>Name:</th>
+                                            <td>{{ lead.patient_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Mobile:</th>
+                                            <td>{{ lead.mobile_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email:</th>
+                                            <td>{{ lead.email if lead.email else 'Not provided' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>City:</th>
+                                            <td>{{ lead.city if lead.city else 'Not specified' }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Quick Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('web.contact_lead', lead_id=lead.id) }}" class="btn btn-primary">
+                                            <i class="fas fa-envelope"></i> Contact Patient
+                                        </a>
+                                        <a href="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" class="btn btn-info">
+                                            <i class="fas fa-edit"></i> Update Status
+                                        </a>
+                                        {% if lead.status != 'scheduled' %}
+                                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#scheduleModal">
+                                                <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#rescheduleModal">
+                                                <i class="fas fa-calendar-alt"></i> Reschedule Appointment
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <div class="card bg-darker text-white mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Lead Details</h5>
+                                    <span class="badge 
+                                        {% if lead.status == 'pending' %}bg-warning
+                                        {% elif lead.status == 'contacted' %}bg-info
+                                        {% elif lead.status == 'scheduled' %}bg-primary
+                                        {% elif lead.status == 'completed' %}bg-success
+                                        {% elif lead.status == 'rejected' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ lead.status|capitalize }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-dark">
+                                        <tr>
+                                            <th>Procedure:</th>
+                                            <td>{{ lead.procedure_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Created:</th>
+                                            <td>{{ lead.created_at.strftime('%d %b %Y, %H:%M') if lead.created_at else 'Unknown' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Preferred Date:</th>
+                                            <td>{{ lead.preferred_date.strftime('%d %b %Y') if lead.preferred_date else 'Not specified' }}</td>
+                                        </tr>
+                                        {% if lead.appointment_date %}
+                                        <tr>
+                                            <th>Appointment:</th>
+                                            <td>
+                                                <strong>{{ lead.appointment_date.strftime('%d %b %Y, %H:%M') }}</strong>
+                                                {% if lead.status == 'scheduled' %}
+                                                <span class="badge bg-primary ms-2">Confirmed</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th>Source:</th>
+                                            <td>{{ lead.source if lead.source else 'Website' }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-darker text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Patient Message</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="p-3 bg-dark rounded">
+                                        {{ lead.message if lead.message else 'No message provided by the patient.' }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Communication History</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if lead.status == 'pending' %}
+                                        <p class="text-warning"><i class="fas fa-exclamation-circle"></i> No communication history yet. Use the Contact Patient button to initiate communication.</p>
+                                    {% else %}
+                                        <div class="timeline">
+                                            <div class="timeline-item">
+                                                <div class="timeline-marker bg-success"></div>
+                                                <div class="timeline-content">
+                                                    <h6 class="timeline-title">Lead Created</h6>
+                                                    <p class="timeline-text">Patient submitted inquiry for {{ lead.procedure_name }}.</p>
+                                                    <p class="text-muted small">{{ lead.created_at.strftime('%d %b %Y, %H:%M') if lead.created_at else '' }}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if lead.status != 'pending' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-info"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Initial Contact</h6>
+                                                        <p class="timeline-text">Status updated to contacted.</p>
+                                                        <p class="text-muted small">{{ lead.updated_at.strftime('%d %b %Y, %H:%M') if lead.updated_at else '' }}</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if lead.status == 'scheduled' or lead.status == 'completed' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-primary"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Appointment Scheduled</h6>
+                                                        <p class="timeline-text">Consultation scheduled for {{ lead.appointment_date.strftime('%d %b %Y, %H:%M') if lead.appointment_date else 'date not specified' }}.</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if lead.status == 'completed' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-success"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Consultation Completed</h6>
+                                                        <p class="timeline-text">Patient consultation marked as completed.</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if lead.status == 'rejected' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-danger"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Lead Rejected</h6>
+                                                        <p class="timeline-text">This lead was marked as rejected.</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Appointment Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleModalLabel">Schedule Appointment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="schedule-form" action="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="scheduled">
+                    
+                    <div class="mb-3">
+                        <label for="appointment_date" class="form-label">Appointment Date & Time</label>
+                        <input type="datetime-local" class="form-control bg-dark text-white" id="appointment_date" name="appointment_date" required
+                              value="{{ lead.preferred_date.strftime('%Y-%m-%dT%H:%M') if lead.preferred_date else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Internal Only)</label>
+                        <textarea class="form-control bg-dark text-white" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="notify_patient" name="notify_patient" value="1" checked>
+                        <label class="form-check-label" for="notify_patient">Send notification to patient</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="schedule-submit-btn">Schedule Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Appointment Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rescheduleModalLabel">Reschedule Appointment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Current appointment: <strong>{{ lead.appointment_date.strftime('%d %b %Y, %H:%M') if lead.appointment_date else 'Not scheduled' }}</strong></p>
+                
+                <form id="reschedule-form" action="{{ url_for('web.update_lead_status', lead_id=lead.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="scheduled">
+                    
+                    <div class="mb-3">
+                        <label for="new_appointment_date" class="form-label">New Appointment Date & Time</label>
+                        <input type="datetime-local" class="form-control bg-dark text-white" id="new_appointment_date" name="appointment_date" required
+                              value="{{ lead.appointment_date.strftime('%Y-%m-%dT%H:%M') if lead.appointment_date else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="reschedule_reason" class="form-label">Reason for Rescheduling</label>
+                        <select class="form-select bg-dark text-white" id="reschedule_reason" name="reschedule_reason">
+                            <option value="doctor_unavailable">Doctor Unavailable</option>
+                            <option value="patient_request">Patient Request</option>
+                            <option value="emergency">Emergency</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="reschedule_notes" class="form-label">Notes (Internal Only)</label>
+                        <textarea class="form-control bg-dark text-white" id="reschedule_notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="reschedule_notify_patient" name="notify_patient" value="1" checked>
+                        <label class="form-check-label" for="reschedule_notify_patient">Send notification to patient</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="reschedule-submit-btn">Reschedule Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-darker {
+    background-color: #1a1e21;
+}
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    background: #2a3038;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+.timeline-item {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 20px;
+}
+.timeline-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+.timeline-content {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #2a2e32;
+}
+.table-dark {
+    background-color: transparent;
+}
+</style>
+
+<script>
+// Use external script for better organization
+</script>
+<script src="{{ url_for('static', filename='js/lead_details.js') }}">
+</script>
+{% endblock %}

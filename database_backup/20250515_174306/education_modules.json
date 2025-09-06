@@ -1,0 +1,67 @@
+{
+  "table": "education_modules",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "title",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "content",
+      "type": "text",
+      "nullable": false
+    },
+    {
+      "name": "category_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "procedure_id",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "level",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "points",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "estimated_minutes",
+      "type": "integer",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

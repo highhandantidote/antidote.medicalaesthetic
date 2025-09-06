@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Patient Lead | Doctor Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Contact Patient</h3>
+                    <div>
+                        <a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Leads
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Patient Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Name:</strong> {{ lead.patient_name }}</p>
+                                    <p><strong>Contact:</strong> {{ lead.mobile_number }}</p>
+                                    <p><strong>Email:</strong> {{ lead.email if lead.email else 'Not provided' }}</p>
+                                    <p><strong>Location:</strong> {{ lead.city if lead.city else 'Not specified' }}</p>
+                                    <p><strong>Procedure:</strong> {{ lead.procedure_name }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if lead.status == 'pending' %}bg-warning
+                                            {% elif lead.status == 'contacted' %}bg-info
+                                            {% elif lead.status == 'scheduled' %}bg-primary
+                                            {% elif lead.status == 'completed' %}bg-success
+                                            {% elif lead.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ lead.status|capitalize }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Message:</strong> {{ lead.message if lead.message else 'No message provided' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-darker text-white">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Communication History</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if lead.status == 'pending' %}
+                                        <p class="text-warning"><i class="fas fa-exclamation-circle"></i> No previous communication with this patient.</p>
+                                    {% else %}
+                                        <div class="timeline">
+                                            <div class="timeline-item">
+                                                <div class="timeline-marker bg-info"></div>
+                                                <div class="timeline-content">
+                                                    <h6 class="timeline-title">Initial Contact</h6>
+                                                    <p class="timeline-text">Status updated to contacted.</p>
+                                                    <p class="text-muted small">{{ lead.updated_at.strftime('%d %b %Y, %H:%M') if lead.updated_at else '' }}</p>
+                                                </div>
+                                            </div>
+                                            {% if lead.status == 'scheduled' or lead.status == 'completed' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-primary"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Appointment Scheduled</h6>
+                                                        <p class="timeline-text">Consultation scheduled for {{ lead.appointment_date.strftime('%d %b %Y, %H:%M') if lead.appointment_date else 'date not specified' }}.</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% if lead.status == 'completed' %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-success"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="timeline-title">Consultation Completed</h6>
+                                                        <p class="timeline-text">Patient consultation marked as completed.</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="contact-form" action="{{ url_for('web.contact_lead', lead_id=lead.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="contact_method" class="form-label">Contact Method</label>
+                            <select class="form-select bg-dark text-white" id="contact_method" name="contact_method">
+                                <option value="email" {% if lead.email %}selected{% endif %}>Email</option>
+                                <option value="sms" {% if not lead.email %}selected{% endif %}>SMS</option>
+                                <option value="both">Both Email & SMS</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control bg-dark text-white" id="subject" name="subject" value="Regarding your {{ lead.procedure_name }} inquiry">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control bg-dark text-white" id="message" name="message" rows="5" required>Dear {{ lead.patient_name }},
+
+Thank you for your interest in {{ lead.procedure_name }} consultation. I would be happy to discuss your requirements and answer any questions you may have.
+
+{% if lead.status == 'pending' %}Would you like to schedule a consultation at my clinic? Please let me know your availability.{% endif %}
+{% if lead.appointment_date %}I confirm your appointment on {{ lead.appointment_date.strftime('%d %b %Y at %H:%M') }}.{% endif %}
+
+Warm regards,
+Dr. {{ doctor.name }}
+{{ doctor.clinic_name if doctor.clinic_name else '' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="update_status" name="update_status" value="contacted" {% if lead.status == 'pending' %}checked{% endif %} {% if lead.status != 'pending' %}disabled{% endif %}>
+                            <label class="form-check-label" for="update_status">Update lead status to 'Contacted'</label>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="save_template" name="save_template" value="1">
+                            <label class="form-check-label" for="save_template">Save as template for future use</label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="send-message-btn">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Message Templates</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group bg-dark">
+                        <a href="#" class="list-group-item list-group-item-action bg-darker text-white template-item" data-template="initial-consultation">
+                            <h5 class="mb-1">Initial Consultation</h5>
+                            <p class="mb-1">Template for first contact with patient</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action bg-darker text-white template-item" data-template="appointment-confirmation">
+                            <h5 class="mb-1">Appointment Confirmation</h5>
+                            <p class="mb-1">Confirm scheduled appointment details</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action bg-darker text-white template-item" data-template="followup">
+                            <h5 class="mb-1">Follow-up Message</h5>
+                            <p class="mb-1">Check in with patients after consultation</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-darker {
+    background-color: #1a1e21;
+}
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+.timeline-item {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 15px;
+}
+.timeline-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+.timeline-content {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2e32;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle template selection
+    document.querySelectorAll('.template-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const templateType = this.dataset.template;
+            const messageField = document.getElementById('message');
+            const patientName = "{{ lead.patient_name }}";
+            const procedureName = "{{ lead.procedure_name }}";
+            const doctorName = "{{ doctor.name }}";
+            
+            // Set different message templates based on the selected template
+            let messageText = '';
+            
+            if (templateType === 'initial-consultation') {
+                messageText = `Dear ${patientName},
+
+Thank you for your interest in ${procedureName} consultation. I would be happy to discuss your requirements and answer any questions you may have.
+
+Would you like to schedule a consultation at my clinic? Please let me know your availability.
+
+Warm regards,
+Dr. ${doctorName}`;
+            } else if (templateType === 'appointment-confirmation') {
+                const appointmentDate = "{{ lead.appointment_date.strftime('%d %b %Y at %H:%M') if lead.appointment_date else 'to be determined' }}";
+                messageText = `Dear ${patientName},
+
+I'm writing to confirm your upcoming consultation for ${procedureName} on ${appointmentDate}.
+
+Please arrive 15 minutes before your appointment and bring any relevant medical records or imaging results if available.
+
+If you need to reschedule or have any questions, please don't hesitate to contact me.
+
+Looking forward to meeting you,
+Dr. ${doctorName}`;
+            } else if (templateType === 'followup') {
+                messageText = `Dear ${patientName},
+
+I hope you're doing well after our recent consultation regarding ${procedureName}.
+
+I wanted to check if you have any additional questions or concerns that I can address. Your recovery and satisfaction are my highest priorities.
+
+Please let me know if there's anything I can assist you with.
+
+Best regards,
+Dr. ${doctorName}`;
+            }
+            
+            messageField.value = messageText;
+        });
+    });
+    
+    // Add AJAX support for form submission
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const formData = new FormData(form);
+        const submitButton = document.getElementById('send-message-btn');
+        
+        // Disable the button to prevent multiple submissions
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Message sent successfully!');
+                window.location.href = "{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}";
+            } else {
+                alert('Error: ' + (data.message || 'Failed to send message. Please try again.'));
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Send Message';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while sending the message. Please try again.');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Send Message';
+        });
+    });
+});
+</script>
+{% endblock %}

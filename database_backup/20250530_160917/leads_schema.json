@@ -1,0 +1,86 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('leads_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "message",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "appointment_date",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "status",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "patient_name",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "mobile_number",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "city",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "procedure_name",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "preferred_date",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "consent_given",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "source",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  }
+]

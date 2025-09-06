@@ -1,0 +1,991 @@
+{% extends 'base.html' %}
+
+{% block title %}Treatment Cost Calculator{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- Add Chart.js and plugins for enhanced visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* Chart View Styles */
+    .chart-view-container {
+        background-color: #161c2d;
+        border-radius: 8px;
+        padding: 20px;
+        color: #e2e8f0;
+        margin-top: 20px;
+    }
+    
+    .chart-view-tabs {
+        display: flex;
+        border-bottom: 1px solid #2d3748;
+        margin-bottom: 30px;
+    }
+    
+    .chart-view-tab {
+        padding: 12px 24px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #a0aec0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .chart-view-tab.active {
+        color: #fff;
+        border-bottom: 3px solid #6366f1;
+    }
+    
+    .chart-view-tab i {
+        font-size: 1.2rem;
+    }
+    
+    .chart-view-content {
+        display: none;
+    }
+    
+    .chart-view-content.active {
+        display: block;
+    }
+    
+    .charts-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .chart-box {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .chart-box h4 {
+        color: #cbd5e0;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    /* Legend Styles */
+    .chart-legend {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .chart-legend span {
+        display: inline-block;
+        margin: 0 8px;
+        color: #a0aec0;
+    }
+    
+    .legend-color {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        border-radius: 2px;
+        vertical-align: middle;
+    }
+    
+    /* Custom Table Styles for Dark Theme */
+    .chart-view-table {
+        width: 100%;
+        color: #e2e8f0;
+        border-collapse: collapse;
+    }
+    
+    .chart-view-table th,
+    .chart-view-table td {
+        padding: 12px;
+        border-bottom: 1px solid #2d3748;
+    }
+    
+    .chart-view-table th {
+        text-align: left;
+        font-weight: 500;
+        color: #a0aec0;
+    }
+    
+    .chart-view-table tbody tr:hover {
+        background-color: rgba(66, 153, 225, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Treatment Cost Calculator</h3>
+                </div>
+                <div class="card-body">
+
+
+                    <form id="calculator-form">
+                        <div class="mb-4">
+                            <label for="procedure_select" class="form-label">Select Procedure</label>
+                            <select class="form-select" id="procedure_select" name="procedure_id" required>
+                                <option value="" selected disabled>Choose a procedure...</option>
+                                {% for procedure in procedures %}
+                                <option value="{{ procedure.id }}" 
+                                    data-min-cost="{{ procedure.min_cost }}" 
+                                    data-max-cost="{{ procedure.max_cost }}"
+                                    data-body-part="{{ procedure.body_part }}">
+                                    {{ procedure.procedure_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="procedure_details" class="mb-4 p-3 border rounded d-none">
+                            <h5 id="procedure_name" class="mb-3"></h5>
+                            <p id="procedure_description"></p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Body Part:</strong> <span id="body_part"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Base Cost Range:</strong> <span class="price-display">₹<span id="min_cost"></span> - ₹<span id="max_cost"></span></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="calculator_options" class="d-none">
+                            <h5 class="mb-3">Treatment Options</h5>
+                            
+                            <!-- Procedure-specific options will be dynamically inserted here -->
+                            <div id="procedure_specific_options" class="mb-4 border-start border-primary ps-3 d-none">
+                                <h6 class="mb-3 text-primary">Procedure-Specific Options</h6>
+                                <div id="procedure_options_container">
+                                    <!-- Dynamic options will be inserted here -->
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3 text-secondary">General Options</h6>
+                            
+                            <div class="mb-3">
+                                <label for="hospital_tier" class="form-label">Hospital/Clinic Type</label>
+                                <select class="form-select cost-factor" id="hospital_tier" name="hospital_tier">
+                                    <option value="1" selected>Standard Clinic (1x)</option>
+                                    <option value="1.3">Premium Hospital (1.3x)</option>
+                                    <option value="1.6">Luxury Medical Center (1.6x)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="doctor_experience" class="form-label">Doctor Experience</label>
+                                <select class="form-select cost-factor" id="doctor_experience" name="doctor_experience">
+                                    <option value="0.9">Junior Specialist (0.9x)</option>
+                                    <option value="1" selected>Mid-level Specialist (1x)</option>
+                                    <option value="1.4">Senior Specialist (1.4x)</option>
+                                    <option value="1.8">Celebrity Doctor (1.8x)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="city_tier" class="form-label">City Tier</label>
+                                <select class="form-select cost-factor" id="city_tier" name="city_tier">
+                                    <option value="0.8">Tier 3 City (0.8x)</option>
+                                    <option value="1" selected>Tier 2 City (1x)</option>
+                                    <option value="1.2">Tier 1 City (1.2x)</option>
+                                    <option value="1.4">Metro City (1.4x)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="treatment_complexity" class="form-label">Treatment Complexity</label>
+                                <select class="form-select cost-factor" id="treatment_complexity" name="treatment_complexity">
+                                    <option value="0.8">Simple Case (0.8x)</option>
+                                    <option value="1" selected>Average Case (1x)</option>
+                                    <option value="1.3">Complex Case (1.3x)</option>
+                                    <option value="1.6">Very Complex Case (1.6x)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="room_type" class="form-label">Room Type (if hospitalization required)</label>
+                                <select class="form-select cost-factor" id="room_type" name="room_type">
+                                    <option value="0" selected>No Stay Required (0)</option>
+                                    <option value="2000">General Ward (₹2,000/day)</option>
+                                    <option value="5000">Semi-Private Room (₹5,000/day)</option>
+                                    <option value="10000">Private Room (₹10,000/day)</option>
+                                    <option value="20000">Deluxe Room (₹20,000/day)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="stay_duration_container">
+                                <label for="stay_duration" class="form-label">Hospital Stay Duration (days)</label>
+                                <input type="number" class="form-control cost-factor" id="stay_duration" name="stay_duration" min="0" max="30" value="0">
+                            </div>
+                            
+                            <div class="form-check mb-4">
+                                <input class="form-check-input cost-factor" type="checkbox" id="include_post_op_care" name="include_post_op_care">
+                                <label class="form-check-label" for="include_post_op_care">
+                                    Include Post-Operative Care Package (+15%)
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="button" id="calculate_btn" class="btn btn-primary">Calculate Estimated Cost</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="results_container" class="mt-4 d-none">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Your Cost Estimate</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Procedure:</h5>
+                                <p id="result_procedure_name" class="fs-5"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Estimated Cost Range:</h5>
+                                <p class="fs-4 fw-bold text-primary price-display">₹<span id="result_min_cost"></span> - ₹<span id="result_max_cost"></span></p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">Cost Analysis</h5>
+                        
+                        <!-- Chart View Container with Tabs -->
+                        <div class="chart-view-container">
+                            <!-- Tabs -->
+                            <div class="chart-view-tabs">
+                                <div class="chart-view-tab active" data-target="table-view">
+                                    <i class="fas fa-table"></i> Table View
+                                </div>
+                                <div class="chart-view-tab" data-target="chart-view">
+                                    <i class="fas fa-chart-pie"></i> Chart View
+                                </div>
+                            </div>
+                            
+                            <!-- Table View Content -->
+                            <div class="chart-view-content active" id="table-view">
+                                <table class="chart-view-table">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Base Procedure Cost:</th>
+                                            <td>₹<span id="base_min_cost"></span> - ₹<span id="base_max_cost"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Hospital/Clinic:</th>
+                                            <td><span id="hospital_effect"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Doctor Experience:</th>
+                                            <td><span id="doctor_effect"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">City Factor:</th>
+                                            <td><span id="city_effect"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Case Complexity:</th>
+                                            <td><span id="complexity_effect"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Hospital Stay:</th>
+                                            <td><span id="stay_cost"></span></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Post-Op Care:</th>
+                                            <td><span id="post_op_effect"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Chart View Content -->
+                            <div class="chart-view-content" id="chart-view">
+                                <div class="charts-container">
+                                    <!-- Bar Chart -->
+                                    <div class="chart-box">
+                                        <h4>Cost Breakdown by Component</h4>
+                                        <div class="chart-container">
+                                            <canvas id="barChartCost"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pie Chart -->
+                                    <div class="chart-box">
+                                        <h4>Cost Distribution</h4>
+                                        <div class="chart-container">
+                                            <canvas id="pieChartCost"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cost Factor Comparison Table -->
+                                <table class="chart-view-table mt-4">
+                                    <thead>
+                                        <tr>
+                                            <th>Factor</th>
+                                            <th>Amount (₹)</th>
+                                            <th>% of Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comparisonTableBody">
+                                        <!-- Will be filled dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <h6 class="mb-2">Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>This is an estimate only. Actual costs may vary based on your specific medical needs.</li>
+                                <li>Additional costs may include medications, follow-up visits, and tests not included in this calculator.</li>
+                                <li>Always consult with healthcare providers for accurate pricing.</li>
+                                <li>Some costs may be covered by insurance, depending on your policy.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" id="recalculate_btn" class="btn btn-secondary">Adjust Options</button>
+                                <a href="{{ url_for('ai_recommendations.recommendation_form') }}" class="btn btn-primary">Get Doctor Recommendations</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const procedureSelect = document.getElementById('procedure_select');
+        const procedureDetails = document.getElementById('procedure_details');
+        const calculatorOptions = document.getElementById('calculator_options');
+        const calculateBtn = document.getElementById('calculate_btn');
+        const resultsContainer = document.getElementById('results_container');
+        const recalculateBtn = document.getElementById('recalculate_btn');
+        const roomTypeSelect = document.getElementById('room_type');
+        const stayDurationContainer = document.getElementById('stay_duration_container');
+        const stayDurationInput = document.getElementById('stay_duration');
+        
+        // Base procedure values
+        let baseProcedureMinCost = 0;
+        let baseProcedureMaxCost = 0;
+        
+        // Show procedure details when a procedure is selected
+        procedureSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const procedureName = selectedOption.text;
+            const procedureId = selectedOption.value;
+            
+            // Get data attributes from the selected option
+            baseProcedureMinCost = parseInt(selectedOption.dataset.minCost) || 0;
+            baseProcedureMaxCost = parseInt(selectedOption.dataset.maxCost) || 0;
+            const bodyPartId = selectedOption.dataset.bodyPart;
+            
+            // Load procedure details via AJAX
+            fetch(`/cost-calculator/api/procedure/${procedureId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const procedure = data.procedure;
+                        
+                        // Update procedure details section
+                        document.getElementById('procedure_name').textContent = procedure.name;
+                        document.getElementById('procedure_description').textContent = procedure.description || 'No description available.';
+                        document.getElementById('body_part').textContent = procedure.body_part || 'Not specified';
+                        document.getElementById('min_cost').textContent = procedure.min_cost.toLocaleString();
+                        document.getElementById('max_cost').textContent = procedure.max_cost.toLocaleString();
+                        
+                        // Generate procedure-specific options
+                        const procedureOptionsContainer = document.getElementById('procedure_options_container');
+                        procedureOptionsContainer.innerHTML = ''; // Clear previous options
+                        
+                        const procedureSpecificOptions = document.getElementById('procedure_specific_options');
+                        
+                        // Check if procedure has specific options
+                        console.log("Procedure options:", procedure.options);
+                        if (procedure.options && procedure.options.length > 0) {
+                            console.log("Found procedure options, showing options section");
+                            // Show procedure-specific options section
+                            procedureSpecificOptions.classList.remove('d-none');
+                            
+                            // Create HTML for each option
+                            procedure.options.forEach((option, index) => {
+                                const optionId = `procedure_option_${option.id}`;
+                                const optionContainer = document.createElement('div');
+                                optionContainer.className = 'mb-3';
+                                
+                                // Create label
+                                const label = document.createElement('label');
+                                label.className = 'form-label';
+                                label.setAttribute('for', optionId);
+                                label.textContent = option.name;
+                                if (option.required) {
+                                    const requiredSpan = document.createElement('span');
+                                    requiredSpan.className = 'text-danger ms-1';
+                                    requiredSpan.textContent = '*';
+                                    label.appendChild(requiredSpan);
+                                }
+                                
+                                // Create select or input based on option type
+                                let inputElement;
+                                if (option.type === 'dropdown') {
+                                    inputElement = document.createElement('select');
+                                    inputElement.className = 'form-select procedure-option';
+                                    inputElement.id = optionId;
+                                    inputElement.name = optionId;
+                                    inputElement.setAttribute('data-option-name', option.name);
+                                    
+                                    // Add option values
+                                    option.values.forEach(value => {
+                                        const optionElement = document.createElement('option');
+                                        optionElement.value = value.cost_factor;
+                                        
+                                        // Format display text based on cost factor
+                                        let displayText = value.value_name;
+                                        if (typeof value.cost_factor === 'number') {
+                                            if (value.cost_factor >= 1) {
+                                                // For multipliers
+                                                displayText += ` (${value.cost_factor}x)`;
+                                            } else if (value.cost_factor > 0 && value.cost_factor < 1) {
+                                                // For percentage reductions
+                                                displayText += ` (${value.cost_factor}x)`;
+                                            } else if (value.cost_factor > 1000) {
+                                                // For flat additions in rupees
+                                                displayText += ` (+₹${value.cost_factor.toLocaleString()})`;
+                                            }
+                                        }
+                                        
+                                        optionElement.textContent = displayText;
+                                        if (value.is_default) {
+                                            optionElement.selected = true;
+                                        }
+                                        
+                                        inputElement.appendChild(optionElement);
+                                    });
+                                } else if (option.type === 'checkbox') {
+                                    const checkboxContainer = document.createElement('div');
+                                    checkboxContainer.className = 'form-check';
+                                    
+                                    inputElement = document.createElement('input');
+                                    inputElement.type = 'checkbox';
+                                    inputElement.className = 'form-check-input procedure-option';
+                                    inputElement.id = optionId;
+                                    inputElement.name = optionId;
+                                    
+                                    const checkboxLabel = document.createElement('label');
+                                    checkboxLabel.className = 'form-check-label';
+                                    checkboxLabel.setAttribute('for', optionId);
+                                    checkboxLabel.textContent = option.name;
+                                    
+                                    checkboxContainer.appendChild(inputElement);
+                                    checkboxContainer.appendChild(checkboxLabel);
+                                    
+                                    optionContainer.appendChild(checkboxContainer);
+                                    procedureOptionsContainer.appendChild(optionContainer);
+                                    return; // Skip the rest for checkbox type
+                                }
+                                
+                                // Add elements to container
+                                optionContainer.appendChild(label);
+                                optionContainer.appendChild(inputElement);
+                                procedureOptionsContainer.appendChild(optionContainer);
+                            });
+                        } else {
+                            // Hide procedure-specific options section if no options available
+                            procedureSpecificOptions.classList.add('d-none');
+                        }
+                        
+                        // Show procedure details and calculator options
+                        procedureDetails.classList.remove('d-none');
+                        calculatorOptions.classList.remove('d-none');
+                    } else {
+                        console.error('Error loading procedure details:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching procedure details:', error);
+                });
+        });
+        
+        // Toggle stay duration visibility based on room type
+        roomTypeSelect.addEventListener('change', function() {
+            if (this.value === '0') {
+                stayDurationContainer.classList.add('d-none');
+                stayDurationInput.value = '0';
+            } else {
+                stayDurationContainer.classList.remove('d-none');
+                if (stayDurationInput.value === '0') {
+                    stayDurationInput.value = '1';
+                }
+            }
+        });
+        
+        // Variables to store chart instances
+        let barChart = null;
+        let pieChart = null;
+        let chartData = null;
+        
+        // Register Chart.js plugins
+        Chart.register(ChartDataLabels);
+        
+        // Colors for chart elements - using a dark theme color palette
+        const chartColors = {
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',   // Blue - Base cost
+                'rgba(75, 192, 192, 0.8)',   // Teal - Hospital 
+                'rgba(255, 206, 86, 0.8)',   // Yellow - Procedure options
+                'rgba(153, 102, 255, 0.8)',  // Purple - Features
+                'rgba(255, 159, 64, 0.8)',   // Orange
+                'rgba(255, 99, 132, 0.8)',   // Red
+                'rgba(199, 199, 199, 0.8)',  // Gray
+                'rgba(83, 166, 120, 0.8)'    // Green
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(199, 199, 199, 1)',
+                'rgba(83, 166, 120, 1)'
+            ]
+        };
+        
+        // Set up tab switching
+        document.querySelectorAll('.chart-view-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Get target content ID
+                const targetId = this.getAttribute('data-target');
+                
+                // Update active tab
+                document.querySelectorAll('.chart-view-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.chart-view-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(targetId).classList.add('active');
+                
+                // If switching to chart view and we have data, ensure charts are properly sized
+                if (targetId === 'chart-view' && chartData) {
+                    // Small delay to ensure the container is visible before rendering
+                    setTimeout(() => {
+                        if (barChart) barChart.resize();
+                        if (pieChart) pieChart.resize();
+                    }, 50);
+                }
+            });
+        });
+        
+        // Helper function to format currency
+        function formatCurrency(value) {
+            return '<span class="price-display">₹' + value.toLocaleString() + '</span>';
+        }
+        
+        // Helper function to create and render the cost breakdown charts
+        function createCostBreakdownCharts(data) {
+            // Store chart data globally
+            chartData = data;
+            
+            // Calculate total for percentage calculations
+            const totalCost = data.values.reduce((acc, val) => acc + val, 0);
+            
+            // Fill comparison table
+            const comparisonTableBody = document.getElementById('comparisonTableBody');
+            comparisonTableBody.innerHTML = '';
+            
+            data.labels.forEach((label, index) => {
+                const row = document.createElement('tr');
+                const value = data.values[index];
+                const percent = ((value / totalCost) * 100).toFixed(1);
+                
+                row.innerHTML = `
+                    <td>
+                        <span class="legend-color" style="background-color: ${chartColors.backgroundColor[index]};"></span>
+                        ${label}
+                    </td>
+                    <td>${formatCurrency(value)}</td>
+                    <td>${percent}%</td>
+                `;
+                
+                comparisonTableBody.appendChild(row);
+            });
+            
+            // Add total row
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'fw-bold';
+            totalRow.innerHTML = `
+                <td>Total</td>
+                <td>${formatCurrency(totalCost)}</td>
+                <td>100%</td>
+            `;
+            comparisonTableBody.appendChild(totalRow);
+            
+            // Chart configuration common options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1200,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const percent = ((value / totalCost) * 100).toFixed(1);
+                                return `${context.label}: ${formatCurrency(value)} (${percent}%)`;
+                            }
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 4
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            };
+            
+            // Create bar chart
+            if (barChart) {
+                barChart.destroy();
+            }
+            
+            const barCtx = document.getElementById('barChartCost').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Cost',
+                        data: data.values,
+                        backgroundColor: chartColors.backgroundColor,
+                        borderColor: chartColors.borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0aec0',
+                                callback: function(value) {
+                                    if (value >= 1000) {
+                                        return '₹' + (value / 1000) + 'K';
+                                    }
+                                    return '₹' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#a0aec0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonOptions.plugins,
+                        datalabels: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Create pie chart
+            if (pieChart) {
+                pieChart.destroy();
+            }
+            
+            const pieCtx = document.getElementById('pieChartCost').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Cost',
+                        data: data.values,
+                        backgroundColor: chartColors.backgroundColor,
+                        borderColor: chartColors.borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '40%',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                color: '#cbd5e0',
+                                boxWidth: 12,
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 11
+                            },
+                            formatter: (value, ctx) => {
+                                const percent = ((value / totalCost) * 100).toFixed(1);
+                                return percent > 8 ? `${percent}%` : '';
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Switch to chart view tab if not already active
+            if (!document.querySelector('.chart-view-tab[data-target="chart-view"]').classList.contains('active')) {
+                document.querySelector('.chart-view-tab[data-target="chart-view"]').click();
+            }
+        }
+        
+        // Calculate cost estimate
+        calculateBtn.addEventListener('click', function() {
+            const hospitalFactor = parseFloat(document.getElementById('hospital_tier').value);
+            const doctorFactor = parseFloat(document.getElementById('doctor_experience').value);
+            const cityFactor = parseFloat(document.getElementById('city_tier').value);
+            const complexityFactor = parseFloat(document.getElementById('treatment_complexity').value);
+            const roomCost = parseInt(document.getElementById('room_type').value);
+            const stayDuration = parseInt(document.getElementById('stay_duration').value);
+            const includePostOp = document.getElementById('include_post_op_care').checked;
+            
+            // Get procedure-specific option values
+            const procedureOptions = document.querySelectorAll('.procedure-option');
+            const procedureOptionFactors = [];
+            let procedureOptionAddons = 0;
+            
+            // Process all procedure-specific options
+            procedureOptions.forEach(option => {
+                const value = option.type === 'checkbox' ? (option.checked ? option.value : 0) : option.value;
+                const numValue = parseFloat(value);
+                const optionName = option.getAttribute('data-option-name');
+                
+                // Determine if it's a multiplier or flat cost
+                if (numValue >= 0.1 && numValue <= 5) {
+                    // It's a multiplier
+                    procedureOptionFactors.push({
+                        name: optionName || option.name,
+                        factor: numValue
+                    });
+                } else if (numValue > 1000) {
+                    // It's an additional cost
+                    procedureOptionAddons += numValue;
+                }
+            });
+            
+            // Calculate stay cost
+            const stayCost = roomCost * stayDuration;
+            
+            // Calculate procedure cost with all standard factors
+            // Calculate average base cost for chart
+            const baseCost = (baseProcedureMinCost + baseProcedureMaxCost) / 2;
+            
+            // Store individual effects for the chart
+            const hospitalEffect = baseCost * (hospitalFactor - 1);
+            const doctorEffect = baseCost * (doctorFactor - 1);
+            const cityEffect = baseCost * (cityFactor - 1);
+            const complexityEffect = baseCost * (complexityFactor - 1);
+            
+            let adjustedMinCost = baseProcedureMinCost * hospitalFactor * doctorFactor * cityFactor * complexityFactor;
+            let adjustedMaxCost = baseProcedureMaxCost * hospitalFactor * doctorFactor * cityFactor * complexityFactor;
+            
+            // Calculate procedure-specific options effect for the chart
+            let procedureOptionsEffect = 0;
+            
+            // Apply procedure-specific option multipliers
+            procedureOptionFactors.forEach(opt => {
+                procedureOptionsEffect += baseCost * (opt.factor - 1);
+                adjustedMinCost *= opt.factor;
+                adjustedMaxCost *= opt.factor;
+            });
+            
+            // Add procedure-specific option flat costs
+            procedureOptionsEffect += procedureOptionAddons;
+            adjustedMinCost += procedureOptionAddons;
+            adjustedMaxCost += procedureOptionAddons;
+            
+            // Add post-op care if selected (15% increase)
+            if (includePostOp) {
+                adjustedMinCost *= 1.15;
+                adjustedMaxCost *= 1.15;
+            }
+            
+            // Add stay cost
+            adjustedMinCost += stayCost;
+            adjustedMaxCost += stayCost;
+            
+            // Round to nearest thousand
+            adjustedMinCost = Math.round(adjustedMinCost / 1000) * 1000;
+            adjustedMaxCost = Math.round(adjustedMaxCost / 1000) * 1000;
+            
+            // Update results
+            document.getElementById('result_procedure_name').textContent = document.getElementById('procedure_name').textContent;
+            document.getElementById('result_min_cost').textContent = adjustedMinCost.toLocaleString();
+            document.getElementById('result_max_cost').textContent = adjustedMaxCost.toLocaleString();
+            
+            // Update cost breakdown
+            document.getElementById('base_min_cost').textContent = baseProcedureMinCost.toLocaleString();
+            document.getElementById('base_max_cost').textContent = baseProcedureMaxCost.toLocaleString();
+            document.getElementById('hospital_effect').textContent = `${hospitalFactor}x multiplier`;
+            document.getElementById('doctor_effect').textContent = `${doctorFactor}x multiplier`;
+            document.getElementById('city_effect').textContent = `${cityFactor}x multiplier`;
+            document.getElementById('complexity_effect').textContent = `${complexityFactor}x multiplier`;
+            document.getElementById('stay_cost').textContent = stayCost > 0 ? `₹${stayCost.toLocaleString()} (${roomCost.toLocaleString()}/day × ${stayDuration} days)` : 'Not applicable';
+            document.getElementById('post_op_effect').textContent = includePostOp ? '+15% to procedure cost' : 'Not included';
+            
+            // Add procedure-specific options to the cost breakdown
+            const breakdownTable = document.querySelector('#results_container table tbody');
+            
+            // Remove any previously added procedure option rows
+            const existingOptionRows = document.querySelectorAll('.procedure-option-row');
+            existingOptionRows.forEach(row => row.remove());
+            
+            // Add new procedure option rows right after the base procedure cost row
+            if (procedureOptionFactors.length > 0 || procedureOptionAddons > 0) {
+                // Create a header row for procedure-specific options
+                const headerRow = document.createElement('tr');
+                headerRow.className = 'procedure-option-row';
+                headerRow.innerHTML = `
+                    <th scope="row" colspan="2" class="bg-light text-primary">Procedure-Specific Options:</th>
+                `;
+                
+                // Insert after the first row (base procedure cost)
+                const firstRow = breakdownTable.querySelector('tr');
+                firstRow.insertAdjacentElement('afterend', headerRow);
+                
+                // Add rows for each procedure option factor
+                procedureOptionFactors.forEach(opt => {
+                    const optionRow = document.createElement('tr');
+                    optionRow.className = 'procedure-option-row';
+                    optionRow.innerHTML = `
+                        <th scope="row" class="ps-4">• ${opt.name}:</th>
+                        <td>${opt.factor}x multiplier</td>
+                    `;
+                    headerRow.insertAdjacentElement('afterend', optionRow);
+                });
+                
+                // Add row for procedure option addons if any
+                if (procedureOptionAddons > 0) {
+                    const addonsRow = document.createElement('tr');
+                    addonsRow.className = 'procedure-option-row';
+                    addonsRow.innerHTML = `
+                        <th scope="row" class="ps-4">• Additional Features:</th>
+                        <td>+₹${procedureOptionAddons.toLocaleString()}</td>
+                    `;
+                    headerRow.insertAdjacentElement('afterend', addonsRow);
+                }
+            }
+            
+            // Prepare data for the cost breakdown chart
+            const chartLabels = ['Base Cost'];
+            const chartValues = [baseCost];
+            
+            // Add procedure-specific options effects if any
+            if (procedureOptionsEffect !== 0) {
+                chartLabels.push('Procedure Options');
+                chartValues.push(procedureOptionsEffect);
+            }
+            
+            // Add other effects to the chart
+            if (hospitalEffect > 0) {
+                chartLabels.push('Hospital Type');
+                chartValues.push(hospitalEffect);
+            }
+            
+            if (doctorEffect > 0) {
+                chartLabels.push('Doctor Experience');
+                chartValues.push(doctorEffect);
+            }
+            
+            if (cityEffect > 0) {
+                chartLabels.push('City Factor');
+                chartValues.push(cityEffect);
+            }
+            
+            if (complexityEffect > 0) {
+                chartLabels.push('Case Complexity');
+                chartValues.push(complexityEffect);
+            }
+            
+            if (stayCost > 0) {
+                chartLabels.push('Hospital Stay');
+                chartValues.push(stayCost);
+            }
+            
+            if (includePostOp) {
+                const postOpEffect = baseCost * 0.15;
+                chartLabels.push('Post-Op Care');
+                chartValues.push(postOpEffect);
+            }
+            
+            // Create and animate the charts
+            createCostBreakdownCharts({
+                labels: chartLabels,
+                values: chartValues
+            });
+            
+            // Show results
+            resultsContainer.classList.remove('d-none');
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Return to calculator options
+        recalculateBtn.addEventListener('click', function() {
+            resultsContainer.classList.add('d-none');
+            document.getElementById('calculator-form').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+{% endblock %}

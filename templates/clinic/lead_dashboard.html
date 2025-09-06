@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Management - {{ clinic.name }}{% endblock %}
+
+{% block additional_head %}
+<style>
+.lead-card {
+    border-left: 4px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.lead-new { border-left-color: #007bff; }
+.lead-contacted { border-left-color: #ffc107; }
+.lead-converted { border-left-color: #28a745; }
+.lead-lost { border-left-color: #dc3545; }
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.credit-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.stats-row .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.filter-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+    background: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-chart-line"></i> Lead Management</h1>
+            <p class="text-muted">Manage your leads and track conversions</p>
+        </div>
+        <div class="col-md-4">
+            <div class="credit-info text-center">
+                <div class="h4 mb-1">{{ "{:,}".format(clinic.credit_balance or 0) }} Credits</div>
+                <div class="small">Available Balance</div>
+                <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-light btn-sm mt-2">
+                    <i class="fas fa-plus"></i> Request Credits
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row stats-row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.total_leads or 0 }}</h3>
+                    <p class="mb-0 text-muted">Total Leads</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ stats.new_leads or 0 }}</h3>
+                    <p class="mb-0 text-muted">New Leads</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.converted_leads or 0 }}</h3>
+                    <p class="mb-0 text-muted">Converted</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ stats.total_credits_spent or 0 }}</h3>
+                    <p class="mb-0 text-muted">Credits Spent</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs filter-tabs">
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if status_filter == 'all' else '' }}" 
+                       href="?status=all">All Leads</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if status_filter == 'new' else '' }}" 
+                       href="?status=new">New</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if status_filter == 'contacted' else '' }}" 
+                       href="?status=contacted">Contacted</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if status_filter == 'converted' else '' }}" 
+                       href="?status=converted">Converted</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if status_filter == 'lost' else '' }}" 
+                       href="?status=lost">Lost</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Leads List -->
+    <div class="row">
+        {% if leads %}
+            {% for lead in leads %}
+            <div class="col-12 mb-3">
+                <div class="card lead-card lead-{{ lead.status }}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1">{{ lead.user_name }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope"></i> {{ lead.user_email }}<br>
+                                    <i class="fas fa-phone"></i> {{ lead.user_phone }}
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>{{ lead.procedure_name }}</strong>
+                                {% if lead.package_title %}
+                                <br><small class="text-muted">{{ lead.package_title }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2">
+                                <span class="status-badge bg-{{ 'primary' if lead.status == 'new' else 'warning' if lead.status == 'contacted' else 'success' if lead.status == 'converted' else 'danger' }}">
+                                    {{ lead.status.title() }}
+                                </span>
+                                <br><small class="text-muted">{{ lead.credit_cost or 0 }} credits</small>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">{{ lead.created_at.strftime('%d %b %Y') if lead.created_at else '' }}</small>
+                                {% if lead.package_value %}
+                                <br><small class="text-success">₹{{ "{:,}".format(lead.package_value) }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('enhanced_lead.lead_details', lead_id=lead.id) }}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <button class="btn btn-outline-secondary dropdown-toggle" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item update-status" 
+                                               data-lead-id="{{ lead.id }}" 
+                                               data-status="contacted" href="#">Mark Contacted</a></li>
+                                        <li><a class="dropdown-item update-status" 
+                                               data-lead-id="{{ lead.id }}" 
+                                               data-status="converted" href="#">Mark Converted</a></li>
+                                        <li><a class="dropdown-item update-status" 
+                                               data-lead-id="{{ lead.id }}" 
+                                               data-status="lost" href="#">Mark Lost</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% if lead.message %}
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    <strong>Message:</strong> {{ lead.message }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5>No leads found</h5>
+                        <p class="text-muted">
+                            {% if status_filter != 'all' %}
+                                No leads with "{{ status_filter }}" status found.
+                            {% else %}
+                                You haven't received any leads yet.
+                            {% endif %}
+                        </p>
+                        <a href="?status=all" class="btn btn-primary">View All Leads</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if leads|length == 20 %}
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="?page={{ current_page + 1 }}&status={{ status_filter }}" class="btn btn-outline-primary">
+                Load More Leads
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Lead Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="statusUpdateForm">
+                <div class="modal-body">
+                    <input type="hidden" id="leadId" name="lead_id">
+                    <input type="hidden" id="newStatus" name="status">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <input type="text" class="form-control" id="statusDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" name="notes" rows="3" 
+                                  placeholder="Add any notes about this status change..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status update handlers
+    document.querySelectorAll('.update-status').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const leadId = this.dataset.leadId;
+            const status = this.dataset.status;
+            const statusDisplay = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            document.getElementById('leadId').value = leadId;
+            document.getElementById('newStatus').value = status;
+            document.getElementById('statusDisplay').value = statusDisplay;
+            
+            new bootstrap.Modal(document.getElementById('statusUpdateModal')).show();
+        });
+    });
+
+    // Status update form submission
+    document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const leadId = formData.get('lead_id');
+        
+        fetch(`{{ url_for('enhanced_lead.update_lead_status', lead_id=0) }}`.replace('0', leadId), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                bootstrap.Modal.getInstance(document.getElementById('statusUpdateModal')).hide();
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', data.message);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', 'An error occurred');
+        });
+    });
+
+    function showAlert(type, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

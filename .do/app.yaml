@@ -1,0 +1,49 @@
+name: antidote-platform
+region: blr1
+
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/antidote-platform
+    branch: main
+  run_command: gunicorn --bind 0.0.0.0:8080 --workers 4 --timeout 120 application:application
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  
+  envs:
+  - key: FLASK_ENV
+    value: production
+  - key: FLASK_DEBUG
+    value: "False"
+  - key: DATABASE_URL
+    value: ${DATABASE_URL}
+  - key: SESSION_SECRET
+    value: ${SESSION_SECRET}
+  - key: MAIL_USERNAME
+    value: ${MAIL_USERNAME}
+  - key: MAIL_PASSWORD
+    value: ${MAIL_PASSWORD}
+  - key: MAIL_DEFAULT_SENDER
+    value: ${MAIL_DEFAULT_SENDER}
+  - key: RAZORPAY_KEY_ID
+    value: ${RAZORPAY_KEY_ID}
+  - key: RAZORPAY_KEY_SECRET
+    value: ${RAZORPAY_KEY_SECRET}
+  - key: OPENAI_API_KEY
+    value: ${OPENAI_API_KEY}
+  - key: GOOGLE_API_KEY
+    value: ${GOOGLE_API_KEY}
+  - key: TWILIO_ACCOUNT_SID
+    value: ${TWILIO_ACCOUNT_SID}
+  - key: TWILIO_AUTH_TOKEN
+    value: ${TWILIO_AUTH_TOKEN}
+  - key: TWILIO_PHONE_NUMBER
+    value: ${TWILIO_PHONE_NUMBER}
+  
+  routes:
+  - path: /
+  
+  health_check:
+    http_path: /health

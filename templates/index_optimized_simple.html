@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+
+{% block title %}Plastic Surgery Marketplace{% endblock %}
+
+{% block head %}
+<!-- Performance Optimized CSS Bundles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='optimized/critical-bundle.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='optimized/mobile-bundle.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='optimized/components-bundle.css') }}">
+
+<!-- Disable individual CSS files for performance -->
+<style>
+/* Override any individual CSS file loading */
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner Section -->
+<section class="hero-banner position-relative">
+    <div id="banner-1" class="banner-container">
+        <!-- Banner content will be loaded here -->
+    </div>
+    
+    <!-- Hero Search Section -->
+    <div class="hero-search-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 mb-1">
+                    <div class="bg-white rounded-lg shadow-md p-4" id="hero-search-form">
+                        <div class="hero-search-tabs">
+                            <ul class="nav nav-tabs border-0 hero-nav-tabs" id="heroTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="treatments-tab" data-bs-toggle="tab" data-bs-target="#treatments" type="button" role="tab" aria-controls="treatments" aria-selected="true">
+                                        <i class="fas fa-heartbeat me-2"></i>
+                                        Treatments
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab" aria-controls="doctors" aria-selected="false">
+                                        <i class="fas fa-user-md me-2"></i>
+                                        Doctors
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="procedures-tab" data-bs-toggle="tab" data-bs-target="#procedures" type="button" role="tab" aria-controls="procedures" aria-selected="false">
+                                        <i class="fas fa-stethoscope me-2"></i>
+                                        Procedures
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="community-tab" data-bs-toggle="tab" data-bs-target="#community" type="button" role="tab" aria-controls="community" aria-selected="false">
+                                        <i class="fas fa-comments me-2"></i>
+                                        Community
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="tab-content" id="heroTabContent">
+                            <!-- Treatments Tab -->
+                            <div class="tab-pane fade show active" id="treatments" role="tabpanel" aria-labelledby="treatments-tab">
+                                <form action="{{ url_for('enhanced_package.package_directory') }}" method="GET" class="hero-search-form">
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-heartbeat text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="search" placeholder="Search treatments, packages..." value="{{ request.args.get('search', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-search me-2"></i>
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Doctors Tab -->
+                            <div class="tab-pane fade" id="doctors" role="tabpanel" aria-labelledby="doctors-tab">
+                                <form action="{{ url_for('web.doctors') }}" method="GET" class="hero-search-form">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-user-md text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="search" placeholder="Doctor name or specialty..." value="{{ request.args.get('search', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" name="rating">
+                                                <option value="">Rating</option>
+                                                <option value="4+" {% if request.args.get('rating') == '4+' %}selected{% endif %}>4+ Stars</option>
+                                                <option value="3+" {% if request.args.get('rating') == '3+' %}selected{% endif %}>3+ Stars</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-search me-2"></i>
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Procedures Tab -->
+                            <div class="tab-pane fade" id="procedures" role="tabpanel" aria-labelledby="procedures-tab">
+                                <form action="{{ url_for('web.procedures') }}" method="GET" class="hero-search-form">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-stethoscope text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="search" placeholder="Procedure name..." value="{{ request.args.get('search', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select" name="body_part">
+                                                <option value="">Body Part</option>
+                                                {% for body_part in popular_body_parts %}
+                                                <option value="{{ body_part.id }}" {% if request.args.get('body_part') == body_part.id|string %}selected{% endif %}>{{ body_part.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" name="category">
+                                                <option value="">Category</option>
+                                                {% for category in procedure_categories %}
+                                                <option value="{{ category.id }}" {% if request.args.get('category') == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-search me-2"></i>
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Community Tab -->
+                            <div class="tab-pane fade" id="community" role="tabpanel" aria-labelledby="community-tab">
+                                <form action="{{ url_for('web.community') }}" method="GET" class="hero-search-form">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-comments text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" name="search" placeholder="Search discussions..." value="{{ request.args.get('search', '') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select" name="category">
+                                                <option value="">Category</option>
+                                                {% for category in procedure_categories %}
+                                                <option value="{{ category.name }}" {% if request.args.get('category') == category.name %}selected{% endif %}>{{ category.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" name="sort">
+                                                <option value="recent" {% if request.args.get('sort') == 'recent' %}selected{% endif %}>Recent</option>
+                                                <option value="popular" {% if request.args.get('sort') == 'popular' %}selected{% endif %}>Popular</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-search me-2"></i>
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Recommendations Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="h3 mb-3">AI-Powered Treatment Recommendations</h2>
+                    <p class="text-muted">Get personalized treatment suggestions based on your concerns</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card shadow-sm">
+                            <div class="card-body p-4">
+                                <form action="{{ url_for('ai_clean.analyze_query') }}" method="POST" class="ai-recommendation-form">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-robot text-primary"></i>
+                                                </span>
+                                                <textarea class="form-control border-start-0" name="query" rows="3" placeholder="I have severe acne scars on both cheeks from teenage years and want to know which laser treatment would work best for my skin type and budget..." required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-magic me-2"></i>
+                                                Ask AI
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Between Treatment Categories -->
+<div id="banner-2" class="banner-container">
+    <!-- Banner content will be loaded here -->
+</div>
+
+<!-- Treatment Categories Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="h3 mb-3">Popular Treatment Categories</h2>
+                    <p class="text-muted">Explore our most sought-after aesthetic treatments</p>
+                </div>
+                
+                <div class="row">
+                    {% for category in procedure_categories[:6] %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm hover-shadow">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ category.name }}</h5>
+                                <p class="card-text text-muted">{{ category.description or 'Professional treatments for ' + category.name.lower() }}</p>
+                                <a href="{{ url_for('web.procedures', category=category.id) }}" class="btn btn-outline-primary">
+                                    View Procedures
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Procedures Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="h3 mb-3">Popular Procedures</h2>
+                    <p class="text-muted">Most requested treatments by our patients</p>
+                </div>
+                
+                <div class="row">
+                    {% for procedure in popular_procedures[:6] %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm hover-shadow">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title">{{ procedure.procedure_name }}</h5>
+                                    <span class="badge bg-primary">Popular</span>
+                                </div>
+                                <p class="card-text text-muted">{{ procedure.description[:100] + '...' if procedure.description and procedure.description|length > 100 else (procedure.description or 'Professional treatment for ' + procedure.procedure_name.lower()) }}</p>
+                                <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-outline-primary">
+                                    Learn More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Between Popular Procedures -->
+<div id="banner-3" class="banner-container">
+    <!-- Banner content will be loaded here -->
+</div>
+
+<!-- Top Specialists Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="h3 mb-3">Top Specialists</h2>
+                    <p class="text-muted">Meet our experienced medical professionals</p>
+                </div>
+                
+                <div class="row">
+                    {% for doctor in top_doctors[:9] %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm hover-shadow">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if doctor.image_url %}
+                                    <img src="{{ doctor.image_url }}" alt="{{ doctor.name }}" class="rounded-circle" width="80" height="80">
+                                    {% else %}
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-user-md fa-2x"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <h5 class="card-title">Dr. {{ doctor.name }}</h5>
+                                <p class="card-text text-muted">{{ doctor.specialty or 'Aesthetic Medicine' }}</p>
+                                <div class="mb-3">
+                                    {% if doctor.rating %}
+                                    <div class="rating">
+                                        {% for i in range(5) %}
+                                        <i class="fas fa-star {% if i < doctor.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                        <span class="ms-2 text-muted">({{ doctor.rating }})</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-outline-primary">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Between Community Posts -->
+<div id="banner-4" class="banner-container">
+    <!-- Banner content will be loaded here -->
+</div>
+
+<!-- Community Discussions Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2 class="h3 mb-3">Join the Conversation</h2>
+                    <p class="text-muted">Connect with others on their aesthetic journey</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        {% for thread in recent_threads[:5] %}
+                        <div class="card mb-3 shadow-sm hover-shadow">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0">{{ thread.title }}</h6>
+                                    <small class="text-muted">{{ thread.created_at.strftime('%b %d') if thread.created_at else 'Recent' }}</small>
+                                </div>
+                                <p class="card-text text-muted">{{ thread.content[:150] + '...' if thread.content and thread.content|length > 150 else thread.content }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">by {{ thread.author_name or 'Anonymous' }}</small>
+                                    <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-sm btn-outline-primary">
+                                        View Discussion
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('web.community') }}" class="btn btn-primary">
+                                Join Community
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Before Footer -->
+<div id="banner-5" class="banner-container">
+    <!-- Banner content will be loaded here -->
+</div>
+
+<!-- Include banner loading script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load banners for different positions
+    const bannerPositions = [
+        { position: 'hero_banner', containerId: 'banner-1' },
+        { position: 'between_treatment_categories', containerId: 'banner-2' },
+        { position: 'between_popular_procedures', containerId: 'banner-3' },
+        { position: 'between_community_posts', containerId: 'banner-4' },
+        { position: 'before_footer', containerId: 'banner-5' }
+    ];
+    
+    bannerPositions.forEach(banner => {
+        loadBanner(banner.position, banner.containerId);
+    });
+});
+
+function loadBanner(position, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    fetch(`/api/banners/${position}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.banner && data.banner.slides && data.banner.slides.length > 0) {
+                displayBanner(data.banner, container);
+            } else {
+                container.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error(`Error loading banner for ${position}:`, error);
+            container.style.display = 'none';
+        });
+}
+
+function displayBanner(banner, container) {
+    if (!banner.slides || banner.slides.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const bannerHtml = `
+        <div class="banner-slider" id="banner-${banner.id}">
+            <div class="slides">
+                ${banner.slides.map((slide, index) => `
+                    <div class="slide ${index === 0 ? 'active' : ''}">
+                        <div class="slide-content" style="background-image: url('${slide.image_url}')">
+                            <div class="slide-overlay">
+                                <div class="slide-text">
+                                    <h3>${slide.title || ''}</h3>
+                                    <p>${slide.subtitle || ''}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ${banner.slides.length > 1 ? `
+                <div class="banner-controls">
+                    <button class="banner-prev" onclick="changeBannerSlide(${banner.id}, -1)">‹</button>
+                    <button class="banner-next" onclick="changeBannerSlide(${banner.id}, 1)">›</button>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    container.innerHTML = bannerHtml;
+    container.style.display = 'block';
+    
+    // Auto-rotate slides if there are multiple
+    if (banner.slides.length > 1) {
+        setInterval(() => {
+            changeBannerSlide(banner.id, 1);
+        }, 5000);
+    }
+}
+
+function changeBannerSlide(bannerId, direction) {
+    const banner = document.getElementById(`banner-${bannerId}`);
+    if (!banner) return;
+    
+    const slides = banner.querySelectorAll('.slide');
+    const currentSlide = banner.querySelector('.slide.active');
+    const currentIndex = Array.from(slides).indexOf(currentSlide);
+    
+    let newIndex = currentIndex + direction;
+    if (newIndex >= slides.length) newIndex = 0;
+    if (newIndex < 0) newIndex = slides.length - 1;
+    
+    currentSlide.classList.remove('active');
+    slides[newIndex].classList.add('active');
+}
+</script>
+{% endblock %}

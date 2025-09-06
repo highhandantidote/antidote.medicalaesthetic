@@ -1,0 +1,43 @@
+
+Task Overview
+Create 125 community threads along with associated discussion replies (2-4 replies per thread) to simulate an active community. The threads and replies must have timestamps within the last 2 months (from March 15, 2025, to May 15, 2025). Use the provided list of users and doctors for the threads and replies. Output the results in two separate CSV files: one for threads and one for replies.
+
+Users and Doctors
+Patient Users (can create threads and reply):
+
+patientuser1 (email: [patient1@example.com](mailto:patient1@example.com))
+patientuser2 (email: [patient2@example.com](mailto:patient2@example.com))
+testuser (email: [test@example.com](mailto:test@example.com))
+patient1 (email: [patient1@antidote.com](mailto:patient1@antidote.com))
+patient2 (email: [patient2@antidote.com](mailto:patient2@antidote.com))
+patient3 (email: [patient3@antidote.com](mailto:patient3@antidote.com))
+Doctor Users (can reply to threads, provide expert advice):
+
+doctor\_kumar (email: [drkumar@example.com](mailto:drkumar@example.com))
+dr.sharma (email: [dr.sharma@antidote.com](mailto:dr.sharma@antidote.com))
+dr.patel (email: [dr.patel@antidote.com](mailto:dr.patel@antidote.com))
+Thread Format (Community\_Threads.csv)
+Each thread must include the following fields:
+
+title: The thread title (required, e.g., "Recovery Tips After Rhinoplasty")
+content: The detailed text of the thread (required, reflecting a realistic user query or experience)
+username: Username of the thread creator (required, from the patient users list)
+email: Email of the thread creator (required, matching the username)
+user\_role: Role such as "patient", "doctor", "expert", or "admin" (required; use "patient" for thread creators)
+procedure\_name: Name of the related procedure (optional, e.g., "rhinoplasty")
+view\_count: Initial view count (optional, set reasonable values like 50-300)
+reply\_count: Should match the number of replies you create for each thread
+keywords: Comma-separated list of keywords/tags (optional, e.g., "rhinoplasty, recovery, swelling")
+created\_at: Date in YYYY-MM-DD format (required, within March 15, 2025, to May 15, 2025)
+Reply Format (Community\_Replies.csv)
+Each reply must include the following fields:
+
+thread\_id: Use arbitrary IDs (1-125) for the new threads you're creating (not actual database IDs)
+content: The text of the reply (required, conversational and relevant)
+username: Username of the reply author (required, from patient or doctor users list)
+email: Email of the reply author (required, matching the username)
+user\_role: Role such as "patient", "doctor", "expert", or "admin" (required; use "patient" or "doctor")
+parent\_reply\_id: For nested replies, use "r1", "r2", etc. to reference other replies. Leave empty for top-level replies
+created\_at: Date in YYYY-MM-DD format (required, after the thread's creation date)
+is\_expert\_advice: "true" for doctor replies, "false" for patient replies
+reference: Use "r1", "r2", etc. so other replies can reference this one for nested conversations

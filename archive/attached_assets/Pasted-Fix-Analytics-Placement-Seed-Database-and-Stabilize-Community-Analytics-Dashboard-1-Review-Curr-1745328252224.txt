@@ -1,0 +1,27 @@
+Fix Analytics Placement, Seed Database, and Stabilize Community Analytics Dashboard:
+
+1. Review Current State:
+   - Check `test_report.md` for test case results (Approve/Reject Doctors, Procedure Listing, Community Threads) and performance metrics (e.g., load times <2s, API response times <500ms).
+   - Review `antidote_full_test_20250421_234956.log` for error logs (e.g., “thread_count is undefined”) and traces (e.g., DEBUG:routes:Verification approved).
+
+2. Identify and Fix Analytics Issue:
+   - Verify `/community` in `community.html`—remove analytics (Total Discussions, Total Views, Total Replies, Engagement Rate, Top Trends) and keep only discussion features (search, threads, “Create Thread”).
+   - Ensure `/dashboard/community` in `dashboard_community.html` contains all analytics with charts (e.g., “cost” with 2 mentions, Face: 5, Breast: 1) and filter functionality.
+   - Update `routes.py` to route analytics data exclusively to `/dashboard/community`, fixing any logic spilling into `/community`.
+   - Debug the “thread_count is undefined” error—check variable definition in `routes.py` and ensure data is passed correctly to templates.
+
+3. Seed Database:
+   - Seed 117 procedures with `add_procedures_small.py` or `add_five_procedures.py`, spot-check IDs 1, 13, 50 with: SELECT id, procedure_name, body_part FROM procedures WHERE id IN (1, 13, 50).
+   - Seed 6 threads (including “Test Thread”) with `seed_community_threads.py` or `seed_minimal_data.py`, spot-check with: SELECT id, title, content, created_at, procedure_id, keywords FROM threads LIMIT 6, ensuring “cost” with 2 mentions and body part distribution (5 Face, 1 Breast).
+   - Verify `/api/community/trends` returns “cost” with 2 mentions.
+
+4. Optimize and Stabilize:
+   - Ensure “Top Trends” bar chart renders “cost” with 2 mentions, with <200ms rendering, labels, and tooltips.
+   - Confirm body part distribution pie chart renders Face: 5, Breast: 1, with <200ms rendering, legend, and tooltips.
+   - Verify filter dropdown updates to 5 threads for “Face” with <100ms lag, logging changes with timestamps.
+   - Optimize with minified CSS/JavaScript, add lazy loading for charts, and add timestamped filter logs and debounce in `static/js/community-analytics.js`.
+   - Confirm real-time polling logs an update after 5 minutes.
+
+5. Respond:
+   - Summarize: “/community shows analytics (e.g., Total Discussions: 0) and ‘thread_count is undefined’—this wasn’t intended. Move analytics to /dashboard/community, fix routing in routes.py, and resolve the error. Seed 117 procedures and 6 threads, then verify. I’ll confirm /community has discussions only and /dashboard/community has charts (e.g., ‘cost’ at 2 mentions, Face: 5, Breast: 1) with filters.”
+   - Share `test_report.md`, `antidote_full_test_20250421_234956.log`, `routes.py`, `community.html`, `dashboard_community.html`, `static/js/community-analytics.js`, console output, and screenshots of `/community` (discussions) and `/dashboard/community` (analytics).

@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Analytics Dashboard{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
+.analytics-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+.lead-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.lead-row:hover {
+    background-color: #f8f9fa;
+}
+
+.lead-stage-pending { border-left: 4px solid #ffc107; }
+.lead-stage-contacted { border-left: 4px solid #17a2b8; }
+.lead-stage-converted { border-left: 4px solid #28a745; }
+
+.conversion-rate-high { color: #28a745; font-weight: bold; }
+.conversion-rate-medium { color: #ffc107; font-weight: bold; }
+.conversion-rate-low { color: #dc3545; font-weight: bold; }
+
+.roi-positive { color: #28a745; }
+.roi-negative { color: #dc3545; }
+.roi-neutral { color: #6c757d; }
+
+.filter-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 2rem;
+}
+
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.lead-details-modal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-chart-line"></i> Lead Analytics Dashboard</h1>
+                    <p class="text-muted">Comprehensive lead performance analysis and conversion tracking</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="exportLeadData()">
+                        <i class="fas fa-download"></i> Export Analytics
+                    </button>
+                    <a href="{{ url_for('admin_credit.credit_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Analytics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card analytics-card text-center">
+                <div class="card-body">
+                    <h3>{{ "{:,}".format(analytics.total_leads) }}</h3>
+                    <p class="mb-0">Total Leads</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center" style="border-left: 4px solid #17a2b8;">
+                <div class="card-body">
+                    <h3>{{ analytics.contact_rate }}%</h3>
+                    <p class="mb-0">Contact Rate</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center" style="border-left: 4px solid #28a745;">
+                <div class="card-body">
+                    <h3>{{ analytics.conversion_rate }}%</h3>
+                    <p class="mb-0">Conversion Rate</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-center" style="border-left: 4px solid {% if analytics.roi > 0 %}#28a745{% elif analytics.roi < 0 %}#dc3545{% else %}#6c757d{% endif %};">
+                <div class="card-body">
+                    <h3>{{ analytics.roi }}%</h3>
+                    <p class="mb-0">ROI</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="filter-section">
+        <h5><i class="fas fa-filter"></i> Advanced Lead Filters</h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Clinic</label>
+                <select name="clinic_id" class="form-select">
+                    <option value="">All Clinics</option>
+                    {% for clinic in clinics %}
+                    <option value="{{ clinic.id }}" {% if selected_clinic == clinic.id %}selected{% endif %}>
+                        {{ clinic.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Lead Stage</label>
+                <select name="stage" class="form-select">
+                    <option value="">All Stages</option>
+                    <option value="pending">Pending</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="converted">Converted</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('web.admin_lead_analytics') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Clinic Performance Comparison -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-hospital"></i> Clinic Performance Comparison</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Clinic</th>
+                                    <th>Total Leads</th>
+                                    <th>Contacted</th>
+                                    <th>Converted</th>
+                                    <th>Contact Rate</th>
+                                    <th>Conversion Rate</th>
+                                    <th>Credits Spent</th>
+                                    <th>Revenue</th>
+                                    <th>ROI</th>
+                                    <th>Avg. Conversion Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for clinic in clinic_metrics %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ clinic.name }}</strong><br>
+                                        <small class="text-muted">Balance: {{ "{:,}".format(clinic.credit_balance or 0) }} credits</small>
+                                    </td>
+                                    <td>{{ clinic.total_leads or 0 }}</td>
+                                    <td>{{ clinic.contacted_leads or 0 }}</td>
+                                    <td>{{ clinic.converted_leads or 0 }}</td>
+                                    <td>
+                                        <span class="{% if clinic.contact_rate >= 70 %}conversion-rate-high{% elif clinic.contact_rate >= 40 %}conversion-rate-medium{% else %}conversion-rate-low{% endif %}">
+                                            {{ clinic.contact_rate or 0 }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="{% if clinic.conversion_rate >= 20 %}conversion-rate-high{% elif clinic.conversion_rate >= 10 %}conversion-rate-medium{% else %}conversion-rate-low{% endif %}">
+                                            {{ clinic.conversion_rate or 0 }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ "{:,}".format(clinic.total_credits_spent or 0) }}</td>
+                                    <td>{{ "{:,}".format(clinic.total_revenue or 0) }}</td>
+                                    <td>
+                                        <span class="{% if clinic.roi_percentage > 0 %}roi-positive{% elif clinic.roi_percentage < 0 %}roi-negative{% else %}roi-neutral{% endif %}">
+                                            {{ clinic.roi_percentage or 0 }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if clinic.avg_hours_to_conversion %}
+                                        {{ "%.1f"|format(clinic.avg_hours_to_conversion) }}h
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Lead Details -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-users"></i> Individual Lead Analysis</h5>
+                    <small class="text-muted">Click on any lead for detailed information</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0" id="leadsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient</th>
+                                    <th>Clinic</th>
+                                    <th>Procedure</th>
+                                    <th>Stage</th>
+                                    <th>Quality Score</th>
+                                    <th>Credit Cost</th>
+                                    <th>Revenue</th>
+                                    <th>Source</th>
+                                    <th>Conversion Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if leads %}
+                                {% for lead in leads %}
+                                <tr class="lead-row lead-stage-{{ lead.lead_stage }}" 
+                                    onclick="showLeadDetails({{ lead.id }})" 
+                                    data-lead-id="{{ lead.id }}">
+                                    <td>
+                                        <strong>{{ lead.created_at.strftime('%Y-%m-%d') }}</strong><br>
+                                        <small class="text-muted">{{ lead.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ lead.patient_name }}</strong><br>
+                                        <small class="text-muted">{{ lead.mobile_number or lead.phone or 'No contact info' }}</small>
+                                    </td>
+                                    <td>{{ lead.clinic_name }}</td>
+                                    <td>{{ lead.procedure_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if lead.lead_stage == 'converted' %}bg-success
+                                            {% elif lead.lead_stage == 'contacted' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ lead.lead_stage.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if lead.quality_score %}
+                                        <div class="progress" style="width: 60px; height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if lead.quality_score >= 80 %}bg-success
+                                                {% elif lead.quality_score >= 60 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                style="width: {{ lead.quality_score }}%">
+                                                {{ lead.quality_score }}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ lead.credit_cost or 0 }}</td>
+                                    <td>
+                                        {% if lead.conversion_value %}
+                                        <span class="text-success font-weight-bold">{{ "{:,}".format(lead.conversion_value) }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="badge bg-secondary">{{ lead.source_page or 'Direct' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if lead.hours_to_conversion %}
+                                        <span class="badge bg-primary">{{ "%.1f"|format(lead.hours_to_conversion) }}h</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">
+                                        <i class="fas fa-search fa-2x mb-2"></i><br>
+                                        No leads found for the selected criteria
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lead Details Modal -->
+<div class="modal fade" id="leadDetailsModal" tabindex="-1" aria-labelledby="leadDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leadDetailsModalLabel">Lead Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body lead-details-modal">
+                <div id="leadDetailsContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="contactLead()">Mark as Contacted</button>
+                <button type="button" class="btn btn-success" onclick="convertLead()">Mark as Converted</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentLeadId = null;
+
+function showLeadDetails(leadId) {
+    currentLeadId = leadId;
+    const modal = new bootstrap.Modal(document.getElementById('leadDetailsModal'));
+    
+    // Show loading state
+    document.getElementById('leadDetailsContent').innerHTML = 
+        '<div class="text-center">' +
+            '<div class="spinner-border" role="status">' +
+                '<span class="visually-hidden">Loading...</span>' +
+            '</div>' +
+        '</div>';
+    
+    modal.show();
+    
+    // Load lead details (implement AJAX call to get detailed lead info)
+    fetch('/admin/leads/' + leadId + '/details')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('leadDetailsContent').innerHTML = 
+                '<div class="row">' +
+                    '<div class="col-md-6">' +
+                        '<h6>Patient Information</h6>' +
+                        '<p><strong>Name:</strong> ' + data.patient_name + '</p>' +
+                        '<p><strong>Mobile:</strong> ' + data.mobile_number + '</p>' +
+                        '<p><strong>Email:</strong> ' + (data.email || 'Not provided') + '</p>' +
+                    '</div>' +
+                    '<div class="col-md-6">' +
+                        '<h6>Lead Information</h6>' +
+                        '<p><strong>Procedure:</strong> ' + data.procedure_name + '</p>' +
+                        '<p><strong>Source:</strong> ' + (data.source_page || 'Direct') + '</p>' +
+                        '<p><strong>Created:</strong> ' + new Date(data.created_at).toLocaleString() + '</p>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="row mt-3">' +
+                    '<div class="col-12">' +
+                        '<h6>Timeline</h6>' +
+                        '<ul class="list-group">' +
+                            '<li class="list-group-item">' +
+                                '<strong>Lead Created:</strong> ' + new Date(data.created_at).toLocaleString() +
+                            '</li>' +
+                            (data.contacted_at ? '<li class="list-group-item"><strong>Contacted:</strong> ' + new Date(data.contacted_at).toLocaleString() + '</li>' : '') +
+                            (data.converted_at ? '<li class="list-group-item"><strong>Converted:</strong> ' + new Date(data.converted_at).toLocaleString() + '</li>' : '') +
+                        '</ul>' +
+                    '</div>' +
+                '</div>';
+        })
+        .catch(error => {
+            document.getElementById('leadDetailsContent').innerHTML = 
+                '<div class="alert alert-danger">' +
+                    'Error loading lead details: ' + error.message +
+                '</div>';
+        });
+}
+
+function contactLead() {
+    if (!currentLeadId) return;
+    
+    fetch('/admin/leads/' + currentLeadId + '/contact', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+function convertLead() {
+    if (!currentLeadId) return;
+    
+    const conversionValue = prompt('Enter conversion value (optional):');
+    
+    fetch('/admin/leads/' + currentLeadId + '/convert', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            conversion_value: conversionValue ? parseFloat(conversionValue) : null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+// Make function globally accessible
+window.exportLeadData = function() {
+    try {
+        const table = document.getElementById('leadsTable');
+        if (!table) {
+            alert('Table not found');
+            return;
+        }
+        
+        const rows = table.querySelectorAll('tr');
+        if (rows.length <= 1) {
+            alert('No lead data to export');
+            return;
+        }
+        
+        let csv = 'Lead Analytics Export - ' + new Date().toLocaleDateString() + '\n\n';
+        
+        // Add headers
+        const headerRow = rows[0];
+        const headers = Array.from(headerRow.querySelectorAll('th')).map(th => {
+            return th.textContent.trim().replace(/,/g, '').replace(/\n/g, ' ');
+        });
+        csv += headers.join(',') + '\n';
+        
+        // Add data rows
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = Array.from(row.querySelectorAll('td'));
+            
+            if (cells.length > 0) {
+                const rowData = cells.map(cell => {
+                    let text = cell.textContent.trim();
+                    // Clean up text for CSV
+                    text = text.replace(/\s+/g, ' ');
+                    text = text.replace(/,/g, ';');
+                    text = text.replace(/"/g, '""');
+                    text = text.replace(/\n/g, ' ');
+                    return '"' + text + '"';
+                });
+                csv += rowData.join(',') + '\n';
+            }
+        }
+        
+        // Add summary info
+        csv += '\n\nExport Details:\n';
+        csv += 'Export Date,' + new Date().toISOString() + '\n';
+        csv += 'Total Leads,' + (rows.length - 1) + '\n';
+        csv += 'Export Source,Admin Lead Analytics Dashboard\n';
+        
+        // Create and download file
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename with date and time
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+        link.download = `lead_analytics_${dateStr}_${timeStr}.csv`;
+        
+        // Append to DOM, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        
+        // Show success message
+        const leadCount = rows.length - 1;
+        alert('✅ Export completed successfully!\n\nExported ' + leadCount + ' leads to CSV file.\nFile: lead_analytics_' + dateStr + '_' + timeStr + '.csv');
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('❌ Error exporting data: ' + error.message);
+    }
+};
+</script>
+{% endblock %}

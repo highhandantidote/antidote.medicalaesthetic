@@ -1,0 +1,18 @@
+
+/* Phase 4A Preload Fix - Non-blocking CSS loading */
+.preload-css {
+    position: absolute;
+    left: -9999px;
+    visibility: hidden;
+}
+
+/* Ensure critical styles are inline */
+.critical-styles {
+    display: block;
+}
+
+/* Fix for preload CSS that's causing blocking */
+link[rel="preload"][as="style"] {
+    /* Ensure preload doesn't block */
+    onload: "this.onload=null;this.rel='stylesheet'";
+}

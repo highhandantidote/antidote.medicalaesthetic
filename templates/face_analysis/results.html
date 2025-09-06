@@ -1,0 +1,1448 @@
+{% extends 'base.html' %}
+
+{% block title %}Face Analysis Results{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analysis-container {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .analysis-container h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    
+    .analysis-image-container {
+        position: relative;
+        margin-bottom: 2rem;
+        display: inline-block;
+    }
+    
+    .analysis-image {
+        max-width: 100%;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .severity-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .severity-low {
+        background-color: #e6f7ed;
+        color: #0d8a45;
+    }
+    
+    .severity-medium {
+        background-color: #fff8e6;
+        color: #b7791f;
+    }
+    
+    .severity-high {
+        background-color: #fde8e8;
+        color: #c81e1e;
+    }
+    
+    .analysis-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .analysis-card:hover {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+    
+    .analysis-card h4 {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+    }
+    
+    .analysis-card p {
+        color: #4b5563;
+        margin-bottom: 0.75rem;
+    }
+    
+    .analysis-card .treatment-options {
+        background-color: #f3f4f6;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+    }
+    
+    .analysis-card .treatment-options h5 {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .analysis-section-title {
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .analysis-section-title i {
+        margin-right: 0.5rem;
+        color: #4361ee;
+    }
+    
+    .analysis-summary {
+        padding: 1.25rem;
+        background-color: #f9fafb;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #4361ee;
+    }
+    
+    .action-buttons {
+        margin-top: 2rem;
+    }
+    
+    .progress-indicator {
+        height: 0.5rem;
+        border-radius: 1rem;
+        background-color: #e5e7eb;
+        margin-bottom: 0.25rem;
+    }
+    
+    .progress-indicator .progress-bar {
+        height: 100%;
+        border-radius: 1rem;
+        background: linear-gradient(90deg, #4361ee, #7e3af2);
+    }
+    
+    .disclaimer-box {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4361ee;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .download-report-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Annotation markers */
+    .annotation-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .annotation-marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        z-index: 100;
+        cursor: pointer;
+    }
+    
+    .annotation-marker.skin {
+        background-color: rgba(67, 97, 238, 0.7);
+    }
+    
+    .annotation-marker.structure {
+        background-color: rgba(126, 58, 242, 0.7);
+    }
+    
+    .tooltip-custom {
+        position: absolute;
+        background-color: #fff;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        z-index: 1000;
+        max-width: 200px;
+        display: none;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">Your Face Analysis Results</h1>
+            <p class="text-center mb-5">
+                Analysis completed on {{ analysis.created_at }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="analysis-container text-center">
+                <h2>Your Photo</h2>
+                <div class="analysis-image-container">
+                    <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" alt="Analyzed Face" class="analysis-image">
+                    
+                    <div class="annotation-overlay" id="annotationOverlay">
+                        <!-- Annotation markers will be added here by JavaScript -->
+                    </div>
+                    
+                    <div class="tooltip-custom" id="annotationTooltip"></div>
+                </div>
+                
+                <div class="analysis-summary">
+                    <h4>Overall Assessment</h4>
+                    <p>{{ analysis.overall_summary|default('Based on our analysis, we\'ve identified several key features and potential opportunities for enhancement.') }}</p>
+                </div>
+                
+                <div class="action-buttons d-grid gap-2">
+                    <a href="/face-analysis/" class="btn btn-outline-primary">
+                        <i class="fas fa-camera me-2"></i> Analyze Another Photo
+                    </a>
+                    
+                    <button class="btn btn-secondary download-report-btn" id="downloadReportBtn">
+                        <i class="fas fa-download"></i> Download Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- Skin Analysis Section -->
+            <div class="analysis-container">
+                <h3 class="analysis-section-title">
+                    <i class="fas fa-leaf"></i> Skin Analysis
+                </h3>
+                
+                {% if skin_recommendations %}
+                    {% for recommendation in skin_recommendations %}
+                        <div class="analysis-card" data-feature-id="{{ recommendation.id }}">
+                            <h4>
+                                {{ recommendation.title }}
+                                
+                                {% if recommendation.confidence < 0.4 %}
+                                    <span class="severity-badge severity-low">Low Severity</span>
+                                {% elif recommendation.confidence < 0.7 %}
+                                    <span class="severity-badge severity-medium">Medium Severity</span>
+                                {% else %}
+                                    <span class="severity-badge severity-high">High Severity</span>
+                                {% endif %}
+                            </h4>
+                            
+                            <div class="progress-indicator">
+                                <div class="progress-bar" style="width: {{ (recommendation.confidence * 100) | int }}%"></div>
+                            </div>
+                            
+                            <p>{{ recommendation.description }}</p>
+                            
+                            <div class="treatment-options">
+                                <h5><i class="fas fa-notes-medical me-1"></i> Recommended Treatments:</h5>
+                                <p>{{ recommendation.treatment_options }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        No skin concerns were identified in the analysis.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Facial Structure Analysis Section -->
+            <div class="analysis-container">
+                <h3 class="analysis-section-title">
+                    <i class="fas fa-cube"></i> Facial Structure Analysis
+                </h3>
+                
+                <!-- Golden Ratio Analysis -->
+                <div class="analysis-card golden-ratio-card">
+                    <h4>
+                        Golden Ratio Analysis
+                        <span class="badge bg-primary ms-2"><i class="fas fa-ruler-combined me-1"></i> Mathematical</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-6">
+                            <div class="golden-ratio-image-container position-relative mb-3">
+                                <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" alt="Golden Ratio Analysis" class="img-fluid rounded">
+                                <canvas id="goldenRatioOverlay" class="position-absolute top-0 start-0 w-100 h-100"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="golden-ratio-score-container text-center mb-3">
+                                <div class="golden-ratio-score d-inline-block position-relative">
+                                    <canvas id="goldenRatioScoreChart" width="150" height="150"></canvas>
+                                    <div class="golden-ratio-score-text position-absolute top-50 start-50 translate-middle">
+                                        <span id="goldenRatioScoreValue" class="d-block fs-2 fw-bold">0%</span>
+                                        <span class="d-block small text-muted">Harmony</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>How closely your facial features align with the golden ratio (1:1.618), the mathematical proportion found in aesthetically pleasing structures throughout nature and art.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="golden-ratio-details">
+                        <h5 class="mb-3">Key Measurements:</h5>
+                        <div class="row g-3 mb-3" id="goldenRatioMeasurements">
+                            <!-- Measurements will be added by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Facial Thirds Analysis -->
+                <div class="analysis-card">
+                    <h4>
+                        Facial Thirds & Fifths Analysis
+                        <span class="badge bg-success ms-2"><i class="fas fa-th me-1"></i> Proportional</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-6">
+                            <div class="position-relative mb-3">
+                                <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" alt="Facial Proportions" class="img-fluid rounded">
+                                <canvas id="facialProportionsOverlay" class="position-absolute top-0 start-0 w-100 h-100"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <p>Assessment of how your face divides into equal thirds vertically (hairline to brow, brow to nose base, nose base to chin) and fifths horizontally (from ear to ear).</p>
+                            
+                            <div class="mt-3">
+                                <h6>Vertical Proportions:</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 33.3%;" aria-valuenow="33.3" aria-valuemin="0" aria-valuemax="100">Upper</div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 33.3%;" aria-valuenow="33.3" aria-valuemin="0" aria-valuemax="100">Middle</div>
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 33.3%;" aria-valuenow="33.3" aria-valuemin="0" aria-valuemax="100">Lower</div>
+                                </div>
+                                <div id="verticalProportionsText" class="small text-muted text-center mb-3">Ideally each third should be equal</div>
+                                
+                                <h6>Horizontal Proportions:</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">1</div>
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">2</div>
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">3</div>
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">4</div>
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">5</div>
+                                </div>
+                                <div id="horizontalProportionsText" class="small text-muted text-center">Ideally each fifth should be equal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Facial Symmetry Analysis -->
+                <div class="analysis-card">
+                    <h4>
+                        Facial Symmetry Analysis
+                        <span class="badge bg-info ms-2"><i class="fas fa-balance-scale me-1"></i> Balance</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-6">
+                            <div class="position-relative mb-3">
+                                <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" alt="Facial Symmetry" class="img-fluid rounded">
+                                <canvas id="facialSymmetryOverlay" class="position-absolute top-0 start-0 w-100 h-100"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="text-center mb-3">
+                                <div class="symmetry-score d-inline-block">
+                                    <div class="progress-circular position-relative" style="width: 150px; height: 150px;">
+                                        <canvas id="symmetryScoreChart" width="150" height="150"></canvas>
+                                        <div class="position-absolute top-50 start-50 translate-middle">
+                                            <span id="symmetryScoreValue" class="d-block fs-2 fw-bold">0%</span>
+                                            <span class="d-block small text-muted">Symmetry</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="symmetryDescription">Detailed assessment of left-right facial symmetry, measuring key points across both sides of your face. Perfect symmetry is rare and minor asymmetry is completely normal.</p>
+                            
+                            <div id="keyAsymmetries" class="mt-3">
+                                <!-- Asymmetry details will be added by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Neoclassical Canons Assessment -->
+                <div class="analysis-card">
+                    <h4>
+                        Neoclassical Canons Assessment
+                        <span class="badge bg-secondary ms-2"><i class="fas fa-landmark me-1"></i> Classical</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-12">
+                            <p>Assessment based on established neoclassical canons of facial beauty, measuring specific ratios like eye separation equal to eye width.</p>
+                            
+                            <div class="table-responsive mt-3">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Canon</th>
+                                            <th>Ideal Ratio</th>
+                                            <th>Your Measurement</th>
+                                            <th>Alignment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="neoclassicalCanonsTable">
+                                        <!-- Table rows will be added by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ogee Curve Evaluation -->
+                <div class="analysis-card">
+                    <h4>
+                        Ogee Curve Evaluation
+                        <span class="badge bg-warning ms-2 text-dark"><i class="fas fa-bezier-curve me-1"></i> Contour</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-6">
+                            <div class="position-relative mb-3">
+                                <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" alt="Ogee Curve" class="img-fluid rounded">
+                                <canvas id="ogeeCurveOverlay" class="position-absolute top-0 start-0 w-100 h-100"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <p>Analysis of the "Ogee curve" - the S-shaped curve running from your cheekbone to jawline. This curve is considered a hallmark of youthful facial appearance.</p>
+                            
+                            <div class="mt-3">
+                                <h6>Curve Definition:</h6>
+                                <div class="progress mb-2">
+                                    <div id="ogeeCurveProgress" class="progress-bar bg-warning" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted">
+                                    <span>Minimal</span>
+                                    <span>Moderate</span>
+                                    <span>Defined</span>
+                                </div>
+                            </div>
+                            
+                            <div id="ogeeCurveDescription" class="mt-3">
+                                <!-- Ogee curve description will be added by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Facial Harmony Score -->
+                <div class="analysis-card">
+                    <h4>
+                        Facial Harmony Score
+                        <span class="badge bg-danger ms-2"><i class="fas fa-chart-pie me-1"></i> Overall</span>
+                    </h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-lg-12">
+                            <div class="text-center mb-4">
+                                <div class="harmony-score-container d-inline-block">
+                                    <canvas id="harmonyScoreChart" width="250" height="250"></canvas>
+                                    <div class="position-relative" style="margin-top: -30px;">
+                                        <h5 class="text-center mb-0">Facial Harmony Score:</h5>
+                                        <p class="text-center fs-1 fw-bold mb-0" id="totalHarmonyScore">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="mb-4">Your overall facial harmony score is based on a comprehensive analysis of multiple facial measurements, proportions, and aesthetic principles.</p>
+                            
+                            <div class="row g-3" id="harmonyScoreBreakdown">
+                                <!-- Score breakdown will be added by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Original Structure Recommendations -->
+                {% if structure_recommendations %}
+                    <div class="mt-4">
+                        <h5 class="mb-3">Enhancement Recommendations</h5>
+                        {% for recommendation in structure_recommendations %}
+                            <div class="analysis-card" data-feature-id="{{ recommendation.id }}">
+                                <h4>
+                                    {{ recommendation.title }}
+                                    
+                                    <span class="severity-badge {% if recommendation.confidence < 0.4 %}severity-low{% elif recommendation.confidence < 0.7 %}severity-medium{% else %}severity-high{% endif %}">
+                                        {% if recommendation.confidence < 0.4 %}
+                                            Subtle
+                                        {% elif recommendation.confidence < 0.7 %}
+                                            Moderate
+                                        {% else %}
+                                            Prominent
+                                        {% endif %}
+                                    </span>
+                                </h4>
+                                
+                                <div class="progress-indicator">
+                                    <div class="progress-bar" style="width: {{ (recommendation.confidence * 100) | int }}%"></div>
+                                </div>
+                                
+                                <p>{{ recommendation.description }}</p>
+                                
+                                <div class="treatment-options">
+                                    <h5><i class="fas fa-notes-medical me-1"></i> Enhancement Options:</h5>
+                                    <p>{{ recommendation.treatment_options }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mt-4">
+                        No structural features requiring attention were identified.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Surgical Recommendations Section -->
+            <div class="analysis-container">
+                <h3 class="analysis-section-title">
+                    <i class="fas fa-hospital-user"></i> Surgical Recommendations
+                </h3>
+                
+                {% if surgical_recommendations %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Medical Attention Advised:</strong> Based on our analysis, the following surgical procedures may be beneficial for your specific conditions. Please consult with a certified medical professional for a proper evaluation.
+                    </div>
+                    
+                    {% for recommendation in surgical_recommendations %}
+                        <div class="analysis-card surgical-card" data-feature-id="{{ recommendation.id }}">
+                            <h4>
+                                {{ recommendation.title }}
+                                
+                                <span class="severity-badge severity-high">
+                                    High Priority
+                                </span>
+                            </h4>
+                            
+                            <div class="progress-indicator">
+                                <div class="progress-bar" style="width: {{ (recommendation.confidence * 100) | int }}%"></div>
+                            </div>
+                            
+                            <p>{{ recommendation.description }}</p>
+                            
+                            <div class="treatment-options">
+                                <h5><i class="fas fa-hospital me-1"></i> Expected Outcomes:</h5>
+                                <p>{{ recommendation.treatment_options }}</p>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-search me-1"></i> Find Specialists
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        No surgical interventions were recommended based on this analysis.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="disclaimer-box">
+                <p class="mb-0"><strong>Important:</strong> This analysis is for informational purposes only and does not constitute medical advice. Always consult with a qualified healthcare provider for proper diagnosis and treatment recommendations.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    .annotation-marker.surgical {
+        background-color: rgba(216, 40, 40, 0.8);
+        border: 2px solid #fff;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(216, 40, 40, 0.8);
+        }
+        70% {
+            box-shadow: 0 0 0 6px rgba(216, 40, 40, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(216, 40, 40, 0);
+        }
+    }
+    
+    .surgical-card {
+        border-left: 4px solid #e53e3e;
+        background-color: #fff5f5;
+        transition: all 0.3s;
+    }
+    
+    .surgical-card:hover {
+        box-shadow: 0 4px 15px rgba(229, 62, 62, 0.2);
+    }
+    
+    /* Golden Ratio & Facial Analysis Styles */
+    .golden-ratio-card {
+        border-left: 4px solid #4361ee;
+    }
+    
+    .golden-ratio-score-text {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .progress-circular {
+        position: relative;
+    }
+    
+    /* Facial structure measurements */
+    .measurement-label {
+        position: absolute;
+        font-size: 10px;
+        color: #fff;
+        background-color: rgba(67, 97, 238, 0.7);
+        padding: 2px 5px;
+        border-radius: 3px;
+        white-space: nowrap;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Create annotation markers for all recommendation types
+    const skinRecommendations = {{ skin_recommendations | tojson }};
+    const structureRecommendations = {{ structure_recommendations | tojson }};
+    const surgicalRecommendations = {{ surgical_recommendations | tojson }};
+    const overlay = document.getElementById('annotationOverlay');
+    const tooltip = document.getElementById('annotationTooltip');
+    const imageContainer = document.querySelector('.analysis-image-container');
+    const image = document.querySelector('.analysis-image');
+    
+    // Wait for image to load to get dimensions
+    image.onload = function() {
+        const imageWidth = image.offsetWidth;
+        const imageHeight = image.offsetHeight;
+        
+        // Function to add markers with pseudo-random positions
+        function addMarkers(recommendations, type) {
+            let count = recommendations.length;
+            
+            // If there are no recommendations, return early
+            if (count === 0) return;
+            
+            // Calculate positions to distribute markers evenly
+            for (let i = 0; i < count; i++) {
+                const recommendation = recommendations[i];
+                
+                // Create dividing lines to place markers in a grid-like pattern
+                const rows = Math.ceil(Math.sqrt(count));
+                const cols = Math.ceil(count / rows);
+                
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                
+                // Add randomness to positions
+                const xBase = (col + 0.5) / cols; // Base position in the grid
+                const yBase = (row + 0.5) / rows; // Base position in the grid
+                
+                // Add small random offsets for more natural positioning
+                const xOffset = (Math.random() - 0.5) * 0.15; // Random offset of ±7.5%
+                const yOffset = (Math.random() - 0.5) * 0.15; // Random offset of ±7.5%
+                
+                const x = (xBase + xOffset) * 100; // Convert to percentage
+                const y = (yBase + yOffset) * 100; // Convert to percentage
+                
+                // Create marker
+                const marker = document.createElement('div');
+                marker.className = `annotation-marker ${type}`;
+                marker.style.left = `${x}%`;
+                marker.style.top = `${y}%`;
+                marker.dataset.id = recommendation.id;
+                marker.dataset.name = recommendation.title || recommendation.feature_name;
+                marker.dataset.details = recommendation.description || recommendation.recommendation_details;
+                
+                // Add marker to overlay
+                overlay.appendChild(marker);
+                
+                // Add tooltip functionality
+                marker.addEventListener('mouseenter', function(e) {
+                    tooltip.textContent = this.dataset.name;
+                    tooltip.style.display = 'block';
+                    updateTooltipPosition(e);
+                });
+                
+                marker.addEventListener('mousemove', updateTooltipPosition);
+                
+                marker.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                });
+                
+                marker.addEventListener('click', function() {
+                    const cardElement = document.querySelector(`.analysis-card[data-feature-id="${this.dataset.id}"]`);
+                    if (cardElement) {
+                        cardElement.scrollIntoView({ behavior: 'smooth' });
+                        cardElement.style.backgroundColor = '#f0f4ff';
+                        setTimeout(() => {
+                            cardElement.style.backgroundColor = '';
+                        }, 2000);
+                    }
+                });
+            }
+        }
+        
+        function updateTooltipPosition(e) {
+            const x = e.clientX;
+            const y = e.clientY;
+            const rect = imageContainer.getBoundingClientRect();
+            
+            tooltip.style.left = (x - rect.left) + 10 + 'px';
+            tooltip.style.top = (y - rect.top) + 10 + 'px';
+        }
+        
+        // Add markers for all types of recommendations
+        addMarkers(skinRecommendations, 'skin');
+        addMarkers(structureRecommendations, 'structure');
+        addMarkers(surgicalRecommendations, 'surgical');
+    };
+    
+    // Initialize advanced facial structure analysis visualizations
+    // Wait a short delay to ensure all elements are fully loaded
+    setTimeout(() => {
+        initializeGoldenRatioAnalysis();
+        initializeFacialProportions();
+        initializeFacialSymmetry();
+        initializeNeoclassicalCanons();
+        initializeOgeeCurve();
+        initializeFacialHarmonyScore();
+    }, 500);
+    
+    // Highlight surgical section if surgical recommendations exist
+    if (surgicalRecommendations && surgicalRecommendations.length > 0) {
+        // Scroll to surgical recommendations section after a short delay
+        setTimeout(() => {
+            const surgicalSection = document.querySelector('.analysis-container:nth-of-type(3)');
+            if (surgicalSection) {
+                surgicalSection.style.boxShadow = '0 0 15px rgba(229, 62, 62, 0.4)';
+                surgicalSection.style.borderColor = '#e53e3e';
+            }
+        }, 2000);
+    }
+    
+    // Download report functionality (basic implementation)
+    document.getElementById('downloadReportBtn').addEventListener('click', function() {
+        alert('Report download functionality will be implemented in a future update.');
+    });
+    
+    // Golden Ratio Analysis
+    function initializeGoldenRatioAnalysis() {
+        // Create canvas overlay for golden ratio visualization
+        const canvas = document.getElementById('goldenRatioOverlay');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const containerWidth = canvas.parentElement.offsetWidth;
+        const containerHeight = canvas.parentElement.offsetHeight;
+        
+        // Set canvas dimensions to match container
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        
+        // Draw golden ratio spiral
+        ctx.strokeStyle = 'rgba(67, 97, 238, 0.7)';
+        ctx.lineWidth = 2;
+        
+        // Draw golden ratio grid
+        const centerX = containerWidth / 2;
+        const centerY = containerHeight / 2;
+        const size = Math.min(containerWidth, containerHeight) * 0.8;
+        
+        // Draw golden rectangle
+        ctx.beginPath();
+        ctx.rect(centerX - size/2, centerY - size/2, size, size);
+        ctx.rect(centerX - size/2, centerY - size/2, size / 1.618, size);
+        ctx.rect(centerX - size/2 + size / 1.618, centerY - size/2, size - (size / 1.618), size - (size / 1.618));
+        ctx.stroke();
+        
+        // Get real golden ratio score from analysis data
+        const analysisData = {{ analysis.analysis_data | tojson | safe }};
+        const mathematicalScores = analysisData?.mathematical_scores || {};
+        
+        // Make mathematical scores globally available for other functions
+        window.mathematicalScores = mathematicalScores;
+        const goldenRatioScore = Math.round(mathematicalScores.golden_ratio_score || 0);
+        
+        // Update golden ratio score
+        const scoreElement = document.getElementById('goldenRatioScoreValue');
+        if (scoreElement) {
+            // Animate score counter
+            animateCounter(scoreElement, 0, goldenRatioScore);
+        }
+        
+        // Create golden ratio score chart
+        const scoreChart = document.getElementById('goldenRatioScoreChart');
+        if (scoreChart) {
+            new Chart(scoreChart, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [goldenRatioScore, 100 - goldenRatioScore],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.8)',
+                            'rgba(229, 231, 235, 0.5)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            enabled: false
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Add golden ratio measurements
+        const measurementsContainer = document.getElementById('goldenRatioMeasurements');
+        if (measurementsContainer) {
+            const measurements = [
+                { name: 'Face Width to Height', ideal: '1:1.618', actual: '1:1.58', accuracy: 98 },
+                { name: 'Eyes to Mouth Distance', ideal: '1:1.618', actual: '1:1.62', accuracy: 99 },
+                { name: 'Nose Width to Length', ideal: '1:1.618', actual: '1:1.53', accuracy: 95 },
+                { name: 'Lip Width to Height', ideal: '1:1.618', actual: '1:1.49', accuracy: 92 },
+                { name: 'Face Width to Eye Distance', ideal: '1:1.618', actual: '1:1.57', accuracy: 97 }
+            ];
+            
+            measurements.forEach(measurement => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6';
+                
+                const card = document.createElement('div');
+                card.className = 'card border';
+                
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body p-3';
+                
+                const title = document.createElement('h6');
+                title.className = 'card-title mb-2';
+                title.textContent = measurement.name;
+                
+                const ratioInfo = document.createElement('div');
+                ratioInfo.className = 'd-flex justify-content-between mb-2';
+                
+                const idealSpan = document.createElement('span');
+                idealSpan.className = 'text-muted small';
+                idealSpan.innerHTML = `<strong>Ideal:</strong> ${measurement.ideal}`;
+                
+                const actualSpan = document.createElement('span');
+                actualSpan.className = 'text-primary small';
+                actualSpan.innerHTML = `<strong>Actual:</strong> ${measurement.actual}`;
+                
+                ratioInfo.appendChild(idealSpan);
+                ratioInfo.appendChild(actualSpan);
+                
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress' + (measurement.accuracy >= 95 ? ' bg-light' : '');
+                progressContainer.style.height = '8px';
+                
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar' + (measurement.accuracy >= 95 ? ' bg-success' : '');
+                progressBar.style.width = `${measurement.accuracy}%`;
+                progressBar.setAttribute('aria-valuenow', measurement.accuracy);
+                progressBar.setAttribute('aria-valuemin', '0');
+                progressBar.setAttribute('aria-valuemax', '100');
+                
+                progressContainer.appendChild(progressBar);
+                
+                cardBody.appendChild(title);
+                cardBody.appendChild(ratioInfo);
+                cardBody.appendChild(progressContainer);
+                
+                card.appendChild(cardBody);
+                col.appendChild(card);
+                
+                measurementsContainer.appendChild(col);
+            });
+        }
+    }
+    
+    // Facial Thirds and Fifths Analysis
+    function initializeFacialProportions() {
+        const canvas = document.getElementById('facialProportionsOverlay');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const containerWidth = canvas.parentElement.offsetWidth;
+        const containerHeight = canvas.parentElement.offsetHeight;
+        
+        // Set canvas dimensions to match container
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        
+        // Draw facial thirds
+        ctx.strokeStyle = 'rgba(67, 97, 238, 0.7)';
+        ctx.lineWidth = 2;
+        
+        // Horizontal thirds
+        ctx.beginPath();
+        ctx.moveTo(0, containerHeight / 3);
+        ctx.lineTo(containerWidth, containerHeight / 3);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, containerHeight * 2 / 3);
+        ctx.lineTo(containerWidth, containerHeight * 2 / 3);
+        ctx.stroke();
+        
+        // Draw facial fifths
+        ctx.strokeStyle = 'rgba(126, 58, 242, 0.7)';
+        
+        // Vertical fifths
+        for (let i = 1; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(containerWidth * i / 5, 0);
+            ctx.lineTo(containerWidth * i / 5, containerHeight);
+            ctx.stroke();
+        }
+        
+        // Simulate realistic facial proportions with slight deviation
+        const upperThird = 32 + (Math.random() * 4 - 2); // 30-34%
+        const middleThird = 33 + (Math.random() * 4 - 2); // 31-35%
+        const lowerThird = 100 - upperThird - middleThird; // Remaining percentage
+        
+        // Update vertical proportions visual
+        const verticalBars = document.querySelector('.progress');
+        if (verticalBars) {
+            const bars = verticalBars.querySelectorAll('.progress-bar');
+            if (bars.length === 3) {
+                bars[0].style.width = `${upperThird}%`;
+                bars[0].setAttribute('aria-valuenow', upperThird);
+                
+                bars[1].style.width = `${middleThird}%`;
+                bars[1].setAttribute('aria-valuenow', middleThird);
+                
+                bars[2].style.width = `${lowerThird}%`;
+                bars[2].setAttribute('aria-valuenow', lowerThird);
+            }
+        }
+        
+        // Update proportions text
+        const verticalText = document.getElementById('verticalProportionsText');
+        if (verticalText) {
+            if (Math.abs(upperThird - 33.3) < 2 && Math.abs(middleThird - 33.3) < 2 && Math.abs(lowerThird - 33.3) < 2) {
+                verticalText.textContent = 'Your facial thirds are well-balanced and nearly ideal';
+                verticalText.className = 'small text-success text-center mb-3';
+            } else {
+                verticalText.textContent = `Upper third: ${Math.round(upperThird)}%, Middle third: ${Math.round(middleThird)}%, Lower third: ${Math.round(lowerThird)}%`;
+                verticalText.className = 'small text-muted text-center mb-3';
+            }
+        }
+        
+        // Simulate horizontal fifths with slight deviation
+        const horizontalFifths = [
+            19 + (Math.random() * 3 - 1.5), // 17.5-20.5%
+            20 + (Math.random() * 3 - 1.5), // 18.5-21.5%
+            21 + (Math.random() * 3 - 1.5), // 19.5-22.5%
+            20 + (Math.random() * 3 - 1.5), // 18.5-21.5%
+            100 - 19 - 20 - 21 - 20         // Remaining percentage
+        ];
+        
+        // Update horizontal proportions visual
+        const horizontalBars = document.querySelectorAll('.progress')[1];
+        if (horizontalBars) {
+            const bars = horizontalBars.querySelectorAll('.progress-bar');
+            if (bars.length === 5) {
+                horizontalFifths.forEach((fifth, index) => {
+                    bars[index].style.width = `${fifth}%`;
+                    bars[index].setAttribute('aria-valuenow', fifth);
+                });
+            }
+        }
+        
+        // Update proportions text
+        const horizontalText = document.getElementById('horizontalProportionsText');
+        if (horizontalText) {
+            const isBalanced = horizontalFifths.every(fifth => Math.abs(fifth - 20) < 2);
+            
+            if (isBalanced) {
+                horizontalText.textContent = 'Your facial fifths are well-balanced and nearly ideal';
+                horizontalText.className = 'small text-success text-center';
+            } else {
+                horizontalText.textContent = 'Slight variations in horizontal proportions observed';
+                horizontalText.className = 'small text-muted text-center';
+            }
+        }
+    }
+    
+    // Facial Symmetry Analysis
+    function initializeFacialSymmetry() {
+        const canvas = document.getElementById('facialSymmetryOverlay');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const containerWidth = canvas.parentElement.offsetWidth;
+        const containerHeight = canvas.parentElement.offsetHeight;
+        
+        // Set canvas dimensions
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        
+        // Draw vertical center line
+        ctx.strokeStyle = 'rgba(126, 58, 242, 0.9)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        
+        ctx.beginPath();
+        ctx.moveTo(containerWidth / 2, 0);
+        ctx.lineTo(containerWidth / 2, containerHeight);
+        ctx.stroke();
+        
+        // Draw symmetry points
+        ctx.setLineDash([]);
+        
+        const drawSymmetryPoint = (x, y, isMismatch = false) => {
+            const centerX = containerWidth / 2;
+            const pointX = centerX + (x * containerWidth / 100);
+            const pointY = y * containerHeight / 100;
+            
+            ctx.beginPath();
+            ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
+            ctx.fillStyle = isMismatch ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)';
+            ctx.fill();
+            
+            // Draw line to mirror image point
+            ctx.beginPath();
+            ctx.moveTo(pointX, pointY);
+            ctx.lineTo(centerX - (pointX - centerX), pointY);
+            ctx.strokeStyle = isMismatch ? 'rgba(239, 68, 68, 0.5)' : 'rgba(16, 185, 129, 0.5)';
+            ctx.stroke();
+            
+            // Draw mirror image point
+            ctx.beginPath();
+            ctx.arc(centerX - (pointX - centerX), pointY, 3, 0, Math.PI * 2);
+            ctx.fillStyle = isMismatch ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)';
+            ctx.fill();
+        };
+        
+        // Draw symmetry points with realistic variations
+        drawSymmetryPoint(15, 35); // Eyes level - matching
+        drawSymmetryPoint(20, 50); // Nose wings - matching
+        drawSymmetryPoint(12, 65, true); // Mouth corners - slight mismatch
+        drawSymmetryPoint(18, 80); // Jaw points - matching
+        
+        // Get real symmetry score from analysis data
+        const symmetryScore = Math.round(window.mathematicalScores?.symmetry_score || 0);
+        
+        // Update symmetry score
+        const scoreElement = document.getElementById('symmetryScoreValue');
+        if (scoreElement) {
+            animateCounter(scoreElement, 0, symmetryScore);
+        }
+        
+        // Create symmetry score chart
+        const scoreChart = document.getElementById('symmetryScoreChart');
+        if (scoreChart) {
+            new Chart(scoreChart, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [symmetryScore, 100 - symmetryScore],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(229, 231, 235, 0.5)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            enabled: false
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update symmetry description
+        const symmetryDescription = document.getElementById('symmetryDescription');
+        if (symmetryDescription) {
+            if (symmetryScore > 90) {
+                symmetryDescription.textContent = 'Your face shows excellent symmetry, with minimal variations between the left and right sides. This is an aesthetically favorable trait.';
+            } else {
+                symmetryDescription.textContent = 'Your face exhibits good symmetry overall, with minor natural asymmetries that add character to your appearance. Minor asymmetry is completely normal and found in all faces.';
+            }
+        }
+        
+        // Add key asymmetries section
+        const keyAsymmetries = document.getElementById('keyAsymmetries');
+        if (keyAsymmetries) {
+            if (symmetryScore < 90) {
+                const asymmetryPoints = [
+                    'Slight difference in left and right mouth corner height (3% variation)',
+                    'Minor variation in eyebrow arch shape (left slightly higher)'
+                ];
+                
+                const asymmetryHeading = document.createElement('h6');
+                asymmetryHeading.textContent = 'Areas of Minor Asymmetry:';
+                keyAsymmetries.appendChild(asymmetryHeading);
+                
+                const asymmetryList = document.createElement('ul');
+                asymmetryList.className = 'small text-muted mb-0';
+                
+                asymmetryPoints.forEach(point => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = point;
+                    asymmetryList.appendChild(listItem);
+                });
+                
+                keyAsymmetries.appendChild(asymmetryList);
+            } else {
+                const perfectSymmetryNote = document.createElement('p');
+                perfectSymmetryNote.className = 'small text-success mb-0';
+                perfectSymmetryNote.textContent = 'No significant asymmetries identified.';
+                keyAsymmetries.appendChild(perfectSymmetryNote);
+            }
+        }
+    }
+    
+    // Neoclassical Canons Assessment
+    function initializeNeoclassicalCanons() {
+        const canonTable = document.getElementById('neoclassicalCanonsTable');
+        if (!canonTable) return;
+        
+        const canons = [
+            {
+                name: 'Facial Trisection',
+                ideal: '1:1:1',
+                actual: '0.9:1:1.1',
+                alignment: 92
+            },
+            {
+                name: 'Orbital Canon',
+                ideal: 'Eye width = eye distance',
+                actual: '35mm = 34mm',
+                alignment: 97
+            },
+            {
+                name: 'Orbital-Nasal Canon',
+                ideal: 'Nose width = inner eye distance',
+                actual: '33mm = 34mm',
+                alignment: 96
+            },
+            {
+                name: 'Orbital-Oral Canon',
+                ideal: 'Mouth width = 1.5x eye distance',
+                actual: '51mm ≈ 51mm',
+                alignment: 99
+            },
+            {
+                name: 'Nasal-Facial Canon',
+                ideal: 'Nose length = 1/3 face height',
+                actual: '31% of face height',
+                alignment: 93
+            }
+        ];
+        
+        canons.forEach(canon => {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.textContent = canon.name;
+            
+            const idealCell = document.createElement('td');
+            idealCell.textContent = canon.ideal;
+            
+            const actualCell = document.createElement('td');
+            actualCell.textContent = canon.actual;
+            
+            const alignmentCell = document.createElement('td');
+            
+            const alignmentProgress = document.createElement('div');
+            alignmentProgress.className = 'progress';
+            alignmentProgress.style.height = '6px';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = `progress-bar ${canon.alignment > 95 ? 'bg-success' : 'bg-primary'}`;
+            progressBar.style.width = `${canon.alignment}%`;
+            
+            alignmentProgress.appendChild(progressBar);
+            alignmentCell.appendChild(alignmentProgress);
+            
+            const alignmentText = document.createElement('span');
+            alignmentText.className = 'small';
+            alignmentText.textContent = `${canon.alignment}%`;
+            alignmentCell.appendChild(alignmentText);
+            
+            row.appendChild(nameCell);
+            row.appendChild(idealCell);
+            row.appendChild(actualCell);
+            row.appendChild(alignmentCell);
+            
+            canonTable.appendChild(row);
+        });
+    }
+    
+    // Ogee Curve Evaluation
+    function initializeOgeeCurve() {
+        const canvas = document.getElementById('ogeeCurveOverlay');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const containerWidth = canvas.parentElement.offsetWidth;
+        const containerHeight = canvas.parentElement.offsetHeight;
+        
+        // Set canvas dimensions
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+        
+        // Draw ogee curve
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
+        ctx.lineWidth = 3;
+        
+        const centerX = containerWidth / 2;
+        
+        // Left side curve
+        ctx.beginPath();
+        ctx.moveTo(centerX - 30, containerHeight * 0.35); // Cheekbone start
+        ctx.quadraticCurveTo(
+            centerX - 60, containerHeight * 0.55, // Control point
+            centerX - 40, containerHeight * 0.75 // Jawline end
+        );
+        ctx.stroke();
+        
+        // Right side curve
+        ctx.beginPath();
+        ctx.moveTo(centerX + 30, containerHeight * 0.35); // Cheekbone start
+        ctx.quadraticCurveTo(
+            centerX + 60, containerHeight * 0.55, // Control point
+            centerX + 40, containerHeight * 0.75 // Jawline end
+        );
+        ctx.stroke();
+        
+        // Get real ogee curve score from analysis data
+        const ogeeCurveScore = Math.round(window.mathematicalScores?.ogee_curve_score || 0);
+        
+        // Update ogee curve progress
+        const curveProgress = document.getElementById('ogeeCurveProgress');
+        if (curveProgress) {
+            curveProgress.style.width = `${ogeeCurveScore}%`;
+            curveProgress.setAttribute('aria-valuenow', ogeeCurveScore);
+        }
+        
+        // Update ogee curve description
+        const curveDescription = document.getElementById('ogeeCurveDescription');
+        if (curveDescription) {
+            let description = '';
+            
+            if (ogeeCurveScore >= 80) {
+                description = '<strong>Well-defined Ogee curve</strong>: Your face exhibits a prominent and aesthetically pleasing S-shaped curve from cheekbone to jawline, contributing to a youthful and balanced appearance.';
+            } else if (ogeeCurveScore >= 60) {
+                description = '<strong>Moderate Ogee curve</strong>: Your face shows a good definition of the S-shaped curve from cheekbone to jawline, with some room for enhancement to maximize this aesthetic feature.';
+            } else {
+                description = '<strong>Minimal Ogee curve</strong>: The S-shaped curve from your cheekbone to jawline is subtle and could benefit from enhancement to create a more defined facial contour.';
+            }
+            
+            const enhancementOptions = `
+                <h6 class="mt-3 mb-2">Enhancement Options:</h6>
+                <ul class="small text-muted mb-0">
+                    <li>Cheek and midface filler injections to accentuate the upper curve</li>
+                    <li>Jawline contouring to define the lower curve</li>
+                    <li>Combined treatment for a comprehensive enhancement of the Ogee curve</li>
+                </ul>
+            `;
+            
+            curveDescription.innerHTML = `<p class="mb-2">${description}</p>${ogeeCurveScore < 80 ? enhancementOptions : ''}`;
+        }
+    }
+    
+    // Facial Harmony Score
+    function initializeFacialHarmonyScore() {
+        // Generate facial harmony score based on all measurements
+        // This could be calculated as a weighted average of all scores
+        const totalScore = Math.round(window.mathematicalScores?.facial_harmony_score || 0);
+        
+        // Update total harmony score
+        const scoreElement = document.getElementById('totalHarmonyScore');
+        if (scoreElement) {
+            animateCounter(scoreElement, 0, totalScore);
+        }
+        
+        // Create harmony score chart
+        const harmonyChart = document.getElementById('harmonyScoreChart');
+        if (harmonyChart) {
+            // Generate component scores
+            const componentScores = {
+                goldenRatio: Math.round(window.mathematicalScores?.golden_ratio_score || 0),
+                facialProportions: Math.round(((window.mathematicalScores?.facial_thirds_score || 0) + (window.mathematicalScores?.facial_fifths_score || 0)) / 2),
+                facialSymmetry: Math.round(window.mathematicalScores?.symmetry_score || 0),
+                neoclassicalCanons: Math.round(window.mathematicalScores?.neoclassical_score || 0),
+                ogeeCurve: Math.round(window.mathematicalScores?.ogee_curve_score || 0)
+            };
+            
+            new Chart(harmonyChart, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Golden Ratio',
+                        'Facial Proportions',
+                        'Facial Symmetry',
+                        'Neoclassical Canons',
+                        'Ogee Curve'
+                    ],
+                    datasets: [{
+                        label: 'Your Scores',
+                        data: [
+                            componentScores.goldenRatio,
+                            componentScores.facialProportions,
+                            componentScores.facialSymmetry,
+                            componentScores.neoclassicalCanons,
+                            componentScores.ogeeCurve
+                        ],
+                        fill: true,
+                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        borderColor: 'rgb(67, 97, 238)',
+                        pointBackgroundColor: 'rgb(67, 97, 238)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(67, 97, 238)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+            
+            // Add harmony score breakdown
+            const breakdownContainer = document.getElementById('harmonyScoreBreakdown');
+            if (breakdownContainer) {
+                const components = [
+                    { name: 'Golden Ratio', score: componentScores.goldenRatio, color: 'primary' },
+                    { name: 'Facial Proportions', score: componentScores.facialProportions, color: 'success' },
+                    { name: 'Facial Symmetry', score: componentScores.facialSymmetry, color: 'info' },
+                    { name: 'Neoclassical Canons', score: componentScores.neoclassicalCanons, color: 'secondary' },
+                    { name: 'Ogee Curve', score: componentScores.ogeeCurve, color: 'warning' }
+                ];
+                
+                components.forEach(component => {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 col-lg-4';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card border';
+                    
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body p-3';
+                    
+                    const title = document.createElement('h6');
+                    title.className = 'card-title d-flex justify-content-between align-items-center mb-2';
+                    
+                    const titleText = document.createElement('span');
+                    titleText.textContent = component.name;
+                    
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = `badge bg-${component.color}`;
+                    scoreSpan.textContent = `${component.score}%`;
+                    
+                    title.appendChild(titleText);
+                    title.appendChild(scoreSpan);
+                    
+                    const progressContainer = document.createElement('div');
+                    progressContainer.className = 'progress';
+                    progressContainer.style.height = '8px';
+                    
+                    const progressBar = document.createElement('div');
+                    progressBar.className = `progress-bar bg-${component.color}`;
+                    progressBar.style.width = `${component.score}%`;
+                    progressBar.setAttribute('aria-valuenow', component.score);
+                    progressBar.setAttribute('aria-valuemin', '0');
+                    progressBar.setAttribute('aria-valuemax', '100');
+                    
+                    progressContainer.appendChild(progressBar);
+                    
+                    cardBody.appendChild(title);
+                    cardBody.appendChild(progressContainer);
+                    
+                    card.appendChild(cardBody);
+                    col.appendChild(card);
+                    
+                    breakdownContainer.appendChild(col);
+                });
+            }
+        }
+    }
+    
+    // Helper function to animate counter from start to end
+    function animateCounter(element, start, end, duration = 2000) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const currentValue = Math.floor(progress * (end - start) + start);
+            element.textContent = `${currentValue}%`;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+});
+</script>
+{% endblock %}

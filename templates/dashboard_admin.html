@@ -1,0 +1,1207 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | Antidote{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Admin Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#dashboard" class="list-group-item list-group-item-action bg-dark text-white border-light active" data-bs-toggle="list">Dashboard</a>
+                    <a href="#users" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Users</a>
+                    <a href="#doctors" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Doctors</a>
+                    <a href="#procedures" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Procedures</a>
+                    <a href="#categories" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Categories</a>
+                    <a href="#body-parts" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Body Parts</a>
+                    <a href="#reviews" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Reviews</a>
+                    <a href="#community" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Community</a>
+                    <a href="#analytics" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Analytics</a>
+                    <a href="#settings" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Settings</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="tab-content">
+                <!-- Dashboard Overview -->
+                <div class="tab-pane fade show active" id="dashboard">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h3>Platform Overview</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Total Users</h6>
+                                    <h2 class="mb-0">{{ stats.user_count }}</h2>
+                                    <p class="text-muted">
+                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                        {{ stats.user_growth }}% this month
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Total Doctors</h6>
+                                    <h2 class="mb-0">{{ stats.doctor_count }}</h2>
+                                    <p class="text-muted">
+                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                        {{ stats.doctor_growth }}% this month
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Total Leads</h6>
+                                    <h2 class="mb-0">{{ stats.lead_count }}</h2>
+                                    <p class="text-muted">
+                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                        {{ stats.lead_growth }}% this month
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Community Posts</h6>
+                                    <h2 class="mb-0">{{ stats.community_count }}</h2>
+                                    <p class="text-muted">
+                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                        {{ stats.community_growth }}% this month
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Recent Activity</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group list-group-flush">
+                                        {% for activity in recent_activities %}
+                                        <div class="list-group-item bg-dark text-white border-light">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if activity.type == 'user_register' %}
+                                                        <div class="bg-info rounded-circle p-2">
+                                                            <i class="fas fa-user-plus"></i>
+                                                        </div>
+                                                    {% elif activity.type == 'doctor_register' %}
+                                                        <div class="bg-primary rounded-circle p-2">
+                                                            <i class="fas fa-user-md"></i>
+                                                        </div>
+                                                    {% elif activity.type == 'lead' %}
+                                                        <div class="bg-success rounded-circle p-2">
+                                                            <i class="fas fa-handshake"></i>
+                                                        </div>
+                                                    {% elif activity.type == 'review' %}
+                                                        <div class="bg-warning rounded-circle p-2">
+                                                            <i class="fas fa-star text-dark"></i>
+                                                        </div>
+                                                    {% elif activity.type == 'community' %}
+                                                        <div class="bg-secondary rounded-circle p-2">
+                                                            <i class="fas fa-comment"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0">{{ activity.description }}</p>
+                                                    <small class="text-muted">{{ activity.time|ago }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Popular Procedures</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Procedure</th>
+                                                    <th>Category</th>
+                                                    <th>Views</th>
+                                                    <th>Leads</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for procedure in popular_procedures %}
+                                                <tr>
+                                                    <td>{{ procedure.procedure_name }}</td>
+                                                    <td>{{ procedure.category.name }}</td>
+                                                    <td>{{ procedure.views }}</td>
+                                                    <td>{{ procedure.leads }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Management -->
+                <div class="tab-pane fade" id="users">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Users Management</h5>
+                            <div class="d-flex">
+                                <input type="text" class="form-control form-control-sm bg-dark text-white me-2" placeholder="Search users...">
+                                <button class="btn btn-sm btn-outline-info">Search</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in users %}
+                                        <tr>
+                                            <td>{{ user.id }}</td>
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.email }}</td>
+                                            <td>{{ user.phone_number }}</td>
+                                            <td>
+                                                <span class="badge {% if user.role == 'admin' %}bg-danger{% elif user.role == 'doctor' %}bg-primary{% else %}bg-info{% endif %}">
+                                                    {{ user.role }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if user.is_verified %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Unverified</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="#" class="btn btn-outline-info">View</a>
+                                                    <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                    <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Users pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Doctors Management -->
+                <div class="tab-pane fade" id="doctors">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Doctors Management</h5>
+                            <div class="d-flex">
+                                <input type="text" class="form-control form-control-sm bg-dark text-white me-2" placeholder="Search doctors...">
+                                <button class="btn btn-sm btn-outline-info">Search</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Specialty</th>
+                                            <th>Location</th>
+                                            <th>Experience</th>
+                                            <th>Rating</th>
+                                            <th>Verified</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doctor in doctors %}
+                                        <tr>
+                                            <td>{{ doctor.id }}</td>
+                                            <td>Dr. {{ doctor.name }}</td>
+                                            <td>{{ doctor.specialty }}</td>
+                                            <td>{{ doctor.city }}, {{ doctor.state }}</td>
+                                            <td>{{ doctor.experience }} years</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-1">{{ doctor.rating|default(0)|round(1) }}</span>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    <span class="text-muted ms-1">({{ doctor.review_count }})</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if doctor.is_verified %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="#" class="btn btn-outline-info">View</a>
+                                                    <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                    <a href="#" class="btn btn-outline-success">Verify</a>
+                                                    <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Doctors pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Procedures Management -->
+                <div class="tab-pane fade" id="procedures">
+                    <!-- Popular Procedure Images Section -->
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-images me-2"></i>Popular Procedure Images</h5>
+                            <small class="text-muted">Add images to procedures displayed on the homepage</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% if popular_procedures %}
+                                    {% for procedure in popular_procedures %}
+                                    <div class="col-md-6 col-lg-4 mb-4">
+                                        <div class="card bg-secondary h-100">
+                                            <div class="card-body text-center">
+                                                {% if procedure.image_url %}
+                                                    <img src="{{ procedure.image_url }}" 
+                                                         alt="{{ procedure.procedure_name }}" 
+                                                         class="img-fluid rounded mb-3"
+                                                         style="height: 120px; width: 100%; object-fit: cover;">
+                                                    <div class="badge bg-success mb-2">
+                                                        <i class="fas fa-check"></i> Image Added
+                                                    </div>
+                                                {% else %}
+                                                    <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center" 
+                                                         style="height: 120px;">
+                                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                                    </div>
+                                                    <div class="badge bg-warning text-dark mb-2">
+                                                        <i class="fas fa-exclamation"></i> No Image
+                                                    </div>
+                                                {% endif %}
+                                                <h6 class="card-title text-white">{{ procedure.procedure_name }}</h6>
+                                                <form action="{{ url_for('web.upload_procedure_image') }}" method="post" enctype="multipart/form-data" class="mt-3">
+                                                    <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+                                                    <div class="mb-2">
+                                                        <input type="file" class="form-control form-control-sm" name="image" accept="image/*" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                        <i class="fas fa-upload me-1"></i>
+                                                        {% if procedure.image_url %}Update{% else %}Upload{% endif %} Image
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            No popular procedures found. Popular procedures will appear here automatically.
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- All Procedures Management -->
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">All Procedures Management</h5>
+                            <a href="#" class="btn btn-sm btn-outline-success">Add New Procedure</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Category</th>
+                                            <th>Price Range</th>
+                                            <th>Popularity</th>
+                                            <th>Rating</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if procedures %}
+                                            {% for procedure in procedures %}
+                                            <tr data-id="{{ procedure.id }}" data-name="{{ procedure.procedure_name }}">
+                                                <td>{{ procedure.id }}</td>
+                                                <td>{{ procedure.procedure_name }}</td>
+                                                <td>
+                                                    {% if procedure.category %}
+                                                        {{ procedure.category.name }}
+                                                    {% else %}
+                                                        <span class="text-muted">No category</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if procedure.min_cost is not none and procedure.max_cost is not none %}
+                                                        <span class="price-display">₹{{ procedure.min_cost }} - ₹{{ procedure.max_cost }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">No price data</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ procedure.popularity_score|default(0) }}</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if procedure.avg_rating is not none %}
+                                                            <span class="me-1">{{ procedure.avg_rating|round(1) }}</span>
+                                                        {% else %}
+                                                            <span class="me-1">0.0</span>
+                                                        {% endif %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                        <span class="text-muted ms-1">({{ procedure.review_count|default(0) }})</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="/procedures/{{ procedure.id }}" class="btn btn-outline-info" data-id="{{ procedure.id }}" data-action="view">View</a>
+                                                        <a href="/admin/procedures/edit/{{ procedure.id }}" class="btn btn-outline-warning" data-id="{{ procedure.id }}" data-action="edit">Edit</a>
+                                                        <a href="#" class="btn btn-outline-danger" data-id="{{ procedure.id }}" data-action="delete">Delete</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="7" class="text-center">
+                                                    <div class="alert alert-warning">
+                                                        No procedures found in the database.
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Procedures pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Categories Management -->
+                <div class="tab-pane fade" id="categories">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Add Category</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="mb-3">
+                                            <label class="form-label">Category Name</label>
+                                            <input type="text" class="form-control bg-dark text-white" placeholder="Enter category name">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Body Part</label>
+                                            <select class="form-select bg-dark text-white">
+                                                <option value="">Select Body Part</option>
+                                                {% for body_part in body_parts %}
+                                                <option value="{{ body_part.id }}">{{ body_part.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <textarea class="form-control bg-dark text-white" rows="3" placeholder="Enter description"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Popularity Score</label>
+                                            <input type="number" class="form-control bg-dark text-white" placeholder="Enter popularity score">
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-success">Add Category</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Categories List</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Name</th>
+                                                    <th>Body Part</th>
+                                                    <th>Procedures</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for category in categories %}
+                                                <tr>
+                                                    <td>{{ category.id }}</td>
+                                                    <td>{{ category.name }}</td>
+                                                    <td>{{ category.body_part.name }}</td>
+                                                    <td>{{ category.procedures|length }}</td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                            <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Body Parts Management -->
+                <div class="tab-pane fade" id="body-parts">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Add Body Part</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="mb-3">
+                                            <label class="form-label">Body Part Name</label>
+                                            <input type="text" class="form-control bg-dark text-white" placeholder="Enter body part name">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <textarea class="form-control bg-dark text-white" rows="3" placeholder="Enter description"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Icon URL</label>
+                                            <input type="text" class="form-control bg-dark text-white" placeholder="Enter icon URL">
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-success">Add Body Part</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Body Parts List</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Name</th>
+                                                    <th>Categories</th>
+                                                    <th>Icon</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for body_part in body_parts %}
+                                                <tr>
+                                                    <td>{{ body_part.id }}</td>
+                                                    <td>{{ body_part.name }}</td>
+                                                    <td>{{ body_part.categories|length }}</td>
+                                                    <td>
+                                                        {% if body_part.icon_url %}
+                                                            <img src="{{ body_part.icon_url }}" width="30" height="30" alt="{{ body_part.name }}">
+                                                        {% else %}
+                                                            <span class="text-muted">No icon</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                            <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews Management -->
+                <div class="tab-pane fade" id="reviews">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Reviews Management</h5>
+                            <div class="d-flex">
+                                <select class="form-select form-select-sm bg-dark text-white me-2">
+                                    <option value="all">All Reviews</option>
+                                    <option value="flagged">Flagged Reviews</option>
+                                    <option value="recent">Recent Reviews</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-info">Filter</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Type</th>
+                                            <th>Rating</th>
+                                            <th>Content</th>
+                                            <th>Verified</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for review in reviews %}
+                                        <tr>
+                                            <td>{{ review.id }}</td>
+                                            <td>{{ review.user.username }}</td>
+                                            <td>
+                                                {% if review.doctor %}
+                                                    <span class="badge bg-primary">Doctor</span>
+                                                {% elif review.procedure %}
+                                                    <span class="badge bg-info">Procedure</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-1">{{ review.rating }}</span>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                </div>
+                                            </td>
+                                            <td>{{ review.content|truncate(50) }}</td>
+                                            <td>
+                                                {% if review.verified_purchase %}
+                                                    <span class="badge bg-success">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Unverified</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ review.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="#" class="btn btn-outline-info">View</a>
+                                                    <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                    <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Reviews pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Community Management -->
+                <div class="tab-pane fade" id="community">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Community Management</h5>
+                            <div class="d-flex">
+                                <select class="form-select form-select-sm bg-dark text-white me-2">
+                                    <option value="all">All Threads</option>
+                                    <option value="flagged">Flagged Content</option>
+                                    <option value="featured">Featured Threads</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-info">Filter</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>User</th>
+                                            <th>Category</th>
+                                            <th>Views</th>
+                                            <th>Replies</th>
+                                            <th>Featured</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for thread in community_threads %}
+                                        <tr>
+                                            <td>{{ thread.id }}</td>
+                                            <td>{{ thread.title|truncate(30) }}</td>
+                                            <td>
+                                                {% if thread.is_anonymous %}
+                                                    <span class="text-muted">Anonymous</span>
+                                                {% else %}
+                                                    {{ thread.user.username }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if thread.category %}
+                                                    {{ thread.category.name }}
+                                                {% else %}
+                                                    <span class="text-muted">General</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ thread.view_count }}</td>
+                                            <td>{{ thread.reply_count }}</td>
+                                            <td>
+                                                {% if thread.featured %}
+                                                    <span class="badge bg-warning text-dark">Featured</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Regular</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ thread.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="#" class="btn btn-outline-info">View</a>
+                                                    <a href="#" class="btn btn-outline-warning">Edit</a>
+                                                    <a href="#" class="btn btn-outline-primary">Toggle Feature</a>
+                                                    <a href="#" class="btn btn-outline-danger">Delete</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Community pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analytics -->
+                <div class="tab-pane fade" id="analytics">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Platform Analytics</h5>
+                                    <div class="d-flex">
+                                        <select class="form-select form-select-sm bg-dark text-white me-2">
+                                            <option value="week">Last 7 Days</option>
+                                            <option value="month" selected>Last 30 Days</option>
+                                            <option value="quarter">Last 90 Days</option>
+                                            <option value="year">Last 12 Months</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-info">Update</button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container mb-4" style="height: 300px;">
+                                        <canvas id="userActivityChart"></canvas>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="card bg-dark text-white mb-4">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title text-muted">Page Views</h6>
+                                                    <h2 class="mb-0">{{ analytics.page_views }}</h2>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                                        {{ analytics.page_views_growth }}%
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card bg-dark text-white mb-4">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title text-muted">Unique Visitors</h6>
+                                                    <h2 class="mb-0">{{ analytics.unique_visitors }}</h2>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                                        {{ analytics.visitors_growth }}%
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card bg-dark text-white mb-4">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title text-muted">Avg. Session</h6>
+                                                    <h2 class="mb-0">{{ analytics.avg_session|default('0:00') }}</h2>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                                        {{ analytics.session_growth|default(0) }}%
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card bg-dark text-white mb-4">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title text-muted">Lead Conversion</h6>
+                                                    <h2 class="mb-0">{{ analytics.conversion_rate|default(0) }}%</h2>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-arrow-up text-success me-1"></i>
+                                                        {{ analytics.conversion_growth|default(0) }}%
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Most Viewed Procedures</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="height: 300px;">
+                                        <canvas id="proceduresViewChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Traffic Sources</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container" style="height: 300px;">
+                                        <canvas id="trafficSourcesChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings -->
+                <div class="tab-pane fade" id="settings">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Platform Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-4">
+                                    <h6 class="border-bottom pb-2 mb-3">General Settings</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Platform Name</label>
+                                        <input type="text" class="form-control bg-dark text-white" value="Antidote">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Contact Email</label>
+                                        <input type="email" class="form-control bg-dark text-white" value="contact@antidote.example.com">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Support Phone</label>
+                                        <input type="text" class="form-control bg-dark text-white" value="+1 (555) 123-4567">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="border-bottom pb-2 mb-3">Content Settings</h6>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingModerateReviews" checked>
+                                        <label class="form-check-label" for="settingModerateReviews">
+                                            Moderate reviews before publishing
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingModerateCommunity" checked>
+                                        <label class="form-check-label" for="settingModerateCommunity">
+                                            Moderate community posts before publishing
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingAllowAnonymous" checked>
+                                        <label class="form-check-label" for="settingAllowAnonymous">
+                                            Allow anonymous community posts
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="border-bottom pb-2 mb-3">Doctor Verification</h6>
+                                    
+                                    <div class="mb-3">
+                                        <a href="{{ url_for('web.admin_doctor_verification_requests') }}" class="btn btn-success mb-3">
+                                            <i class="fas fa-user-check"></i> Manage Verification Requests
+                                            <span class="badge bg-light text-dark ms-1">New</span>
+                                        </a>
+                                        <p class="text-muted small">
+                                            Review and process surgeon verification requests from India. Verify medical licenses, 
+                                            certificates, and Aadhaar details before approving doctors.
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingAutoVerify">
+                                        <label class="form-check-label" for="settingAutoVerify">
+                                            Auto-verify doctors on registration
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingRequireCertification" checked>
+                                        <label class="form-check-label" for="settingRequireCertification">
+                                            Require certification documents for verification
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="border-bottom pb-2 mb-3">Lead Management</h6>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingLeadNotifications" checked>
+                                        <label class="form-check-label" for="settingLeadNotifications">
+                                            Send email notifications for new leads
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="settingLeadSMS" checked>
+                                        <label class="form-check-label" for="settingLeadSMS">
+                                            Send SMS notifications for new leads
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-info">Save Settings</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggerTabList = [].slice.call(document.querySelectorAll('.list-group-item[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+        
+        // Example chart for analytics page
+        if (document.getElementById('userActivityChart')) {
+            const ctx = document.getElementById('userActivityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30'],
+                    datasets: [{
+                        label: 'User Signups',
+                        data: [12, 19, 15, 25, 22, 30, 35],
+                        borderColor: '#0dcaf0',
+                        backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Doctor Signups',
+                        data: [3, 5, 4, 7, 6, 8, 10],
+                        borderColor: '#6c757d',
+                        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Most viewed procedures chart
+        if (document.getElementById('proceduresViewChart')) {
+            const ctx = document.getElementById('proceduresViewChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Rhinoplasty', 'Breast Augmentation', 'Liposuction', 'Botox', 'Hair Transplant'],
+                    datasets: [{
+                        label: 'Page Views',
+                        data: [1200, 1900, 1500, 2500, 1800],
+                        backgroundColor: [
+                            'rgba(13, 202, 240, 0.7)',
+                            'rgba(13, 202, 240, 0.6)',
+                            'rgba(13, 202, 240, 0.5)',
+                            'rgba(13, 202, 240, 0.4)',
+                            'rgba(13, 202, 240, 0.3)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Traffic sources chart
+        if (document.getElementById('trafficSourcesChart')) {
+            const ctx = document.getElementById('trafficSourcesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Search Engines', 'Direct', 'Social Media', 'Referrals', 'Other'],
+                    datasets: [{
+                        data: [45, 25, 15, 10, 5],
+                        backgroundColor: [
+                            '#0dcaf0',
+                            '#6c757d',
+                            '#ffc107',
+                            '#198754',
+                            '#dc3545'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

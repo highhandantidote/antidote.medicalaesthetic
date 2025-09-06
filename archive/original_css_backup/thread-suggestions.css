@@ -1,0 +1,222 @@
+/**
+ * Styles for enhanced thread suggestions in dropdown
+ * Provides styling for categorized suggestions, preview text, and metadata
+ */
+
+/* Thread suggestion container */
+.thread-suggestion {
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: block;
+    color: #333;
+    text-decoration: none;
+}
+
+.thread-suggestion:hover {
+    background-color: rgba(145, 81, 184, 0.05);
+}
+
+.thread-suggestion.active {
+    background-color: rgba(145, 81, 184, 0.1);
+}
+
+/* Thread title */
+.thread-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+/* Thread category tag */
+.thread-category {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    margin-left: 5px;
+    border-radius: 4px;
+    background-color: #9153b8;
+    color: white;
+    vertical-align: middle;
+}
+
+/* Thread content preview */
+.thread-preview {
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #666;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+}
+
+/* Thread activity info */
+.thread-activity {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.thread-replies, .thread-date {
+    display: flex;
+    align-items: center;
+}
+
+.thread-replies i, .thread-date i {
+    margin-right: 4px;
+    font-size: 0.7rem;
+}
+
+/* Matched text highlight */
+.highlight-match {
+    background-color: rgba(145, 81, 184, 0.2);
+    font-weight: 600;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* Thread group heading */
+.thread-group-heading {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    padding: 5px 15px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Related search terms section */
+.related-search-terms {
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.related-search-terms span {
+    margin-right: 8px;
+    display: inline-block;
+    background-color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+.related-search-terms span:hover {
+    background-color: #9153b8;
+    color: white;
+    border-color: #9153b8;
+}
+
+/* Contextual filter section */
+.context-filter-section {
+    display: flex;
+    padding: 8px 15px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+}
+
+.context-filter-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-right: 8px;
+    padding-top: 4px;
+}
+
+.context-filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.context-filter-tag {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    margin: 2px 4px 2px 0;
+    border-radius: 4px;
+    background-color: white;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.context-filter-tag:hover, .context-filter-tag.active {
+    background-color: #9153b8;
+    color: white;
+    border-color: #9153b8;
+}
+
+/* Doctor-verified badge */
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    margin-left: 5px;
+    border-radius: 3px;
+    background-color: #28a745;
+    color: white;
+}
+
+.verified-badge i {
+    font-size: 0.6rem;
+    margin-right: 3px;
+}
+
+/* Trending badge */
+.trending-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    margin-left: 5px;
+    border-radius: 3px;
+    background-color: #dc3545;
+    color: white;
+}
+
+.trending-badge i {
+    font-size: 0.6rem;
+    margin-right: 3px;
+}
+
+/* Helpful badge */
+.helpful-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    margin-left: 5px;
+    border-radius: 3px;
+    background-color: #17a2b8;
+    color: white;
+}
+
+.helpful-badge i {
+    font-size: 0.6rem;
+    margin-right: 3px;
+}
+
+/* Dropdown scrollable container */
+.suggestions-scrollable {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.suggestions-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.suggestions-scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.suggestions-scrollable::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}

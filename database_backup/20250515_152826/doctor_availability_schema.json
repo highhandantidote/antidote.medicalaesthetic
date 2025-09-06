@@ -1,0 +1,56 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('doctor_availability_id_seq'::regclass)"
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "day_of_week",
+    "type": "character varying",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "start_time",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "end_time",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "date",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "slots",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "booked_slots",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

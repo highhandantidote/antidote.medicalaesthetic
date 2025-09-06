@@ -1,0 +1,20 @@
+/* Custom gradients for the Antidote platform */
+
+/* Blue to pink gradient text effect */
+.gradient-text {
+  background: linear-gradient(90deg, #4361ee, #7209b7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* Specific styling for the AI recommendation form labels */
+.ai-recommendation-card .form-label.gradient-label {
+  background: linear-gradient(90deg, #4361ee, #7209b7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}

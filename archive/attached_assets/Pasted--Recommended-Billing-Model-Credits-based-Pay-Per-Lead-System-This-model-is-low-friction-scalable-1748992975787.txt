@@ -1,0 +1,129 @@
+ Recommended Billing Model: Credits-based Pay-Per-Lead System
+✅ This model is low-friction, scalable, and measurable.
+
+How It Works:
+Top-Up System
+Clinics purchase credits in advance. Example:
+
+₹1000 = 1000 credits
+
+“Top up ₹5000, get 10,000 credits” offer can be used as a promotion
+
+Lead Costing
+
+Chat Lead = e.g., 300 credits
+
+Call Lead = e.g., 500 credits
+
+Lead price may vary by specialty or city
+
+Refund Mechanism
+
+Clinics can request credit refund for:
+
+Invalid leads
+
+Duplicates
+
+Not reachable
+
+Antidote team approves → auto credit restoration
+
+Transparent Ledger
+
+Dashboard shows all charges, refunds, and top-ups with dates and notes
+
+Billing Model: Prepaid Credit System
+🪙 How It Works (System Overview)
+Top-Up Wallet:
+
+Clinics can top up credits in INR (1 credit = ₹1) via Razorpay/Stripe/etc.
+
+Bonus credits offered on high-value top-ups
+
+Credits reflect instantly on dashboard
+
+Lead Deduction Logic:
+
+Each chat or call lead from a package deducts credits based on tiered pricing:
+
+Package Price Range	Lead Cost (in credits)
+< ₹5,000	100
+₹5,000 – ₹10,000	180
+₹10,000 – ₹20,000	250
+₹20,000 – ₹50,000	320
+₹50,000 – ₹100,000	400
+₹100,000+	500
+
+Refunds/Dispute Handling:
+
+If lead is:
+
+Duplicate
+
+Invalid (spam, disconnected)
+
+Mistakenly charged
+
+Clinic can “Dispute Lead” in dashboard
+
+Admin reviews → if valid → credits are refunded instantly
+
+Credit Balance Display:
+
+Always visible in clinic dashboard header
+
+Shows:
+
+Current Balance
+
+Total Used This Month
+
+Refunds Granted
+
+Expiring Credits (if you add expiry later)
+
+Top-Up Promotions (Optional):
+
+💸 ₹5,000 → Get 10,000 credits (limited time)
+
+🎯 ₹10,000 → Get 20% bonus + featured placement
+
+🔁 Referral Bonus: Refer a clinic → both get ₹500 credits
+
+🔐 Benefits of Credit System
+💡 Feature	⚙️ Benefit
+Prepaid system	Reduces unpaid dues, ensures revenue upfront
+Credit buffer	Clinics can budget easily
+Bonus campaigns	Drives revenue & urgency
+Real-time deductions	Transparent billing
+Instant refunds	Builds trust & fairness
+Flexible pricing	Easy to A/B test cost-per-lead in future
+
+🔧 Dev Notes
+Use Razorpay or Stripe for top-up (support promo codes/bonus logic)
+
+Implement credit ledger:
+
+credit_earned, credit_deducted, credit_refunded
+
+Add admin dashboard to:
+
+Approve/reject disputes
+
+Adjust credits manually
+
+View revenue from top-ups
+
+💬 Sample Dashboard Elements (For Clinics)
+[Top Up Credits] button
+
+Wallet Balance: ₹8,240
+
+Leads This Month: 21 (₹3,200 spent)
+
+Promotions Available:
+
+🎉 “Top up ₹5,000 → Get ₹2,000 extra credits” [Claim Now]
+
+Recent Leads Table: (Name, Phone, Status, Cost, [Dispute] button)

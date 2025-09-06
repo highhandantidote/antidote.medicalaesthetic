@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}All Treatment Packages - Korean Aesthetic Packages{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Hero Section -->
+    <div class="hero-section" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); padding: 80px 0; color: white; text-align: center;">
+        <div class="container">
+            <h1 class="display-4 font-weight-bold mb-3">Premium Treatment Packages</h1>
+            <p class="lead mb-4">Discover comprehensive Korean-style aesthetic treatment packages</p>
+            
+            <!-- Search and Filter Bar -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="search-box bg-white rounded-lg p-3 shadow-lg">
+                        <form method="GET" action="{{ url_for('clinic.search_clinics') }}">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <input type="text" name="q" class="form-control border-0" 
+                                           placeholder="Search packages..." value="{{ request.args.get('q', '') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="category" class="form-control border-0">
+                                        <option value="">All Categories</option>
+                                        <option value="facial">Facial Treatments</option>
+                                        <option value="body">Body Contouring</option>
+                                        <option value="skin">Skin Care</option>
+                                        <option value="hair">Hair Treatments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="price_range" class="form-control border-0">
+                                        <option value="">Any Price</option>
+                                        <option value="low">Under ₹50,000</option>
+                                        <option value="medium">₹50,000 - ₹1,50,000</option>
+                                        <option value="high">Above ₹1,50,000</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Packages Grid -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h3 mb-0">Treatment Packages ({{ total_count }})</h2>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" data-sort="popular">
+                            <i class="fas fa-fire"></i> Popular
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-sort="price">
+                            <i class="fas fa-rupee-sign"></i> Price
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-sort="rating">
+                            <i class="fas fa-star"></i> Rating
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="packages-grid">
+            {% if packages %}
+                {% for package in packages %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card package-card h-100 shadow-sm border-0">
+                        <div class="package-image-container" style="height: 200px; position: relative; overflow: hidden;">
+                            {% if package.results_gallery and package.results_gallery|length > 0 %}
+                            <!-- Before/After Slider -->
+                            <div class="before-after-slider" id="slider-{{ package.id }}" style="position: relative; height: 100%; width: 100%;">
+                                {% for result in package.results_gallery %}
+                                <div class="slider-item {% if loop.first %}active{% endif %}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; {% if not loop.first %}opacity: 0;{% endif %} transition: opacity 0.5s ease;">
+                                    <div class="row h-100 no-gutters">
+                                        <div class="col-6 position-relative">
+                                            {% if result.before_image %}
+                                            <img src="{{ result.before_image }}" alt="Before" style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                            <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                                <i class="fas fa-image fa-2x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div class="overlay-label" style="position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">BEFORE</div>
+                                        </div>
+                                        <div class="col-6 position-relative">
+                                            {% if result.after_image %}
+                                            <img src="{{ result.after_image }}" alt="After" style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                            <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                                <i class="fas fa-image fa-2x text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div class="overlay-label" style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">AFTER</div>
+                                        </div>
+                                    </div>
+                                    {% if result.title %}
+                                    <div class="result-title" style="position: absolute; top: 5px; left: 5px; background: rgba(255,255,255,0.9); padding: 2px 6px; border-radius: 3px; font-size: 10px; max-width: 90%;">{{ result.title }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                
+                                <!-- Slider Navigation -->
+                                {% if package.results_gallery|length > 1 %}
+                                <div class="slider-nav" style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 4px;">
+                                    {% for result in package.results_gallery %}
+                                    <button class="nav-dot {% if loop.first %}active{% endif %}" 
+                                            onclick="showSlide({{ package.id }}, {{ loop.index0 }})"
+                                            style="width: 8px; height: 8px; border-radius: 50%; border: none; background: {% if loop.first %}white{% else %}rgba(255,255,255,0.5){% endif %}; cursor: pointer;"></button>
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Arrow Navigation -->
+                                <button class="slider-prev" onclick="prevSlide({{ package.id }})" 
+                                        style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-chevron-left" style="font-size: 12px;"></i>
+                                </button>
+                                <button class="slider-next" onclick="nextSlide({{ package.id }})" 
+                                        style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-chevron-right" style="font-size: 12px;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <!-- Fallback gradient background if no results_gallery -->
+                            <div style="height: 100%; background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
+                                <div class="text-white text-center">
+                                    <i class="fas fa-spa fa-2x mb-2"></i>
+                                    <h6>{{ package.name }}</h6>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Package Badge -->
+                            <div class="package-badge" style="position: absolute; top: 10px; left: 10px;">
+                                <span class="badge badge-success">Popular</span>
+                            </div>
+                            <!-- Package Price -->
+                            <div class="package-price" style="position: absolute; top: 10px; right: 10px;">
+                                <span class="price-tag" style="background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">₹{{ package.price or '0' }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-2">{{ package.name }}</h5>
+                            <p class="text-muted small mb-3">{{ package.clinic_name }}</p>
+                            
+                            <div class="package-features mb-3">
+                                <div class="feature-item">
+                                    <i class="fas fa-check text-success mr-2"></i>
+                                    <span class="small">Professional consultation</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-check text-success mr-2"></i>
+                                    <span class="small">Korean-style treatment</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-check text-success mr-2"></i>
+                                    <span class="small">Post-treatment care</span>
+                                </div>
+                            </div>
+                            
+                            <div class="package-rating mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rating-stars mr-2">
+                                        {% for i in range(1, 6) %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="small text-muted">4.8 (125 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-light p-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary btn-sm btn-block" 
+                                            onclick="inquirePackage('{{ package.id }}')">
+                                        <i class="fas fa-info-circle"></i> Inquire
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-primary btn-sm btn-block" 
+                                            onclick="bookPackage('{{ package.id }}')">
+                                        <i class="fas fa-calendar"></i> Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Treatment Packages Coming Soon</h4>
+                        <p class="text-muted">We're working on bringing you the best Korean-style treatment packages. Check back soon!</p>
+                        
+                        <!-- Sample Package Cards -->
+                        <div class="row mt-5">
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card package-card h-100 shadow-sm border-0">
+                                    <div class="package-image" style="height: 200px; background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); position: relative; display: flex; align-items: center; justify-content: center;">
+                                        <div class="text-white text-center">
+                                            <i class="fas fa-spa fa-2x mb-2"></i>
+                                            <h6>Korean Facial Package</h6>
+                                        </div>
+                                        <div class="package-badge">
+                                            <span class="badge badge-warning">Coming Soon</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-2">Premium K-Beauty Facial</h5>
+                                        <p class="text-muted small mb-3">Multi-step Korean skincare routine</p>
+                                        
+                                        <div class="package-features mb-3">
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Double cleansing</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Essence & serum application</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">LED light therapy</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="package-price-tag">
+                                            <span class="h5 text-primary">₹8,500</span>
+                                            <span class="text-muted small">per session</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-footer bg-light p-3">
+                                        <button class="btn btn-outline-secondary btn-block" disabled>
+                                            <i class="fas fa-clock"></i> Available Soon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card package-card h-100 shadow-sm border-0">
+                                    <div class="package-image" style="height: 200px; background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%); position: relative; display: flex; align-items: center; justify-content: center;">
+                                        <div class="text-white text-center">
+                                            <i class="fas fa-cut fa-2x mb-2"></i>
+                                            <h6>Body Contouring</h6>
+                                        </div>
+                                        <div class="package-badge">
+                                            <span class="badge badge-warning">Coming Soon</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-2">Korean Body Sculpting</h5>
+                                        <p class="text-muted small mb-3">Non-invasive body contouring</p>
+                                        
+                                        <div class="package-features mb-3">
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Ultrasound therapy</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Lymphatic drainage</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">3-month program</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="package-price-tag">
+                                            <span class="h5 text-primary">₹45,000</span>
+                                            <span class="text-muted small">full package</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-footer bg-light p-3">
+                                        <button class="btn btn-outline-secondary btn-block" disabled>
+                                            <i class="fas fa-clock"></i> Available Soon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card package-card h-100 shadow-sm border-0">
+                                    <div class="package-image" style="height: 200px; background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%); position: relative; display: flex; align-items: center; justify-content: center;">
+                                        <div class="text-dark text-center">
+                                            <i class="fas fa-magic fa-2x mb-2"></i>
+                                            <h6>Anti-Aging Package</h6>
+                                        </div>
+                                        <div class="package-badge">
+                                            <span class="badge badge-warning">Coming Soon</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-2">K-Beauty Anti-Aging</h5>
+                                        <p class="text-muted small mb-3">Complete anti-aging solution</p>
+                                        
+                                        <div class="package-features mb-3">
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Botox treatment</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Dermal fillers</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-check text-success mr-2"></i>
+                                                <span class="small">Korean skincare regimen</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="package-price-tag">
+                                            <span class="h5 text-primary">₹85,000</span>
+                                            <span class="text-muted small">complete package</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-footer bg-light p-3">
+                                        <button class="btn btn-outline-secondary btn-block" disabled>
+                                            <i class="fas fa-clock"></i> Available Soon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{{ url_for('clinic.clinic_marketplace') }}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Back to Marketplace
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    position: relative;
+}
+
+.search-box {
+    border-radius: 15px !important;
+}
+
+.package-card {
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.package-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.package-image {
+    border-radius: 15px 15px 0 0;
+}
+
+.package-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.package-price {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+}
+
+.price-tag {
+    background: rgba(255,255,255,0.9);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.feature-item {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.package-price-tag {
+    text-align: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.btn-outline-secondary.active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+</style>
+
+<script>
+function inquirePackage(packageId) {
+    alert('Package inquiry feature - Contact clinic for details');
+}
+
+function bookPackage(packageId) {
+    alert('Package booking feature - Redirecting to booking system');
+}
+
+// Before/After Slider functionality
+const sliders = {};
+
+function initializeSliders() {
+    document.querySelectorAll('.before-after-slider').forEach(slider => {
+        const sliderId = slider.id.replace('slider-', '');
+        sliders[sliderId] = {
+            currentSlide: 0,
+            totalSlides: slider.querySelectorAll('.slider-item').length
+        };
+    });
+}
+
+function showSlide(packageId, slideIndex) {
+    const slider = document.getElementById(`slider-${packageId}`);
+    const slides = slider.querySelectorAll('.slider-item');
+    const dots = slider.querySelectorAll('.nav-dot');
+    
+    // Hide all slides
+    slides.forEach((slide, index) => {
+        slide.style.opacity = index === slideIndex ? '1' : '0';
+    });
+    
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.style.background = index === slideIndex ? 'white' : 'rgba(255,255,255,0.5)';
+        dot.classList.toggle('active', index === slideIndex);
+    });
+    
+    sliders[packageId].currentSlide = slideIndex;
+}
+
+function nextSlide(packageId) {
+    const slider = sliders[packageId];
+    const nextIndex = (slider.currentSlide + 1) % slider.totalSlides;
+    showSlide(packageId, nextIndex);
+}
+
+function prevSlide(packageId) {
+    const slider = sliders[packageId];
+    const prevIndex = slider.currentSlide === 0 ? slider.totalSlides - 1 : slider.currentSlide - 1;
+    showSlide(packageId, prevIndex);
+}
+
+// Auto-slide functionality (optional)
+function startAutoSlide(packageId, interval = 4000) {
+    setInterval(() => {
+        nextSlide(packageId);
+    }, interval);
+}
+
+// Sort functionality
+document.querySelectorAll('[data-sort]').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('[data-sort]').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Implement sorting logic here
+        const sortBy = this.dataset.sort;
+        console.log('Sorting by:', sortBy);
+    });
+});
+
+// Initialize sliders when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSliders();
+    
+    // Optional: Start auto-slide for all packages
+    Object.keys(sliders).forEach(packageId => {
+        if (sliders[packageId].totalSlides > 1) {
+            startAutoSlide(packageId, 5000); // Auto-slide every 5 seconds
+        }
+    });
+});
+</script>
+{% endblock %}

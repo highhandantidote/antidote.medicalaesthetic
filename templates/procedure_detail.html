@@ -1,0 +1,1431 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ procedure.procedure_name }} | Antidote{% endblock %}
+
+{% block styles %}
+<style>
+    /* Sticky Navigation Styles */
+    #procedureNav {
+        z-index: 1000;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    #procedureNav .nav-link {
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+        border-radius: 30px;
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+    }
+    
+    #procedureNav .nav-link:hover {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    #procedureNav .nav-link.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    
+    /* Section spacing and padding */
+    section {
+        padding-top: 2rem;
+        scroll-margin-top: 4.5rem;
+    }
+    
+    section > h3 {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.75rem;
+        color: var(--bs-primary);
+    }
+    
+    /* Recommendation card styles */
+    .learn-more-btn:hover {
+        background-color: var(--bs-info) !important;
+        color: var(--bs-dark) !important;
+        transition: all 0.3s ease;
+    }
+    
+    .placeholder-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 50px;
+        min-width: 50px;
+    }
+    
+    /* Font size adjustments for recommendations */
+    .recommendations-content .card-title {
+        font-size: 14px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .recommendations-content .card-text, 
+    .recommendations-content .small {
+        font-size: 12px;
+    }
+    
+    /* Ensure cards fit without overflow */
+    .recommendations-content .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Better spacing inside cards */
+    .recommendations-content .card-body {
+        padding: 0.75rem;
+    }
+    
+    /* Make sure three cards fit properly */
+    @media (min-width: 768px) {
+        .recommendations-content .col-md-4 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Star Rating Styles */
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    
+    .star-rating input[type="radio"] {
+        display: none;
+    }
+    
+    .star-rating label {
+        cursor: pointer;
+        color: #ccc;
+        margin: 0 5px;
+    }
+    
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input[type="radio"]:checked ~ label {
+        color: #ffca2c;
+    }
+    
+    .star-rating input[type="radio"]:checked ~ label i {
+        font-weight: 900;
+    }
+    
+    .star-rating label:hover i,
+    .star-rating label:hover ~ label i {
+        font-weight: 900;
+    }
+    
+    .star-rating-container {
+        margin-bottom: 1rem;
+    }
+    
+    /* Change the star icon from outline to solid on hover and selection */
+    .star-rating label:hover i.far.fa-star,
+    .star-rating label:hover ~ label i.far.fa-star,
+    .star-rating input[type="radio"]:checked ~ label i.far.fa-star {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+    }
+    
+    /* Timeline styles for recovery section */
+    .timeline-point {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Procedure Header Section -->
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('web.index') }}">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('web.body_parts') }}">Body Parts</a></li>
+                            {% if procedure.category and procedure.category.body_part %}
+                            <li class="breadcrumb-item"><a href="{{ url_for('web.categories', body_part_id=procedure.category.body_part.id) }}">{{ procedure.category.body_part.name }}</a></li>
+                            {% endif %}
+                            {% if procedure.category %}
+                            <li class="breadcrumb-item"><a href="{{ url_for('web.procedures', category_id=procedure.category.id) }}">{{ procedure.category.name }}</a></li>
+                            {% endif %}
+                            <li class="breadcrumb-item active" aria-current="page">{{ procedure.procedure_name }}</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h1 class="mb-0">{{ procedure.procedure_name }}</h1>
+                        {% if current_user.is_authenticated %}
+                            <form action="{{ url_for('web.save_item') }}" method="POST" class="save-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+                                <button type="submit" class="btn btn-outline-danger save-btn" data-action="save">
+                                    <i class="fas fa-heart"></i> Save
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <p class="text-info mb-3">{{ procedure.short_description }}</p>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success me-1"><text x="6" y="18" style="font-size: 18px; font-weight: bold;">₹</text></svg>
+                            <strong class="me-1">Cost Range:</strong>
+                            <span class="price-display">₹{{ procedure.min_cost }} - ₹{{ procedure.max_cost }}</span>
+                        </div>
+                        <div>
+                            <i class="fas fa-clock text-info me-1"></i>
+                            <strong class="me-1">Recovery:</strong>
+                            <span>{{ procedure.recovery_time }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-dark border-light">
+                        <div class="card-body">
+                            <h5 class="mb-3">Interested in this procedure?</h5>
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('web.doctors', procedure_id=procedure.id) }}" class="btn btn-info">
+                                    <i class="fas fa-user-md me-2"></i>
+                                    Find Doctors
+                                </a>
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bookConsultationModal">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    Book Consultation
+                                </button>
+                                {% if current_user.is_authenticated %}
+                                <form action="{{ url_for('web.save_item') }}" method="POST" class="save-form">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+                                    <button type="submit" class="btn btn-outline-light w-100 save-btn" data-action="save">
+                                        <i class="fas fa-bookmark me-2"></i>
+                                        Save to Favorites
+                                    </button>
+                                </form>
+                                {% else %}
+                                <a href="{{ url_for('web.login') }}" class="btn btn-outline-light">
+                                    <i class="fas fa-bookmark me-2"></i>
+                                    Save to Favorites
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Procedure Navigation Section (Sticky) -->
+    <nav class="sticky-top bg-dark py-2 mb-4" id="procedureNav">
+        <ul class="nav nav-pills justify-content-center" id="procedureTab">
+            <li class="nav-item">
+                <a class="nav-link active" href="#overview">Overview</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#details">Procedure Details</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#candidates">Ideal Candidates</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#recovery">Recovery</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#benefits-risks">Benefits & Risks</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#reviews">Reviews</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <div id="procedureContent">
+        <!-- Overview Section -->
+        <section id="overview" class="mb-5">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-body">
+                            <h4 class="mb-3">About {{ procedure.procedure_name }}</h4>
+                            <p>{{ procedure.overview|safe }}</p>
+                            
+                            <h5 class="mt-4 mb-3">Key Information</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark border-light h-100">
+                                        <div class="card-body text-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success mb-3"><text x="4" y="18" style="font-size: 22px; font-weight: bold;">₹</text></svg>
+                                            <h6>Cost Range</h6>
+                                            <p class="mb-0 price-display">₹{{ procedure.min_cost }} - ₹{{ procedure.max_cost }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark border-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-2x text-info mb-3"></i>
+                                            <h6>Recovery Time</h6>
+                                            <p class="mb-0">{{ procedure.recovery_time }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-dark border-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-calendar-check fa-2x text-warning mb-3"></i>
+                                            <h6>Results Duration</h6>
+                                            <p class="mb-0">{{ procedure.results_duration }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h5 class="mt-4 mb-3">Procedure Types</h5>
+                            <p>{{ procedure.procedure_types }}</p>
+                            
+                            {% if procedure.alternative_procedures %}
+                            <h5 class="mt-4 mb-3">Alternative Procedures</h5>
+                            <p>{{ procedure.alternative_procedures }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Who Can Perform This Procedure?</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ procedure.procedure_name }} should be performed by qualified doctors specializing in:</p>
+                            <ul>
+                                {% if procedure.category %}
+                                <li>{{ procedure.category.name }}</li>
+                                {% endif %}
+                                <li>Plastic Surgery</li>
+                                <li>Reconstructive Surgery</li>
+                            </ul>
+                            
+                            {% if procedure_doctors %}
+                            <h6 class="mt-4 mb-3">Doctors Performing This Procedure</h6>
+                            <div class="list-group list-group-flush mb-3">
+                                {% for doctor in procedure_doctors %}
+                                <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="list-group-item list-group-item-action bg-dark text-white border-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            {% if doctor.profile_image %}
+                                            <img src="{{ doctor.profile_image }}" alt="{{ doctor.name }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user-md text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-0">Dr. {{ doctor.name }}</h6>
+                                            <small class="text-muted">{{ doctor.specialty }}</small>
+                                        </div>
+                                        <div class="ms-auto text-end">
+                                            <div>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <span>{{ doctor.rating|default(0)|round(1) }}</span>
+                                            </div>
+                                            <small class="text-muted">{{ doctor.experience }} years exp.</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-grid">
+                                <a href="{{ url_for('web.doctors', procedure_id=procedure.id) }}" class="btn btn-info">
+                                    <i class="fas fa-user-md me-2"></i>
+                                    Find More Specialists
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Community Discussions</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if community_threads %}
+                                <div class="list-group list-group-flush">
+                                    {% for thread in community_threads %}
+                                    <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="list-group-item list-group-item-action bg-dark text-white border-light">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ thread.title }}</h6>
+                                            <small>{{ thread.reply_count }} replies</small>
+                                        </div>
+                                        <small class="text-muted">{{ thread.created_at.strftime('%b %d, %Y') }}</small>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                <div class="d-grid mt-3">
+                                    <a href="{{ url_for('web.community') }}" class="btn btn-outline-info">See All Discussions</a>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No community discussions yet for this procedure.</p>
+                                <div class="d-grid">
+                                    <a href="{{ url_for('web.community') }}" class="btn btn-outline-info">Start a Discussion</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Procedure Details Tab -->
+        <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-4">Procedure Details</h4>
+                    <p>{{ procedure.procedure_details|safe }}</p>
+                    
+                    <h5 class="mt-4 mb-3">Procedure Types</h5>
+                    <div class="row mb-4">
+                        {% for type in procedure.procedure_types.split(',') %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-dark border-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ type.strip() }}</h6>
+                                        <p class="card-text small text-muted">A variation of {{ procedure.procedure_name }} with specific techniques and approaches.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- AI Recommendations Section -->
+                    <h5 class="mt-4 mb-3">Recommended For You <span class="badge bg-primary ms-2">AI</span></h5>
+                    <div class="row mb-4" id="ai-recommendations">
+                        <div class="col-12">
+                            <p class="text-muted small">Based on your interest in this procedure, our AI recommends:</p>
+                        </div>
+                        
+                        <!-- Recommendations will be loaded dynamically -->
+                        <div class="col-12 d-flex justify-content-center py-3 recommendations-loading">
+                            <div class="spinner-border text-info" role="status">
+                                <span class="visually-hidden">Loading recommendations...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendations-content" style="display: none;">
+                            <!-- Content will be populated via JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Educational Modules Section -->
+                    {% if education_modules %}
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-graduation-cap me-2 text-info"></i>
+                        Learn More About {{ procedure.procedure_name }}
+                    </h5>
+                    <div class="row mb-4">
+                        {% for module in education_modules %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-dark border-info h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ module.title }}</h6>
+                                    <p class="card-text small">{{ module.description|truncate(100) }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            <span class="badge bg-info me-1">{{ module.estimated_minutes }} min</span>
+                                            <span class="badge {% if module.level <= 2 %}bg-success{% elif module.level <= 4 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                Level {{ module.level }}
+                                            </span>
+                                        </div>
+                                        <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-book-reader me-1"></i>
+                                            Learn
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if education_modules|length > 2 %}
+                        <div class="col-12 text-center mt-2">
+                            <a href="{{ url_for('education.browse_modules', procedure_id=procedure.id) }}" class="btn btn-outline-primary">
+                                View All Educational Modules
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <h5 class="mt-4 mb-3">Common Questions</h5>
+                    <div class="accordion" id="procedureAccordion">
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    How long does the {{ procedure.procedure_name }} procedure take?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#procedureAccordion">
+                                <div class="accordion-body">
+                                    The duration of the procedure varies depending on the complexity and specific technique used, but typically takes between 1-3 hours.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Is {{ procedure.procedure_name }} covered by insurance?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#procedureAccordion">
+                                <div class="accordion-body">
+                                    Most cosmetic procedures are not covered by insurance. However, if the procedure is performed for reconstructive or medical purposes, some insurance plans may provide coverage. We recommend consulting with your insurance provider and doctor to determine eligibility.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    How do I prepare for {{ procedure.procedure_name }}?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#procedureAccordion">
+                                <div class="accordion-body">
+                                    Preparation varies based on the specific procedure, but typically includes:
+                                    <ul>
+                                        <li>Medical evaluation and lab tests</li>
+                                        <li>Avoiding certain medications and supplements</li>
+                                        <li>Stopping smoking at least two weeks before the procedure</li>
+                                        <li>Arranging for someone to drive you home after the procedure</li>
+                                        <li>Following any specific instructions provided by your doctor</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ideal Candidates Tab -->
+        <div class="tab-pane fade" id="candidates" role="tabpanel" aria-labelledby="candidates-tab">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-4">Ideal Candidates</h4>
+                    <p>{{ procedure.ideal_candidates|safe }}</p>
+                    
+                    {% if procedure.good_candidates or procedure.not_recommended_for %}
+                    <div class="row mt-4">
+                        {% if procedure.good_candidates %}
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-success mb-4">
+                                <div class="card-header bg-success bg-opacity-25 text-white">
+                                    <h5 class="mb-0">Good Candidates</h5>
+                                </div>
+                                <div class="card-body">
+                                    {{ procedure.good_candidates|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if procedure.not_recommended_for %}
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-danger mb-4">
+                                <div class="card-header bg-danger bg-opacity-25 text-white">
+                                    <h5 class="mb-0">Not Recommended For</h5>
+                                </div>
+                                <div class="card-body">
+                                    {{ procedure.not_recommended_for|safe }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        A consultation with a qualified doctor is the best way to determine if you're a good candidate for {{ procedure.procedure_name }}.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recovery Tab -->
+        <div class="tab-pane fade" id="recovery" role="tabpanel" aria-labelledby="recovery-tab">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-body">
+                            <h4 class="mb-4">Recovery Process</h4>
+                            <p>{{ procedure.recovery_process|default('Detailed recovery information not available.')|safe }}</p>
+                            
+                            {% if procedure.recovery_timeline %}
+                            <div class="timeline mt-5">
+                                {{ procedure.recovery_timeline|safe }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Key Recovery Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-clock fa-2x text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Recovery Time</h6>
+                                    <p class="mb-0">{{ procedure.recovery_time }}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-calendar-check fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Results Duration</h6>
+                                    <p class="mb-0">{{ procedure.results_duration }}</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user-md fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Follow-up Care</h6>
+                                    <p class="mb-0">Multiple follow-up appointments are typically scheduled to monitor healing progress.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if procedure.recovery_tips %}
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recovery Tips</h5>
+                        </div>
+                        <div class="card-body">
+                            {{ procedure.recovery_tips|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Benefits & Risks Tab -->
+        <div class="tab-pane fade" id="benefits-risks" role="tabpanel" aria-labelledby="benefits-risks-tab">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header bg-success bg-opacity-25">
+                            <h5 class="mb-0">Benefits</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ procedure.benefits|safe }}</p>
+                            
+                            {% if procedure.benefits_detailed %}
+                            <h6 class="mt-4 mb-3">Detailed Benefits</h6>
+                            <p>{{ procedure.benefits_detailed|safe }}</p>
+                            {% endif %}
+                            
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header bg-danger bg-opacity-25">
+                            <h5 class="mb-0">Risks</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ procedure.risks|safe }}</p>
+                            
+
+                            
+                            <div class="alert alert-warning mt-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                All surgical procedures carry risks. A detailed discussion with your surgeon is essential to understand the specific risks related to your situation.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white h-100">
+                        <div class="card-body text-center">
+                            <h2 class="display-4">{{ procedure.avg_rating|default(0)|round(1) if procedure.avg_rating is not none else 'N/A' }}</h2>
+                            <div class="mb-3">
+                                {% for i in range(1, 6) %}
+                                    {% if procedure.avg_rating and i <= procedure.avg_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif procedure.avg_rating and i <= procedure.avg_rating + 0.5 %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="text-muted">{{ procedure.review_count if procedure.review_count else 0 }} reviews total</p>
+                            
+                            {% if current_user.is_authenticated %}
+                            <button id="writeReviewBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                                <i class="fas fa-pencil-alt me-2"></i>
+                                Write a Review
+                            </button>
+                            {% else %}
+                            <a href="{{ url_for('web.login') }}" class="btn btn-info">
+                                <i class="fas fa-pencil-alt me-2"></i>
+                                Log in to Write a Review
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card bg-dark text-white h-100">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Rating Breakdown</h6>
+                            {% for i in range(5, 0, -1) %}
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-2" style="width: 30px;">{{ i }} <i class="fas fa-star text-warning small"></i></div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" 
+                                         style="width: {{ procedure_rating_breakdown[i]|default(0) }}%"></div>
+                                </div>
+                                <div class="ms-2 text-muted small" style="width: 40px;">
+                                    {{ procedure_rating_breakdown[i]|default(0) }}%
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="mt-4">
+                                <h6>Filter Reviews</h6>
+                                <div class="d-flex flex-wrap">
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">All Reviews</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">5 Star Only</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">4 Star Only</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">3 Star Only</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">2 Star Only</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">1 Star Only</button>
+                                    <button class="btn btn-sm btn-outline-light me-2 mb-2">Verified Only</button>
+                                    <button class="btn btn-sm btn-outline-light mb-2">With Photos</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Patient Reviews</h5>
+                        <div>
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary">
+                                <option value="recent">Most Recent</option>
+                                <option value="highest">Highest Rated</option>
+                                <option value="lowest">Lowest Rated</option>
+                                <option value="helpful">Most Helpful</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    {% if procedure_reviews %}
+                        {% for review in procedure_reviews %}
+                        <div class="card bg-dark border-light mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://via.placeholder.com/40" class="rounded-circle me-2" width="40" height="40" alt="Patient Photo">
+                                        <div>
+                                            <h6 class="mb-0">{{ review.user.username }}</h6>
+                                            <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= review.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if review.verified_purchase %}
+                                            <span class="badge bg-success ms-2">Verified</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <h6 class="mb-2">
+                                    {{ review.doctor.name if review.doctor else '' }}
+                                </h6>
+                                
+                                <p class="card-text">{{ review.content }}</p>
+                                
+                                {% if review.photo %}
+                                <img src="{{ review.photo }}" class="img-fluid rounded mb-2" style="max-height: 200px;" alt="Review Photo">
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-light me-2 helpful-btn" data-review-id="{{ review.id }}" {% if not current_user.is_authenticated %}data-bs-toggle="tooltip" title="Please log in to mark reviews as helpful"{% endif %}>
+                                            <i class="fas fa-thumbs-up me-1"></i>
+                                            Helpful
+                                            {% if review.helpful_count and review.helpful_count > 0 %}
+                                                <span class="helpful-count ms-1">({{ review.helpful_count }})</span>
+                                            {% endif %}
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light report-btn" data-review-id="{{ review.id }}" {% if not current_user.is_authenticated %}data-bs-toggle="tooltip" title="Please log in to report reviews"{% endif %} {% if review.reported %}disabled{% endif %}>
+                                            <i class="fas fa-flag me-1"></i>
+                                            {% if review.reported %}Reported{% else %}Report{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Pagination -->
+                        <nav aria-label="Reviews pagination">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">1</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">2</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">3</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comment fa-3x mb-3 text-muted"></i>
+                            <p class="text-muted">No reviews yet. Be the first to review {{ procedure.procedure_name }}</p>
+                            {% if current_user.is_authenticated %}
+                            <button id="writeReviewBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                                <i class="fas fa-pencil-alt me-2"></i>
+                                Write a Review
+                            </button>
+                            {% else %}
+                            <a href="{{ url_for('web.login') }}" class="btn btn-info">
+                                <i class="fas fa-pencil-alt me-2"></i>
+                                Log in to Write a Review
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI-Recommended Procedures Section -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center mb-4">
+            <h3 class="mb-0 me-3">Recommended For You</h3>
+            <span class="badge bg-primary">AI-Powered</span>
+        </div>
+        <div class="row">
+            {% if recommended_procedures %}
+                {% for recommended in recommended_procedures %}
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark h-100 border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recommended.procedure_name }}</h5>
+                            <p class="card-text text-muted small">{{ recommended.body_area }} | {{ recommended.category_type }}</p>
+                            <p class="card-text">{{ recommended.short_description|truncate(100) if recommended.short_description else 'A related procedure you might be interested in.' }}</p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="mb-2">
+                                        {% if recommended.avg_rating is defined and recommended.avg_rating is not none %}
+                                        <i class="fas fa-star text-warning"></i>
+                                        <span>{{ recommended.avg_rating|default(0)|round(1) }}</span>
+                                        <span class="text-muted">({{ recommended.review_count|default(0) }})</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="price-display">₹{{ recommended.min_cost }} - ₹{{ recommended.max_cost }}</span>
+                                </div>
+                                <a href="{{ url_for('web.procedure_detail', procedure_id=recommended.id) }}" class="btn btn-sm btn-primary">Learn More</a>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-dark text-primary">
+                            <small><i class="fas fa-robot me-1"></i> Recommended based on similarity analysis</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        AI recommendations are currently being generated.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Similar Procedures Section -->
+    <div class="mt-5">
+        <h3 class="mb-4">Similar Procedures</h3>
+        <div class="row">
+            {% if similar_procedures %}
+                {% for similar in similar_procedures %}
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ similar.procedure_name }}</h5>
+                            <p class="card-text text-muted small">{{ similar.category.name if similar.category else '' }}</p>
+                            <p class="card-text">{{ similar.short_description|truncate(100) }}</p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <span>{{ similar.avg_rating|default(0)|round(1) if similar.avg_rating is not none else 'N/A' }}</span>
+                                        <span class="text-muted">({{ similar.review_count if similar.review_count else 0 }})</span>
+                                    </div>
+                                    <span class="price-display">₹{{ similar.min_cost }} - ₹{{ similar.max_cost }}</span>
+                                </div>
+                                <a href="{{ url_for('web.procedure_detail', procedure_id=similar.id) }}" class="btn btn-sm btn-outline-info">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Alternative Procedure 1</h5>
+                            <p class="card-text text-muted small">Similar Category</p>
+                            <p class="card-text">An alternative procedure with similar results but different techniques or recovery time.</p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <span>4.5</span>
+                                        <span class="text-muted">(125)</span>
+                                    </div>
+                                    <span class="price-display">₹3,000 - ₹7,000</span>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-outline-info">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Alternative Procedure 2</h5>
+                            <p class="card-text text-muted small">Similar Category</p>
+                            <p class="card-text">Another approach to address similar concerns with different benefits and considerations.</p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <span>4.3</span>
+                                        <span class="text-muted">(98)</span>
+                                    </div>
+                                    <span class="price-display">₹2,500 - ₹6,000</span>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-outline-info">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Alternative Procedure 3</h5>
+                            <p class="card-text text-muted small">Similar Category</p>
+                            <p class="card-text">A less invasive option with similar goals but potentially different results or longevity.</p>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="mb-2">
+                                        <i class="fas fa-star text-warning"></i>
+                                        <span>4.7</span>
+                                        <span class="text-muted">(152)</span>
+                                    </div>
+                                    <span class="price-display">₹4,000 - ₹8,000</span>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-outline-info">Learn More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Write Review Modal -->
+<div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="writeReviewModalLabel">Write a Review for {{ procedure.procedure_name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="procedureReviewForm" action="{{ url_for('web.submit_review') }}" method="post" onsubmit="return validateProcedureReviewForm()">
+                <div class="modal-body">
+                    <input type="hidden" name="procedure_id" value="{{ procedure.id }}">
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Rating <span class="text-danger">*</span></label>
+                        <div class="star-rating-container d-flex">
+                            <div class="star-rating">
+                                {% for i in range(1, 6) %}
+                                <input type="radio" id="modalStar{{ i }}" name="rating" value="{{ i }}" required style="display: none;">
+                                <label for="modalStar{{ i }}" class="star-label mx-1" style="cursor: pointer;">
+                                    <i class="far fa-star fa-2x text-warning"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="invalid-feedback d-none" id="procedureRatingError">
+                            Please select a rating.
+                        </div>
+                        <style>
+                            .star-rating {
+                                display: flex;
+                            }
+                            .star-label:hover i,
+                            .star-label:hover ~ .star-label i,
+                            input[name="rating"]:checked ~ label i {
+                                font-weight: 900;
+                                color: gold !important;
+                            }
+                        </style>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="reviewComment" class="form-label">Your Review <span class="text-danger">*</span></label>
+                        <textarea class="form-control bg-dark text-white" id="reviewComment" name="comment" rows="5" placeholder="Share your experience with this procedure..." required minlength="10"></textarea>
+                        <div class="form-text text-muted">
+                            Your honest feedback helps others make informed decisions. Include details about your experience, results, and recovery.
+                        </div>
+                        <div class="invalid-feedback d-none" id="procedureCommentError">
+                            Please enter a review with at least 10 characters.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Doctor (Optional)</label>
+                        <select class="form-select bg-dark text-white" name="doctor_id">
+                            <option value="">Select the doctor who performed this procedure</option>
+                            {% for doctor in procedure_doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted">
+                            If a specific doctor performed this procedure for you, please select them.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Inline JavaScript for Form Validation -->
+<script>
+    function validateProcedureReviewForm() {
+        // Get form elements
+        const form = document.getElementById('procedureReviewForm');
+        const rating = form.querySelector('input[name="rating"]:checked');
+        const comment = document.getElementById('reviewComment');
+        const ratingError = document.getElementById('procedureRatingError');
+        const commentError = document.getElementById('procedureCommentError');
+        
+        // Reset error states
+        ratingError.classList.add('d-none');
+        commentError.classList.add('d-none');
+        
+        // Validate rating
+        if (!rating) {
+            ratingError.classList.remove('d-none');
+            alert('Please select a rating.');
+            return false;
+        }
+        
+        // Validate comment length
+        if (!comment || comment.value.trim().length < 10) {
+            commentError.classList.remove('d-none');
+            alert('Please enter a review with at least 10 characters.');
+            return false;
+        }
+        
+        // Check for throttling (60-second cooldown)
+        const now = Date.now();
+        if (now - window.lastProcedureReviewSubmissionTime < window.REVIEW_COOLDOWN_MS) {
+            const remainingSeconds = Math.ceil((window.REVIEW_COOLDOWN_MS - (now - window.lastProcedureReviewSubmissionTime)) / 1000);
+            alert(`Please wait ${remainingSeconds} seconds before submitting another review.`);
+            return false;
+        }
+        
+        // Update last submission time
+        window.lastProcedureReviewSubmissionTime = now;
+        
+        console.log('Procedure review form validated successfully');
+        
+        // Form is valid, allow submission
+        return true;
+    }
+</script>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" integrity="sha512-yFjZbTYRCJodnuyGlsKamNE/LlEaEAxSUDe5+u61mV8zzqJVFOH7TnULE2/PP/l5vKWpUNnF4VGVkXh3MjgLsg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ url_for('static', filename='js/reviews.js') }}"></script>
+<script>
+    // Use JavaScript to set the active tab based on URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabId = hash.substring(1);
+            const tabEl = document.querySelector(`#${tabId}-tab`);
+            if (tabEl) {
+                let tab = new bootstrap.Tab(tabEl);
+                tab.show();
+            }
+        }
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Handle helpful button clicks
+        document.querySelectorAll('.helpful-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const reviewId = this.getAttribute('data-review-id');
+                
+                // Check if user is logged in
+                if (!this.hasAttribute('data-bs-toggle')) {
+                    // Send AJAX request to mark as helpful
+                    fetch(`/helpful/${reviewId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update UI to show success
+                            let countSpan = this.querySelector('.helpful-count');
+                            if (countSpan) {
+                                countSpan.textContent = `(${data.helpful_count})`;
+                            } else {
+                                this.innerHTML += `<span class="helpful-count ms-1">(${data.helpful_count})</span>`;
+                            }
+                            
+                            // Show success toast
+                            showToast('Success', 'Review marked as helpful', 'success');
+                        } else {
+                            // Show error toast
+                            showToast('Error', data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error', 'Failed to mark review as helpful', 'danger');
+                    });
+                }
+            });
+        });
+        
+        // Handle report button clicks
+        document.querySelectorAll('.report-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const reviewId = this.getAttribute('data-review-id');
+                
+                // Check if user is logged in and button is not disabled
+                if (!this.hasAttribute('data-bs-toggle') && !this.hasAttribute('disabled')) {
+                    // Confirm before reporting
+                    if (confirm('Are you sure you want to report this review as inappropriate?')) {
+                        // Send AJAX request to report
+                        fetch(`/report/${reviewId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Disable the button and update text
+                                this.disabled = true;
+                                this.innerHTML = '<i class="fas fa-flag me-1"></i> Reported';
+                                
+                                // Show success toast
+                                showToast('Success', 'Review has been reported', 'success');
+                            } else {
+                                // Show error toast
+                                showToast('Error', data.message, 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('Error', 'Failed to report review', 'danger');
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Load AI recommendations
+        loadRecommendations();
+        
+        // Function to show toast notifications
+        function showToast(title, message, type) {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toastHtml = `
+                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header bg-${type} text-white">
+                        <strong class="me-auto">${title}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-dark text-white">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Initialize and show toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+            toast.show();
+            
+            // Remove toast from DOM after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+    });
+    
+    // The openReviewModal function is now defined as window.openReviewModal in the DOMContentLoaded handler
+    
+    function loadRecommendations() {
+        const procedureId = {{ procedure.id }};
+        const recommendationsContainer = document.querySelector('#ai-recommendations .recommendations-content');
+        const loadingElement = document.querySelector('#ai-recommendations .recommendations-loading');
+        
+        // Check if recommendations container or loading element exists
+        if (!recommendationsContainer) {
+            console.log('Recommendations container not found in DOM');
+            return;
+        }
+        
+        fetch(`/api/procedures/${procedureId}/recommendations?limit=3`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.length > 0) {
+                    let recommendationsHtml = '<div class="row">';
+                    
+                    data.data.forEach(proc => {
+                        recommendationsHtml += `
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-dark border-info h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex mb-3">
+                                            <div class="flex-shrink-0">
+                                                <div class="placeholder-image bg-secondary" style="width: 50px; height: 50px; border-radius: 4px;">
+                                                    <i class="fas fa-image text-light opacity-50 d-flex justify-content-center align-items-center h-100"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-title fw-bold">${proc.procedure_name}</h6>
+                                                <div class="small">
+                                                    <span class="text-muted">${proc.body_part || 'Various'}</span>
+                                                    <span class="mx-1">•</span>
+                                                    <a href="/procedures?tag=${proc.tags && proc.tags.length > 0 ? proc.tags[0] : ''}" class="badge ${proc.tags && proc.tags.includes('Surgical') ? 'bg-warning' : 'bg-info'}" style="text-decoration: none;">
+                                                        ${proc.tags && proc.tags.length > 0 ? proc.tags[0] : (proc.category_type || 'Procedure')}
+                                                    </a>
+                                                    ${proc.category && proc.category.name ? `<span class="mx-1">•</span> <span class="text-muted">${proc.category.name}</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="card-text small mb-3">${proc.short_description}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-star text-warning me-1"></i>
+                                                <span>${proc.avg_rating ? Number(proc.avg_rating).toFixed(1) : '0.0'}</span>
+                                                <span class="text-muted">(${proc.review_count || 0})</span>
+                                            </div>
+                                            <span class="small text-muted price-display">₹${proc.min_cost} - ₹${proc.max_cost}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-info">
+                                        <a href="/procedures/detail/${proc.id}" class="btn btn-sm btn-outline-info w-100 learn-more-btn">Learn More</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    recommendationsHtml += '</div>';
+                    if (recommendationsContainer) {
+                        recommendationsContainer.innerHTML = recommendationsHtml;
+                        recommendationsContainer.style.display = 'block';
+                    }
+                } else {
+                    if (recommendationsContainer) {
+                        recommendationsContainer.innerHTML = `
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    No recommendations available at this time.
+                                </div>
+                            </div>
+                        `;
+                        recommendationsContainer.style.display = 'block';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching recommendations:', error);
+                if (recommendationsContainer) {
+                    recommendationsContainer.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Unable to load recommendations. Please try again later.
+                            </div>
+                        </div>
+                    `;
+                    recommendationsContainer.style.display = 'block';
+                }
+            })
+            .finally(() => {
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+            });
+    }
+</script>
+
+<!-- Book Consultation Modal -->
+<div class="modal fade" id="bookConsultationModal" tabindex="-1" aria-labelledby="bookConsultationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="bookConsultationModalLabel">Book a Consultation for {{ procedure.procedure_name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('web.submit_lead') }}" method="post">
+                    <input type="hidden" name="procedure_name" value="{{ procedure.procedure_name }}">
+                    <input type="hidden" name="source" value="Procedure Page">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="patient_name" class="form-label">Patient Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" id="patient_name" name="patient_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mobile_number" class="form-label">Mobile Number (10 digits) <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control bg-dark text-white border-secondary" id="mobile_number" name="mobile_number" pattern="[0-9]{10}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="city" class="form-label">Select City <span class="text-danger">*</span></label>
+                            <select class="form-select bg-dark text-white border-secondary" id="city" name="city" required>
+                                <option value="" selected disabled>Select your city</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="preferred_date" class="form-label">Preferred Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control bg-dark text-white border-secondary" id="preferred_date" name="preferred_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Additional Information</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="message" name="message" rows="3" placeholder="Any specific concerns or questions?"></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="consent" name="consent" required>
+                        <label class="form-check-label" for="consent">
+                            I consent to data processing per Antidote's privacy policy as per DPDP Act 2023. <span class="text-danger">*</span>
+                        </label>
+                    </div>
+                    
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

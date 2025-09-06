@@ -1,0 +1,946 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard | Antidote{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Doctor Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img src="{{ doctor.photo_url or 'https://via.placeholder.com/150' }}" class="rounded-circle img-thumbnail" alt="Doctor Profile">
+                    </div>
+                    <h5 class="text-center">Dr. {{ doctor.name }}</h5>
+                    <p class="text-center">{{ doctor.specialty }}</p>
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-2">
+                                <i class="fas fa-star text-warning"></i>
+                                <span>{{ (doctor.rating or 0.0)|round(1) }}</span>
+                            </div>
+                            <span class="text-muted">({{ doctor.review_count if doctor.review_count else 0 }} reviews)</span>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-light btn-sm">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Dashboard Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#overview" class="list-group-item list-group-item-action bg-dark text-white border-light active" data-bs-toggle="list">Overview</a>
+                    <a href="#appointments" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Appointments</a>
+                    <a href="{{ url_for('web.doctor_manage_appointments', doctor_id=doctor.id) }}" class="list-group-item list-group-item-action bg-dark text-white border-light">All Appointments</a>
+                    <a href="#leads" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Patient Leads</a>
+                    <a href="#reviews" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Reviews</a>
+                    <a href="#procedures" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">My Procedures</a>
+                    <a href="#availability" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Availability</a>
+                    <a href="#photos" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Gallery</a>
+                    <a href="#community" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Community</a>
+                    <a href="#verification" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">
+                        Verification
+                        <span class="badge bg-warning text-dark float-end">New</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Overview -->
+                <div class="tab-pane fade show active" id="overview">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Leads</h6>
+                                    <h2 class="mb-0">{{ leads|count }}</h2>
+                                    <p class="text-muted">New patient inquiries</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Appointments</h6>
+                                    <h2 class="mb-0">{{ upcoming_appointments|count }}</h2>
+                                    <p class="text-muted">Upcoming consultations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-dark text-white mb-4">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-muted">Reviews</h6>
+                                    <h2 class="mb-0">{{ doctor.review_count if doctor.review_count else 0 }}</h2>
+                                    <p class="text-muted">Patient feedback</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recent Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if activities %}
+                                <div class="list-group list-group-flush">
+                                    {% for activity in activities %}
+                                    <div class="list-group-item bg-dark text-white border-light">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                {% if activity.type == 'lead' %}
+                                                    <div class="bg-info rounded-circle p-2">
+                                                        <i class="fas fa-user-plus"></i>
+                                                    </div>
+                                                {% elif activity.type == 'appointment' %}
+                                                    <div class="bg-success rounded-circle p-2">
+                                                        <i class="fas fa-calendar-check"></i>
+                                                    </div>
+                                                {% elif activity.type == 'review' %}
+                                                    <div class="bg-warning rounded-circle p-2">
+                                                        <i class="fas fa-star text-dark"></i>
+                                                    </div>
+                                                {% elif activity.type == 'community' %}
+                                                    <div class="bg-primary rounded-circle p-2">
+                                                        <i class="fas fa-comment"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <p class="mb-0">{{ activity.description }}</p>
+                                                <small class="text-muted">{{ activity.time|ago }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chart-line fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No recent activity to display</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appointments -->
+                <div class="tab-pane fade" id="appointments">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Upcoming Appointments</h5>
+                            <div>
+                                <a href="#" class="btn btn-sm btn-outline-info">View Calendar</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if upcoming_appointments %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Date & Time</th>
+                                                <th>Type</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for appointment in upcoming_appointments %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/40" class="rounded-circle me-2" width="40" height="40" alt="Patient Photo">
+                                                        <div>
+                                                            <p class="mb-0">{{ appointment.user.username }}</p>
+                                                            <small class="text-muted">{{ appointment.user.phone_number }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ appointment.appointment_date.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                                                <td>{{ appointment.type|default('Consultation') }}</td>
+                                                <td>
+                                                    {% if appointment.status == 'confirmed' %}
+                                                        <span class="badge bg-success">Confirmed</span>
+                                                    {% elif appointment.status == 'pending' %}
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="#" class="btn btn-outline-info">Details</a>
+                                                        <a href="#" class="btn btn-outline-success">Confirm</a>
+                                                        <a href="#" class="btn btn-outline-danger">Cancel</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-alt fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No upcoming appointments</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Past Appointments</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if past_appointments %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Date & Time</th>
+                                                <th>Type</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for appointment in past_appointments %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="https://via.placeholder.com/40" class="rounded-circle me-2" width="40" height="40" alt="Patient Photo">
+                                                        <div>
+                                                            <p class="mb-0">{{ appointment.user.username }}</p>
+                                                            <small class="text-muted">{{ appointment.user.phone_number }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ appointment.appointment_date.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                                                <td>{{ appointment.type|default('Consultation') }}</td>
+                                                <td>
+                                                    {% if appointment.status == 'completed' %}
+                                                        <span class="badge bg-info">Completed</span>
+                                                    {% elif appointment.status == 'cancelled' %}
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    {% elif appointment.status == 'no-show' %}
+                                                        <span class="badge bg-secondary">No Show</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="#" class="btn btn-outline-info">Details</a>
+                                                        <a href="#" class="btn btn-outline-light">Notes</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-history fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No past appointments</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Patient Leads -->
+                <div class="tab-pane fade" id="leads">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">New Patient Leads</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if leads %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Contact</th>
+                                                <th>Message</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for lead in leads %}
+                                            <tr>
+                                                <td>
+                                                    {% if lead.user %}
+                                                        {{ lead.user.username }}
+                                                    {% else %}
+                                                        Anonymous User
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if lead.user %}
+                                                        {{ lead.user.phone_number }}<br>
+                                                        <small class="text-muted">{{ lead.user.email }}</small>
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ lead.message|truncate(50) }}</td>
+                                                <td>{{ lead.created_at.strftime('%b %d, %Y') }}</td>
+                                                <td>
+                                                    {% if lead.status == 'pending' %}
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    {% elif lead.status == 'contacted' %}
+                                                        <span class="badge bg-info">Contacted</span>
+                                                    {% elif lead.status == 'scheduled' %}
+                                                        <span class="badge bg-success">Scheduled</span>
+                                                    {% elif lead.status == 'closed' %}
+                                                        <span class="badge bg-secondary">Closed</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="#" class="btn btn-outline-info">View</a>
+                                                        <a href="#" class="btn btn-outline-success">Contact</a>
+                                                        <a href="#" class="btn btn-outline-light">Update Status</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-plus fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No new patient leads</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews -->
+                <div class="tab-pane fade" id="reviews">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Patient Reviews</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card bg-dark text-white h-100">
+                                        <div class="card-body text-center">
+                                            <h2 class="display-4">{{ (doctor.rating or 0.0)|round(1) }}</h2>
+                                            <div class="mb-3">
+                                                {% for i in range(1, 6) %}
+                                                    {% if doctor.rating and i <= doctor.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% elif doctor.rating and i <= doctor.rating + 0.5 %}
+                                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <p class="text-muted">{{ doctor.review_count }} reviews total</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card bg-dark text-white h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-3">Rating Breakdown</h6>
+                                            {% for i in range(5, 0, -1) %}
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="me-2" style="width: 30px;">{{ i }} <i class="fas fa-star text-warning small"></i></div>
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-info" role="progressbar" 
+                                                         style="width: {{ rating_breakdown[i]|default(0) }}%"></div>
+                                                </div>
+                                                <div class="ms-2 text-muted small" style="width: 40px;">
+                                                    {{ rating_breakdown[i]|default(0) }}%
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if reviews %}
+                                {% for review in reviews %}
+                                <div class="card bg-dark border-light mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://via.placeholder.com/40" class="rounded-circle me-2" width="40" height="40" alt="Patient Photo">
+                                                <div>
+                                                    <h6 class="mb-0">{{ review.user.username }}</h6>
+                                                    <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                {% for i in range(1, 6) %}
+                                                    {% if review.rating and i <= review.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {% if review.verified_purchase %}
+                                                    <span class="badge bg-success ms-2">Verified</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="mb-2">
+                                            {% if review.procedure %}
+                                                {{ review.procedure.procedure_name }}
+                                            {% else %}
+                                                General Review
+                                            {% endif %}
+                                        </h6>
+                                        
+                                        <p class="card-text">{{ review.content }}</p>
+                                        
+                                        {% if review.photo %}
+                                        <img src="{{ review.photo }}" class="img-fluid rounded mb-2" style="max-height: 200px;" alt="Review Photo">
+                                        {% endif %}
+                                        
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-outline-info reply-btn" data-review-id="{{ review.id }}">Reply</button>
+                                        </div>
+                                        
+                                        <!-- Reply form (initially hidden) -->
+                                        <div id="reply-form-{{ review.id }}" class="reply-form mt-3 d-none">
+                                            <form method="POST" action="{{ url_for('web.reply_review', review_id=review.id) }}" class="reply-review-form" data-review-id="{{ review.id }}">
+                                                {{ form.csrf_token() }}
+                                                <div class="mb-3">
+                                                    <label for="reply_text_{{ review.id }}" class="form-label">Your Reply</label>
+                                                    <textarea name="reply_text" id="reply_text_{{ review.id }}" class="form-control bg-dark text-white" rows="3" required></textarea>
+                                                    <div class="form-text">Your response will be visible to the patient and other users viewing this review.</div>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <button type="submit" class="btn btn-primary btn-sm">Submit Reply</button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm cancel-reply-btn" data-review-id="{{ review.id }}">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comment fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No reviews yet</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Procedures -->
+                <div class="tab-pane fade" id="procedures">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">My Procedures</h5>
+                            <a href="#" class="btn btn-sm btn-outline-info">Add Procedure</a>
+                        </div>
+                        <div class="card-body">
+                            {% if doctor_procedures %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Procedure</th>
+                                                <th>Category</th>
+                                                <th>Price Range</th>
+                                                <th>Rating</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for dp in doctor_procedures %}
+                                            <tr>
+                                                <td>{{ dp.procedure.procedure_name }}</td>
+                                                <td>{{ dp.procedure.category.name }}</td>
+                                                <td>${{ dp.procedure.min_cost }} - ${{ dp.procedure.max_cost }}</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-2">
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            <span>{{ (dp.procedure.avg_rating or 0.0)|round(1) }}</span>
+                                                        </div>
+                                                        <span class="text-muted">({{ dp.procedure.review_count }})</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="#" class="btn btn-outline-info">Details</a>
+                                                        <a href="#" class="btn btn-outline-danger">Remove</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You haven't added any procedures yet</p>
+                                    <a href="#" class="btn btn-outline-info">Add Procedure</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Availability -->
+                <div class="tab-pane fade" id="availability">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Manage Availability</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card bg-dark border-light mb-3">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Set Regular Hours</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form>
+                                                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <label class="form-label mb-0">{{ day }}</label>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="day_{{ day|lower }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <input type="time" class="form-control form-control-sm bg-dark text-white" placeholder="Start Time">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <input type="time" class="form-control form-control-sm bg-dark text-white" placeholder="End Time">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-info btn-sm">Save Hours</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card bg-dark border-light mb-3">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Upcoming Availability</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="calendar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gallery -->
+                <div class="tab-pane fade" id="photos">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Photo Gallery</h5>
+                            <a href="#" class="btn btn-sm btn-outline-info">Upload Photos</a>
+                        </div>
+                        <div class="card-body">
+                            {% if doctor_photos %}
+                                <div class="row">
+                                    {% for photo in doctor_photos %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card bg-dark border-light h-100">
+                                            <img src="{{ photo.photo_url }}" class="card-img-top" alt="{{ photo.description }}">
+                                            <div class="card-body">
+                                                <p class="card-text small">{{ photo.description }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">{{ photo.created_at.strftime('%b %d, %Y') }}</small>
+                                                    <a href="#" class="btn btn-sm btn-outline-danger">Remove</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-images fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You haven't uploaded any photos yet</p>
+                                    <a href="#" class="btn btn-outline-info">Upload Photos</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Community -->
+                <div class="tab-pane fade" id="community">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Community Engagement</h5>
+                            <a href="{{ url_for('web.community') }}" class="btn btn-sm btn-outline-info">View All Threads</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Engaging with the community as a doctor helps build trust and establish you as an authority in your field.
+                            </div>
+                            
+                            <h6 class="mb-3">Recent Threads in Your Specialties</h6>
+                            {% if specialty_threads %}
+                                {% for thread in specialty_threads %}
+                                <div class="card bg-dark border-light mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="card-title mb-0">{{ thread.title }}</h6>
+                                            <small class="text-muted">{{ thread.created_at.strftime('%b %d, %Y') }}</small>
+                                        </div>
+                                        <p class="card-text">{{ thread.content|truncate(150) }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-light text-dark me-1">
+                                                    <i class="fas fa-eye"></i> {{ thread.view_count }}
+                                                </span>
+                                                <span class="badge bg-light text-dark me-1">
+                                                    <i class="fas fa-comment"></i> {{ thread.reply_count }}
+                                                </span>
+                                                {% if thread.category %}
+                                                <span class="badge bg-info">{{ thread.category.name }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-sm btn-outline-info">Answer as Doctor</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">No recent community threads in your specialties</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Verification Tab -->
+                <div class="tab-pane fade" id="verification">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Doctor Verification for India</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if doctor and doctor.verification_status %}
+                                <div class="alert 
+                                    {% if doctor.verification_status == 'approved' %}alert-success
+                                    {% elif doctor.verification_status == 'rejected' %}alert-danger
+                                    {% else %}alert-warning{% endif %}">
+                                    <h5>Verification Status: {{ doctor.verification_status|capitalize }}</h5>
+                                    {% if doctor.verification_status == 'pending' %}
+                                        <p>Your verification request is being reviewed. You will be notified once the review is complete.</p>
+                                    {% elif doctor.verification_status == 'approved' %}
+                                        <p>Congratulations! Your account has been verified as a doctor. You now have full access to all doctor features.</p>
+                                    {% elif doctor.verification_status == 'rejected' %}
+                                        <p>Your verification request was not approved. Please update your information and try again.</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Verification Status</h5>
+                                            <div class="verification-status mt-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <span>Document Submission</span>
+                                                    <span class="badge {% if doctor and doctor.medical_license_number %}bg-success{% else %}bg-secondary{% endif %}">
+                                                        {% if doctor and doctor.medical_license_number %}Complete{% else %}Incomplete{% endif %}
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <span>Admin Review</span>
+                                                    <span class="badge 
+                                                        {% if doctor and doctor.verification_status == 'approved' %}bg-success
+                                                        {% elif doctor and doctor.verification_status == 'rejected' %}bg-danger
+                                                        {% elif doctor and doctor.verification_status == 'pending' and doctor.medical_license_number %}bg-warning text-dark
+                                                        {% else %}bg-secondary{% endif %}">
+                                                        {% if doctor and doctor.verification_status == 'approved' %}Approved
+                                                        {% elif doctor and doctor.verification_status == 'rejected' %}Rejected
+                                                        {% elif doctor and doctor.verification_status == 'pending' and doctor.medical_license_number %}In Review
+                                                        {% else %}Not Started{% endif %}
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>Verification Badge</span>
+                                                    <span class="badge {% if doctor and doctor.is_verified %}bg-success{% else %}bg-secondary{% endif %}">
+                                                        {% if doctor and doctor.is_verified %}Active{% else %}Inactive{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-4">
+                                                <a href="{{ url_for('web.doctor_verify') }}" class="btn btn-primary w-100">
+                                                    {% if doctor and doctor.medical_license_number %}
+                                                        Update Verification Details
+                                                    {% else %}
+                                                        Complete Verification
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Verification Details</h5>
+                                            <div class="mt-3">
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted">Medical License Number (MCI)</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control bg-dark text-white" 
+                                                               value="{{ doctor.medical_license_number if doctor and doctor.medical_license_number else 'Not provided' }}" readonly>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted">Qualifications</label>
+                                                    <textarea class="form-control bg-dark text-white" rows="3" readonly>{{ doctor.qualification if doctor and doctor.qualification else 'Not provided' }}</textarea>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted">Practice Location</label>
+                                                    <input type="text" class="form-control bg-dark text-white" 
+                                                           value="{{ doctor.practice_location if doctor and doctor.practice_location else 'Not provided' }}" readonly>
+                                                </div>
+                                                
+                                                {% if doctor and doctor.credentials_url %}
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted">Submitted Documents</label>
+                                                    <div class="bg-dark border rounded p-3 d-flex align-items-center">
+                                                        <i class="fas fa-file-medical fa-2x me-3 text-info"></i>
+                                                        <div>
+                                                            <p class="mb-0">{{ doctor.credentials_url }}</p>
+                                                            <small class="text-muted">Uploaded document</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-dark border-light mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Verification Process</h5>
+                                    <div class="row mt-3">
+                                        <div class="col-md-4">
+                                            <div class="d-flex flex-column align-items-center mb-3 text-center">
+                                                <div class="bg-primary rounded-circle p-3 mb-2">
+                                                    <i class="fas fa-file-upload fa-2x"></i>
+                                                </div>
+                                                <h6>1. Submit Documents</h6>
+                                                <p class="text-muted small">Upload your medical license and qualifications</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex flex-column align-items-center mb-3 text-center">
+                                                <div class="bg-warning rounded-circle p-3 mb-2">
+                                                    <i class="fas fa-user-check fa-2x text-dark"></i>
+                                                </div>
+                                                <h6>2. Verification Review</h6>
+                                                <p class="text-muted small">Our team reviews your credentials</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-flex flex-column align-items-center mb-3 text-center">
+                                                <div class="bg-success rounded-circle p-3 mb-2">
+                                                    <i class="fas fa-check-circle fa-2x"></i>
+                                                </div>
+                                                <h6>3. Get Verified</h6>
+                                                <p class="text-muted small">Receive your verified badge and enhanced visibility</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-dark border-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Benefits of Verification</h5>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <ul class="list-group list-group-flush bg-dark">
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Enhanced trust and credibility with patients
+                                                </li>
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Higher visibility in search results
+                                                </li>
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Access to premium features
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <ul class="list-group list-group-flush bg-dark">
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Verified badge on your profile
+                                                </li>
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Priority listing in doctor search
+                                                </li>
+                                                <li class="list-group-item bg-dark text-white border-light">
+                                                    <i class="fas fa-check text-success me-2"></i> Enhanced lead generation and patient bookings
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab functionality
+        const triggerTabList = [].slice.call(document.querySelectorAll('.list-group-item[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+        
+        // Reply button functionality
+        const replyButtons = document.querySelectorAll('.reply-btn');
+        console.log(`Found ${replyButtons.length} Reply buttons`);
+        
+        replyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const reviewId = this.dataset.reviewId;
+                console.log(`Reply button clicked for review ${reviewId}`);
+                
+                const replyForm = document.getElementById(`reply-form-${reviewId}`);
+                if (replyForm) {
+                    replyForm.classList.toggle('d-none');
+                    this.textContent = replyForm.classList.contains('d-none') ? 'Reply' : 'Cancel';
+                    
+                    if (!replyForm.classList.contains('d-none')) {
+                        replyForm.querySelector('textarea').focus();
+                    }
+                } else {
+                    console.error(`Reply form not found for review ${reviewId}`);
+                }
+            });
+        });
+        
+        // Cancel reply button functionality
+        const cancelButtons = document.querySelectorAll('.cancel-reply-btn');
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const reviewId = this.dataset.reviewId;
+                const replyForm = document.getElementById(`reply-form-${reviewId}`);
+                if (replyForm) {
+                    replyForm.classList.add('d-none');
+                    const replyButton = document.querySelector(`.reply-btn[data-review-id="${reviewId}"]`);
+                    if (replyButton) {
+                        replyButton.textContent = 'Reply';
+                    }
+                }
+            });
+        });
+        
+        // Handle reply form submissions
+        const replyForms = document.querySelectorAll('.reply-review-form');
+        replyForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const reviewId = this.dataset.reviewId;
+                const formData = new FormData(this);
+                
+                console.log(`Submitting reply for review ${reviewId}`);
+                
+                // Submit the form with fetch API
+                fetch(`/review/${reviewId}/reply`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Reply submitted successfully!');
+                        
+                        // Hide the form
+                        const replyForm = document.getElementById(`reply-form-${reviewId}`);
+                        if (replyForm) {
+                            replyForm.classList.add('d-none');
+                        }
+                        
+                        // Reset the reply button text
+                        const replyButton = document.querySelector(`.reply-btn[data-review-id="${reviewId}"]`);
+                        if (replyButton) {
+                            replyButton.textContent = 'Reply';
+                        }
+                        
+                        // Reload the page to show the new reply
+                        window.location.reload();
+                    } else {
+                        console.error('Failed to submit reply:', data.message);
+                        alert('There was a problem submitting your reply: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting reply:', error);
+                    alert('There was a problem submitting your reply. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

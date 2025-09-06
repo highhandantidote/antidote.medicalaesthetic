@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Package - {{ package.title }}{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('clinic.clinic_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Package</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Edit Package: {{ package.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form id="packageEditForm" method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.title.label(class="form-label") }}
+                                    {{ form.title(class="form-control") }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.title.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.category.label(class="form-label") }}
+                                    {{ form.category(class="form-select") }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.category.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="4") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.price_actual.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        {{ form.price_actual(class="form-control") }}
+                                    </div>
+                                    {% if form.price_actual.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.price_actual.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.price_discounted.label(class="form-label") }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        {{ form.price_discounted(class="form-control") }}
+                                    </div>
+                                    {% if form.price_discounted.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.price_discounted.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.discount_percentage.label(class="form-label") }}
+                                    <div class="input-group">
+                                        {{ form.discount_percentage(class="form-control") }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    {% if form.discount_percentage.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.discount_percentage.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.duration.label(class="form-label") }}
+                                    {{ form.duration(class="form-control") }}
+                                    {% if form.duration.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.duration.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.downtime.label(class="form-label") }}
+                                    {{ form.downtime(class="form-control") }}
+                                    {% if form.downtime.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.downtime.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.procedure_info.label(class="form-label") }}
+                            {{ form.procedure_info(class="form-control", rows="3") }}
+                            {% if form.procedure_info.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.procedure_info.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.side_effects.label(class="form-label") }}
+                            {{ form.side_effects(class="form-control", rows="3") }}
+                            {% if form.side_effects.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.side_effects.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.recommended_for.label(class="form-label") }}
+                            {{ form.recommended_for(class="form-control", rows="2") }}
+                            {% if form.recommended_for.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.recommended_for.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Featured Image</label>
+                            <input type="file" class="form-control" name="featured_image" accept="image/*">
+                            {% if package.featured_image %}
+                                <small class="form-text text-muted">Current: {{ package.featured_image }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Gallery Images</label>
+                            <input type="file" class="form-control" name="gallery_images" accept="image/*" multiple>
+                            {% if package.gallery_images %}
+                                <small class="form-text text-muted">Current images: {{ package.gallery_images|length }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_featured(class="form-check-input") }}
+                                {{ form.is_featured.label(class="form-check-label") }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('clinic.clinic_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger me-2" onclick="deletePackage({{ package.id }})">
+                                    <i class="fas fa-trash"></i> Delete Package
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line"></i> Package Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="performance-metric">
+                                <div class="metric-value">{{ package.view_count or 0 }}</div>
+                                <div class="metric-label">Views</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="performance-metric">
+                                <div class="metric-value">{{ package.lead_count or 0 }}</div>
+                                <div class="metric-label">Leads</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row text-center mt-3">
+                        <div class="col-12">
+                            <div class="performance-metric">
+                                <div class="metric-value">{{ "%.1f"|format(package.conversion_rate or 0) }}%</div>
+                                <div class="metric-label">Conversion Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-grid">
+                        <a href="{{ url_for('clinic.package_analytics', package_id=package.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-analytics"></i> View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Package Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Current Status</label>
+                        <div>
+                            {% if package.is_active %}
+                                <span class="badge bg-success fs-6">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Featured Status</label>
+                        <div>
+                            {% if package.is_featured %}
+                                <span class="badge bg-warning fs-6">Featured</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark fs-6">Not Featured</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-warning" onclick="togglePackageStatus({{ package.id }})">
+                            {% if package.is_active %}
+                                <i class="fas fa-pause"></i> Deactivate
+                            {% else %}
+                                <i class="fas fa-play"></i> Activate
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.performance-metric {
+    padding: 1rem 0;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+</style>
+
+<script>
+function deletePackage(packageId) {
+    if (confirm('Are you sure you want to delete this package? This action cannot be undone.')) {
+        const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+        
+        fetch(`/clinic/packages/${packageId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Package deleted successfully');
+                window.location.href = '/clinic/dashboard';
+            } else {
+                alert('Error: ' + (data.message || 'Error deleting package'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting package');
+        });
+    }
+}
+
+function togglePackageStatus(packageId) {
+    const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+    
+    fetch(`/clinic/packages/${packageId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Error updating package status'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating package status');
+    });
+}
+
+// Form submission with file upload handling
+document.getElementById('packageEditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+    
+    // Add CSRF token to form data
+    formData.append('csrf_token', csrfToken);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Package updated successfully');
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                location.reload();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Error updating package'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating package');
+    });
+});
+</script>
+{% endblock %}

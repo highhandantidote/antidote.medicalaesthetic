@@ -1,0 +1,738 @@
+{% extends "base.html" %}
+
+{% block title %}Partner with Antidote - Join India's Premier Medical Network{% endblock %}
+
+{% block content %}
+<div class="clinic-onboarding-clean">
+    <!-- Page 1: Main Landing -->
+    <div class="main-page" id="page-1">
+        <div class="container-fluid">
+            <div class="row min-vh-100 align-items-center justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <!-- Hero Section -->
+                    <div class="hero-content text-center">
+                        <h1 class="hero-title mb-3">Partner with Antidote</h1>
+                        <p class="hero-subtitle mb-4">Join India's Premier Medical Aesthetic Network</p>
+                        
+                        <!-- Big Application Button -->
+                        <div class="main-action mb-5">
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSeSNPXoNabwMsOj2Tq5CaHJXUXbJPleJ46b7G9_Qzwkoa7UfA/viewform?usp=dialog" 
+                               target="_blank" 
+                               class="btn btn-application-main mb-3">
+                                Complete Clinic Application
+                            </a>
+                            <p class="application-note">Opens in new tab • Takes 10-15 minutes</p>
+                        </div>
+
+                        <!-- Need Help Section -->
+                        <div class="need-help-section">
+                            <div class="need-help-card">
+                                <h3 class="need-help-title mb-3">
+                                    <i class="fas fa-headset me-2"></i>
+                                    Need Help?
+                                </h3>
+                                <p class="need-help-subtitle mb-4">Our team is ready to assist you with your application</p>
+                                
+                                <div class="contact-options">
+                                    <div class="contact-item">
+                                        <div class="contact-icon">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="contact-details">
+                                            <h6>Email Support</h6>
+                                            <a href="mailto:clinics@antidote.fit" class="contact-link">clinics@antidote.fit</a>
+                                            <small class="text-muted">Response within 24 hours</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="contact-item">
+                                        <div class="contact-icon">
+                                            <i class="fas fa-phone"></i>
+                                        </div>
+                                        <div class="contact-details">
+                                            <h6>Phone Support</h6>
+                                            <a href="tel:8897432584" class="contact-link">8897432584</a>
+                                            <small class="text-muted">Direct assistance available</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Learn More Button -->
+                        <div class="learn-more mt-4">
+                            <button onclick="showPage(2)" class="btn btn-link">
+                                Learn More About Partnership
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Detailed Information -->
+    <div class="details-page" id="page-2" style="display: none;">
+        <div class="container py-4">
+            <!-- Back Button -->
+            <div class="page-header mb-4">
+                <button class="btn-back" onclick="showPage(1)">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+            </div>
+
+            <!-- Why Partner Section -->
+            <div class="benefits-section mb-5">
+                <h3 class="section-heading text-center mb-4">Why Partner with Antidote?</h3>
+                <div class="benefits-list">
+                    <div class="benefit-item">
+                        <div class="benefit-number">1</div>
+                        <div class="benefit-content">
+                            <h5>Access to Verified Users</h5>
+                            <p>Connect with verified users who are people who like to get treatment and are actively interested in your services.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-number">2</div>
+                        <div class="benefit-content">
+                            <h5>Professional Verification</h5>
+                            <p>Build trust with our comprehensive clinic verification process.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-number">3</div>
+                        <div class="benefit-content">
+                            <h5>Marketing Support</h5>
+                            <p>Increase visibility and reach more people who like to get treatment.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-number">4</div>
+                        <div class="benefit-content">
+                            <h5>Secure Payment Processing</h5>
+                            <p>Professional payment processing with transparent advertising fees.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Section -->
+            <div class="process-section mb-5">
+                <h3 class="section-heading text-center mb-4">Onboarding Process</h3>
+                <div class="process-list">
+                    <div class="process-item">
+                        <div class="process-step">1</div>
+                        <div class="process-content">
+                            <h6>Submit Application</h6>
+                            <p>Complete the detailed application form</p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-item">
+                        <div class="process-step">2</div>
+                        <div class="process-content">
+                            <h6>Documentation Review</h6>
+                            <p>Our team reviews your application (24-48 hours)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-item">
+                        <div class="process-step">3</div>
+                        <div class="process-content">
+                            <h6>Clinic Verification</h6>
+                            <p>Professional verification and background checks</p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-item">
+                        <div class="process-step">4</div>
+                        <div class="process-content">
+                            <h6>Go Live</h6>
+                            <p>Start connecting with people who like to get treatment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="faq-section mb-5">
+                <h3 class="section-heading text-center mb-4">Frequently Asked Questions</h3>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <h6>How long does verification take?</h6>
+                        <p>Typically 24-48 hours for complete review.</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h6>What documents are required?</h6>
+                        <p>Medical licenses, clinic registration, and doctor credentials.</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h6>Is there a registration fee?</h6>
+                        <p>No upfront fees - you pay only for advertising services we offer.</p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h6>Can I update my information?</h6>
+                        <p>Yes, you can update your clinic profile anytime through your dashboard.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section text-center py-4">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeSNPXoNabwMsOj2Tq5CaHJXUXbJPleJ46b7G9_Qzwkoa7UfA/viewform?usp=dialog" 
+                   target="_blank" 
+                   class="btn btn-primary btn-lg">
+                    Start Your Application Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.clinic-onboarding-clean {
+    background: var(--antidote-surface, #f9fafb);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+}
+
+/* Page 1 - Clean Landing */
+.main-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.hero-content {
+    background: var(--antidote-white, #ffffff);
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--antidote-text, #111827);
+    margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--antidote-text-secondary, #4b5563);
+    margin-bottom: 0;
+}
+
+/* Main Application Button */
+.btn-application-main {
+    background: linear-gradient(135deg, var(--antidote-primary, #00A0B0) 0%, var(--antidote-primary-dark, #007A8C) 100%);
+    color: white;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 160, 176, 0.4);
+    border: none;
+}
+
+.btn-application-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 160, 176, 0.6);
+    color: white;
+}
+
+.application-note {
+    color: var(--antidote-text-muted, #6b7280);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Need Help Section */
+.need-help-section {
+    margin-top: 2rem;
+}
+
+.need-help-card {
+    background: var(--antidote-white, #ffffff);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid var(--antidote-border, #e5e7eb);
+}
+
+.need-help-title {
+    color: var(--antidote-primary, #00A0B0);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.need-help-subtitle {
+    color: var(--antidote-text-secondary, #4b5563);
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+.contact-options {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--antidote-light, #f9fafb);
+    border-radius: 12px;
+    min-width: 200px;
+    border: 1px solid var(--antidote-border, #e5e7eb);
+    flex: 1;
+    max-width: 280px;
+}
+
+.contact-icon {
+    background: var(--antidote-primary, #00A0B0);
+    color: white;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.contact-details h6 {
+    color: var(--antidote-text, #111827);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.contact-link {
+    color: var(--antidote-primary, #00A0B0);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.contact-link:hover {
+    color: var(--antidote-primary-dark, #007A8C);
+    text-decoration: underline;
+}
+
+.contact-details small {
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 0.2rem;
+}
+
+/* Learn More Button */
+.learn-more .btn-link {
+    color: var(--antidote-primary, #00A0B0);
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.learn-more .btn-link:hover {
+    color: var(--antidote-primary-dark, #007A8C);
+    text-decoration: underline;
+}
+
+/* Page 2 - Detailed Information */
+.details-page {
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.page-header {
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--antidote-border, #e5e7eb);
+}
+
+.btn-back {
+    background: var(--antidote-light, #f9fafb);
+    border: 1px solid var(--antidote-border, #e5e7eb);
+    color: var(--antidote-text, #111827);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: var(--antidote-primary, #00A0B0);
+    color: var(--antidote-white, #ffffff);
+    border-color: var(--antidote-primary, #00A0B0);
+}
+
+/* Section Styling */
+.section-heading {
+    color: var(--antidote-primary, #00A0B0);
+    font-size: 1.8rem;
+    font-weight: 700;
+    border-bottom: 3px solid var(--antidote-primary, #00A0B0);
+    padding-bottom: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Benefits List */
+.benefits-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--antidote-white, #ffffff);
+    border-radius: 12px;
+    border-left: 4px solid var(--antidote-primary, #00A0B0);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.benefit-number {
+    background: var(--antidote-primary, #00A0B0);
+    color: var(--antidote-white, #ffffff);
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.benefit-content h5 {
+    color: var(--antidote-text, #111827);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.benefit-content p {
+    color: var(--antidote-text-secondary, #4b5563);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Process List */
+.process-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.process-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--antidote-white, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.process-step {
+    background: var(--antidote-primary, #00A0B0);
+    color: var(--antidote-white, #ffffff);
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.process-content h6 {
+    color: var(--antidote-text, #111827);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.process-content p {
+    color: var(--antidote-text-secondary, #4b5563);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* FAQ List */
+.faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--antidote-white, #ffffff);
+    border-radius: 12px;
+    border-left: 3px solid var(--antidote-primary, #00A0B0);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.faq-item h6 {
+    color: var(--antidote-text, #111827);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.faq-item p {
+    color: var(--antidote-text-secondary, #4b5563);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* CTA Section */
+.cta-section {
+    background: var(--antidote-light, #f9fafb);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+/* Navigation */
+.main-page,
+.details-page {
+    transition: opacity 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .container-fluid {
+        padding: 0 2rem;
+    }
+    
+    .hero-content {
+        max-width: 100%;
+        padding: 2.5rem 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .main-page {
+        padding: 1.5rem 0;
+    }
+    
+    .hero-content {
+        padding: 2rem 1.5rem;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .contact-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .contact-item {
+        max-width: 350px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-page {
+        padding: 1rem 0;
+        min-height: auto;
+    }
+    
+    .hero-content {
+        padding: 2rem 1rem;
+        border-radius: 16px;
+        margin: 1rem;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .btn-application-main {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .need-help-card {
+        padding: 1.5rem;
+    }
+    
+    .contact-item {
+        min-width: auto;
+        width: 100%;
+        max-width: none;
+    }
+    
+    .contact-details h6 {
+        font-size: 0.85rem;
+    }
+    
+    .contact-link {
+        font-size: 0.9rem;
+    }
+    
+    .details-page {
+        padding: 1rem 0;
+    }
+    
+    .section-heading {
+        font-size: 1.5rem;
+    }
+    
+    .benefit-item,
+    .process-item,
+    .faq-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .benefit-content h5 {
+        font-size: 1.1rem;
+    }
+    
+    .process-content h6,
+    .faq-item h6 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 0 1rem;
+    }
+    
+    .hero-content {
+        margin: 0.5rem;
+        padding: 1.5rem 1rem;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .btn-application-main {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .need-help-title {
+        font-size: 1.3rem;
+    }
+    
+    .contact-icon {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.9rem;
+    }
+    
+    .benefit-item {
+        gap: 1rem;
+    }
+    
+    .benefit-number {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1rem;
+    }
+    
+    .process-step {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Ensure proper container behavior */
+@media (min-width: 1400px) {
+    .hero-content {
+        max-width: 700px;
+    }
+    
+    .benefits-list,
+    .process-list,
+    .faq-list {
+        max-width: 900px;
+    }
+}
+
+/* Fix for very small screens */
+@media (max-width: 380px) {
+    .hero-content {
+        margin: 0.25rem;
+        padding: 1rem 0.75rem;
+    }
+    
+    .hero-title {
+        font-size: 1.6rem;
+    }
+    
+    .btn-application-main {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .contact-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+}
+</style>
+
+<script>
+function showPage(pageNumber) {
+    // Hide all pages
+    document.querySelectorAll('.main-page, .details-page').forEach(page => {
+        page.style.display = 'none';
+    });
+    
+    // Show selected page
+    if (pageNumber === 1) {
+        document.getElementById('page-1').style.display = 'block';
+    } else {
+        document.getElementById('page-2').style.display = 'block';
+    }
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}

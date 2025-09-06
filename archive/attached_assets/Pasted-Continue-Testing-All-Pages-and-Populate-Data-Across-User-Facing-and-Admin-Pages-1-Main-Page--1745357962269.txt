@@ -1,0 +1,54 @@
+Continue Testing All Pages and Populate Data Across User-Facing and Admin Pages:
+
+1. Main Page (`/`) Results (Answering Your Questions):
+   - **Doctor Section**: Likely throwing an error (e.g., Internal Server Error) due to no doctor data, as no doctors are seeded. If it’s showing as empty (e.g., “No doctors available”), note that instead.
+   - **Featured Procedures**: Yes, the 5 procedures (Rhinoplasty, Facelift, Botox, Eyelid Surgery, Breast Augmentation) should be visible in the featured section, though the section might look sparse.
+   - **Recent Threads**: Yes, up to 6 threads (e.g., “Test Thread,” “How much does a facelift cost?”) should display, but the section may appear underpopulated.
+   - **Search/Filter Functionality**: Likely exists (e.g., a search bar or filter dropdown for doctors/procedures), but it’s non-functional for doctors (no data) and returns limited results for procedures (only 5), making it seem ineffective.
+
+2. Test Remaining User-Facing Pages:
+   - **Procedures (`/procedures`)**:
+     - Confirm listing shows 5 procedures (Rhinoplasty, Facelift, Botox, Eyelid Surgery, Breast Augmentation).
+     - Check if the surgical/non-surgical filter exists and works (e.g., 4 surgical, 1 non-surgical like Botox).
+     - Test load time (<2s) and filter responsiveness (<100ms), log results.
+   - **Doctors (`/doctors`)**:
+     - Verify page renders—expect it to be empty or throw an error (e.g., Internal Server Error) due to no doctor data.
+     - Test search/filter functionality (e.g., by specialty)—expect it to fail, note the behavior.
+   - **Community (`/community`)**:
+     - Confirm 6 threads display (e.g., “Test Thread,” “How much does a facelift cost?”).
+     - Test body part filter: 5 threads for “Face,” 1 for “Breast,” check filter lag (<100ms) with timestamp logs in console.
+     - Test search bar with keywords (e.g., “cost”), note results (expect 2 threads).
+   - **New Thread (`/community/new`)**:
+     - Verify procedure dropdown shows 5 procedures (Rhinoplasty, Facelift, Botox, Eyelid Surgery, Breast Augmentation).
+     - Test thread creation: Submit a test thread (“Testing thread creation” for Rhinoplasty, keywords: “test, cost”), confirm it saves to the database with: SELECT id, title, procedure_id, keywords FROM threads WHERE title = 'Testing thread creation';.
+     - Check if analytics update: Verify thread count (should be 7) and trending topics (“cost” now in 3 threads) with: SELECT COUNT(*) FROM threads; curl -s "http://0.0.0.0:5000/api/community/trends" | python -m json.tool.
+
+3. Test Admin Procedures Page:
+   - Navigate to the admin procedures page (likely `/dashboard/procedures`):
+     - Confirm it shows 5 procedures (Rhinoplasty, Facelift, Botox, Eyelid Surgery, Breast Augmentation).
+     - Note if editing (e.g., update description) or analytics features (e.g., most discussed procedures) exist and work.
+     - Test load time (<2s) and any filtering/sorting functionality (e.g., by category), log results.
+     - Note any errors (e.g., Internal Server Error) or UI issues due to limited data.
+
+4. Populate Data Across All Pages:
+   - **Seed Doctors**:
+     - Create a script `seed_doctors.py` to seed 50 doctors with fields: `id`, `name` (e.g., “Dr. Priya Sharma”), `specialty` (e.g., “Plastic Surgery”), `qualifications` (e.g., “MBBS, MS”), `verified` (set 30 as True, 20 as False), `created_at`.
+     - Verify with: SELECT COUNT(*) FROM doctors; SELECT id, name, specialty, verified FROM doctors LIMIT 5.
+   - **Seed Remaining Procedures**:
+     - Use `seed_procedures_batch.py` to seed the remaining 112 procedures (total 117), ensuring fields (`procedure_name`, `body_part`, `category_id`, `surgical`—true/false as per April 10, 2025 dataset) align with the RealSelf hierarchy (e.g., add procedures like “Tummy Tuck” for Body, “Liposuction” for Body, ensure mix of surgical/non-surgical).
+     - Spot-check IDs 1, 13, 50 with: SELECT id, procedure_name, body_part, surgical FROM procedures WHERE id IN (1, 13, 50).
+   - **Seed Additional Threads**:
+     - Use `seed_community_threads_batch.py` to seed 50 more threads, ensuring a mix of body parts (e.g., 30 Face, 15 Breast, 5 other like Body for new procedures), and at least 5 more threads with “cost” in keywords (total 8 with “cost”).
+     - Verify with: SELECT COUNT(*) FROM threads; SELECT id, title, procedure_id, keywords FROM threads LIMIT 10.
+
+5. Retest All Pages After Populating Data:
+   - **User-Facing Pages**:
+     - **Main Page (`/`)**: Confirm doctor section shows 50 doctors (30 verified), procedures section shows more variety (e.g., 117 total), recent threads show more activity (up to 56), search/filter now works.
+     - **Procedures (`/procedures`)**: Verify 117 procedures display, surgical/non-surgical filter works (e.g., ~70 surgical, ~47 non-surgical), load time <2s, filter lag <100ms.
+     - **Doctors (`/doctors`)**: Confirm 50 doctors display, search/filter by specialty works (e.g., “Plastic Surgery”), load time <2s.
+     - **Community (`/community`)**: Verify 56 threads display, body part filter updates (e.g., ~35 Face, ~16 Breast, ~5 other), search for “cost” returns 8 threads, load time <2s.
+     - **New Thread (`/community/new`)**: Confirm procedure dropdown shows 117 procedures, test thread creation again, verify analytics update (thread count: 57, “cost” in 9 threads).
+   - **Admin Pages**:
+     - **Community Analytics (`/dashboard/community`)**: Confirm charts (e.g., “cost” with 8 mentions, updated body part distribution), filters, metrics (Total Discussions: 56), load time <2s.
+     - **Doctor Verification (`/dashboard/doctor/verify`)**: Verify 50 doctors display, test approve/reject (approve 1 unverified doctor), confirm update with: SELECT id, name, verified FROM doctors WHERE verified = true LIMIT 5;.
+     - **Admin Procedures (`/dashboard/procedures`)**: Confirm 117 procedures display, test editing (e.g., update Rhinoplasty description to “Nose reshaping surgery for aesthetic improvement”), verify analytics (e.g., most discussed procedure).

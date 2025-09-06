@@ -1,0 +1,34 @@
+Recommended Fields to Display:
+Title: Procedure name (e.g., "Rhinoplasty").
+Image/Icon: A small image or icon representing the procedure (e.g., a nose icon for Rhinoplasty).
+Description: A brief description (e.g., "Nose reshaping surgery to improve appearance and function").
+Price Range: Cost range (e.g., "₹80000 - ₹150000").
+Surgical/Non-Surgical: From your schema, indicate if it’s surgical or non-surgical (e.g., "Surgical").
+Recovery Time: Recovery duration (e.g., "Recovery: 3-5 weeks").
+Treatment Duration: Procedure duration (e.g., "Duration: 2-3 hours").
+Patient Type: Inpatient or outpatient (e.g., "Outpatient").
+CTAs: Two buttons: "Learn More" (links to procedure details) and "Find Doctors" (links to doctors specializing in this procedure).
+Why These Fields?
+The image/icon makes the card visually appealing and helps users quickly identify the procedure.
+Surgical/non-surgical classification helps users understand the invasiveness, a key decision factor.
+Dual CTAs ("Learn More" and "Find Doctors") guide users to either explore details or take action, improving conversion rates.
+Excluding ratings for now (since there are 0 reviews) avoids confusion.
+
+Updated Doctor Card
+The doctor card should provide enough information for users to trust and select a doctor, with a direct option to book a consultation.
+Recommended Fields to Display:
+Image/Icon: A profile image or placeholder icon for the doctor.
+Name: Full name with title (e.g., "Dr. Doctor Test").
+Specialty: Area of expertise (e.g., "Plastic Surgeon").
+Qualifications: Key educational credentials (e.g., "MBBS, MS").
+Location: City (e.g., "Mumbai").
+Experience: Years of experience (e.g., "12+ yrs").
+Consultation Fee: Fee for consultation (e.g., "Consultation Fee: ₹1500").
+Availability: A simple indicator (e.g., "Available Today" or "Next Available: [Date]").
+CTAs: Two buttons: "View Profile" (links to doctor’s detailed page) and "Book Consultation" (links to booking page).
+Why These Fields?
+The image/icon adds a personal touch, increasing trust.
+Qualifications build credibility, a key factor for users choosing a doctor.
+Availability helps users know if they can book soon, encouraging immediate action.
+Dual CTAs ("View Profile" and "Book Consultation") cater to users who want more details or are ready to book.
+Excluding ratings for now (since there are 0 reviews) avoids confusion.

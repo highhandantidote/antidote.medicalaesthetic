@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "name": "Dr. Anand Sharma",
+    "user_id": 1,
+    "email": "dr_anand_sharma@example.com",
+    "created_at": "2025-05-21T18:50:55.708451"
+  },
+  {
+    "id": 2,
+    "name": "Dr. Bhavna Patel",
+    "user_id": 2,
+    "email": "dr_bhavna_patel@example.com",
+    "created_at": "2025-05-21T18:50:58.658361"
+  },
+  {
+    "id": 114,
+    "name": "Dr. Nandini Sharma",
+    "user_id": 135,
+    "email": "nandini.sharma@example.com",
+    "created_at": "2025-05-21T23:47:10.138567"
+  },
+  {
+    "id": 115,
+    "name": "Dr. Vikram Malhotra",
+    "user_id": 136,
+    "email": "vikram.malhotra@example.com",
+    "created_at": "2025-05-21T23:47:12.083584"
+  },
+  {
+    "id": 116,
+    "name": "Dr. Priya Agarwal",
+    "user_id": 137,
+    "email": "priya.agarwal@example.com",
+    "created_at": "2025-05-21T23:47:14.028614"
+  },
+  {
+    "id": 117,
+    "name": "Dr. Rajiv Menon",
+    "user_id": 138,
+    "email": "rajiv.menon@example.com",
+    "created_at": "2025-05-21T23:47:15.956130"
+  },
+  {
+    "id": 118,
+    "name": "Dr. Sanjana Mehta",
+    "user_id": 139,
+    "email": "sanjana.mehta@example.com",
+    "created_at": "2025-05-21T23:47:29.015444"
+  },
+  {
+    "id": 119,
+    "name": "Dr. Arjun Kapoor",
+    "user_id": 140,
+    "email": "arjun.kapoor@example.com",
+    "created_at": "2025-05-21T23:47:30.977019"
+  },
+  {
+    "id": 120,
+    "name": "Dr. Leela Krishnan",
+    "user_id": 141,
+    "email": "leela.krishnan@example.com",
+    "created_at": "2025-05-21T23:47:32.962301"
+  }
+]

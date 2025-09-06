@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+
+{% block title %}User Dashboard | Antidote{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">User Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img src="https://via.placeholder.com/150" class="rounded-circle img-thumbnail" alt="Profile Image">
+                    </div>
+                    <h5 class="text-center">{{ user.name or user.username or user.email }}</h5>
+                    <p class="text-center text-muted">Member since {{ user.created_at.strftime('%B %Y') }}</p>
+                    <p class="text-center">User ID: {{ user.id }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-light btn-sm">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Dashboard Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#saved" class="list-group-item list-group-item-action bg-dark text-white border-light active" data-bs-toggle="list">Saved Items</a>
+                    <a href="#appointments" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">My Appointments</a>
+                    <a href="#reviews" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">My Reviews</a>
+                    <a href="#community" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">My Community Posts</a>
+                    <a href="#notifications" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Notifications</a>
+                    <a href="#preferences" class="list-group-item list-group-item-action bg-dark text-white border-light" data-bs-toggle="list">Preferences</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Saved Items -->
+                <div class="tab-pane fade show active" id="saved">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Saved Items</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if saved_items %}
+                                <div class="row">
+                                    {% for item in saved_items %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card bg-dark text-white h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ item.name }}</h6>
+                                                <p class="card-text small">{{ item.type }}</p>
+                                                <div class="d-flex justify-content-between">
+                                                    <a href="{{ item.url }}" class="btn btn-sm btn-outline-info">View</a>
+                                                    {% if item.favorite_id %}
+                                                    <form action="{{ url_for('web.remove_favorite', favorite_id=item.favorite_id) }}" method="POST" class="remove-form">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-action="remove">
+                                                            Remove
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-bookmark fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You haven't saved any items yet</p>
+                                    <a href="{{ url_for('web.procedures') }}" class="btn btn-outline-info">Browse Procedures</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appointments -->
+                <div class="tab-pane fade" id="appointments">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">My Appointments</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if appointments %}
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Doctor</th>
+                                                <th>Date & Time</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for appointment in appointments %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="{{ appointment.doctor.photo_url or 'https://via.placeholder.com/40' }}" 
+                                                             class="rounded-circle me-2" width="40" height="40" alt="Dr. Photo">
+                                                        <div>
+                                                            <p class="mb-0">Dr. {{ appointment.doctor.username }}</p>
+                                                            <small class="text-muted">{{ appointment.doctor.specialty }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ appointment.appointment_date.strftime('%b %d, %Y - %I:%M %p') if appointment.appointment_date else 'Not scheduled' }}</td>
+                                                <td>
+                                                    {% if appointment.status == 'confirmed' %}
+                                                        <span class="badge bg-success">Confirmed</span>
+                                                    {% elif appointment.status == 'pending' %}
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    {% elif appointment.status == 'cancelled' %}
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    {% elif appointment.status == 'completed' %}
+                                                        <span class="badge bg-info">Completed</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm appointment-actions">
+                                                        <a href="#" class="btn btn-outline-info" data-id="{{ appointment.id }}" data-action="details">Details</a>
+                                                        {% if appointment.status == 'pending' %}
+                                                        <a href="#" class="btn btn-outline-success" data-id="{{ appointment.id }}" data-action="confirm">Confirm</a>
+                                                        {% endif %}
+                                                        {% if appointment.status == 'confirmed' %}
+                                                        <a href="#" class="btn btn-outline-primary" data-id="{{ appointment.id }}" data-action="complete">Complete</a>
+                                                        {% endif %}
+                                                        {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+                                                        <a href="#" class="btn btn-outline-danger" data-id="{{ appointment.id }}" data-action="cancel">Cancel</a>
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-alt fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You don't have any appointments yet</p>
+                                    <a href="{{ url_for('web.doctors') }}" class="btn btn-outline-info">Find Doctors</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews -->
+                <div class="tab-pane fade" id="reviews">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">My Reviews</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if reviews %}
+                                {% for review in reviews %}
+                                <div class="card bg-dark border-light mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5 class="card-title mb-0">
+                                                {% if review.procedure %}
+                                                    {{ review.procedure.procedure_name }}
+                                                {% elif review.doctor %}
+                                                    Dr. {{ review.doctor.name or review.doctor.username }}
+                                                {% else %}
+                                                    Unknown Item
+                                                {% endif %}
+                                            </h5>
+                                            <div>
+                                                <span class="badge bg-info">
+                                                    {{ review.rating }} <i class="fas fa-star text-warning"></i>
+                                                </span>
+                                                <small class="text-muted ms-2">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                                            </div>
+                                        </div>
+                                        <p class="card-text">{{ review.content }}</p>
+                                        {% if review.photo %}
+                                        <img src="{{ review.photo }}" class="img-fluid rounded mb-2" alt="Review Photo">
+                                        {% endif %}
+                                        <div class="btn-group btn-group-sm review-actions">
+                                            <a href="#" class="btn btn-outline-info" data-id="{{ review.id }}" data-action="edit">Edit</a>
+                                            <a href="#" class="btn btn-outline-danger" data-id="{{ review.id }}" data-action="delete">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comment fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You haven't written any reviews yet</p>
+                                    <a href="{{ url_for('web.procedures') }}" class="btn btn-outline-info">Browse Procedures</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Community Posts -->
+                <div class="tab-pane fade" id="community">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">My Community Activity</h5>
+                            <a href="{{ url_for('web.community') }}" class="btn btn-sm btn-outline-info">Community Forum</a>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs mb-3" id="communityTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="threads-tab" data-bs-toggle="tab" data-bs-target="#threads-content" type="button" role="tab">My Threads</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="replies-tab" data-bs-toggle="tab" data-bs-target="#replies-content" type="button" role="tab">My Replies</button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="communityTabsContent">
+                                <!-- Threads Tab -->
+                                <div class="tab-pane fade show active" id="threads-content" role="tabpanel">
+                                    {% if community_threads %}
+                                        {% for thread in community_threads %}
+                                        <div class="card bg-dark border-light mb-3">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="card-title mb-0">{{ thread.title }}</h5>
+                                                    <small class="text-muted">{{ thread.created_at.strftime('%b %d, %Y') }}</small>
+                                                </div>
+                                                <p class="card-text">{{ thread.content|truncate(150) }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="community-actions">
+                                                        <span class="badge bg-light text-dark me-1">
+                                                            <i class="fas fa-eye"></i> {{ thread.view_count }}
+                                                        </span>
+                                                        <span class="badge bg-light text-dark me-1">
+                                                            <i class="fas fa-comment"></i> {{ thread.reply_count }}
+                                                        </span>
+                                                        {% if thread.is_anonymous %}
+                                                        <span class="badge bg-secondary">Anonymous</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm community-actions">
+                                                        <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id) }}" class="btn btn-outline-info">View</a>
+                                                        <button class="btn btn-outline-secondary" data-id="{{ thread.id }}" data-action="edit">Edit</button>
+                                                        <button class="btn btn-outline-danger" data-id="{{ thread.id }}" data-action="delete">Delete</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                            <p class="text-muted">You haven't created any community threads yet</p>
+                                            <a href="{{ url_for('web.community') }}" class="btn btn-outline-info">Go to Community</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Replies Tab -->
+                                <div class="tab-pane fade" id="replies-content" role="tabpanel">
+                                    {% if community_replies %}
+                                        {% for reply in community_replies %}
+                                        <div class="card bg-dark border-light mb-3">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 class="card-subtitle mb-0">
+                                                        Reply to: 
+                                                        <a href="{{ url_for('web.community_thread_detail', thread_id=reply.thread_id) }}">
+                                                            {{ reply.thread.title if reply.thread else "Thread" }}
+                                                        </a>
+                                                    </h6>
+                                                    <small class="text-muted">{{ reply.created_at.strftime('%b %d, %Y') }}</small>
+                                                </div>
+                                                <p class="card-text">{{ reply.content|truncate(150) }}</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        {% if reply.is_doctor_response %}
+                                                        <span class="badge bg-primary">Doctor Response</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ url_for('web.community_thread_detail', thread_id=reply.thread_id) }}" class="btn btn-outline-info">View Thread</a>
+                                                        <button class="btn btn-outline-secondary" data-id="{{ reply.id }}" data-action="edit-reply">Edit</button>
+                                                        <button class="btn btn-outline-danger" data-id="{{ reply.id }}" data-action="delete-reply">Delete</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-reply fa-3x mb-3 text-muted"></i>
+                                            <p class="text-muted">You haven't replied to any community threads yet</p>
+                                            <a href="{{ url_for('web.community') }}" class="btn btn-outline-info">Go to Community</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Notifications</h5>
+                            <button class="btn btn-sm btn-outline-info">Mark All as Read</button>
+                        </div>
+                        <div class="card-body">
+                            {% if notifications %}
+                                <div class="list-group list-group-flush">
+                                    {% for notification in notifications %}
+                                    <div class="list-group-item bg-dark text-white {% if not notification.is_read %}border-info{% else %}border-light{% endif %}">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 {% if not notification.is_read %}text-info{% endif %}">
+                                                {{ notification.type }}
+                                            </h6>
+                                            <small class="text-muted">{{ notification.created_at|ago }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ notification.message }}</p>
+                                        <div class="d-flex justify-content-end">
+                                            {% if not notification.is_read %}
+                                            <button class="btn btn-sm btn-outline-light">Mark as Read</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-bell fa-3x mb-3 text-muted"></i>
+                                    <p class="text-muted">You don't have any notifications</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preferences -->
+                <div class="tab-pane fade" id="preferences">
+                    <div class="card bg-dark text-white mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label">Areas of Interest</label>
+                                    <select class="form-select bg-dark text-white" multiple>
+                                        {% for body_part in body_parts %}
+                                        <option value="{{ body_part.id }}" 
+                                                {% if preferences and body_part.name in preferences.body_focus %}selected{% endif %}>
+                                            {{ body_part.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Select the body areas you're interested in</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Budget Range</label>
+                                    <div class="row">
+                                        <div class="col">
+                                            <input type="number" class="form-control bg-dark text-white" 
+                                                   placeholder="Min" 
+                                                   value="{{ preferences.budget_range.min if preferences and preferences.budget_range else '' }}">
+                                        </div>
+                                        <div class="col">
+                                            <input type="number" class="form-control bg-dark text-white" 
+                                                   placeholder="Max" 
+                                                   value="{{ preferences.budget_range.max if preferences and preferences.budget_range else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Notification Preferences</label>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="notif_new_threads"
+                                               {% if preferences and preferences.notification_prefs.new_threads %}checked{% endif %}>
+                                        <label class="form-check-label" for="notif_new_threads">
+                                            New community threads in my areas of interest
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="notif_replies"
+                                               {% if preferences and preferences.notification_prefs.replies %}checked{% endif %}>
+                                        <label class="form-check-label" for="notif_replies">
+                                            Replies to my community posts
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="notif_appointments"
+                                               {% if preferences and preferences.notification_prefs.appointments %}checked{% endif %}>
+                                        <label class="form-check-label" for="notif_appointments">
+                                            Appointment reminders
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="notif_promotions"
+                                               {% if preferences and preferences.notification_prefs.promotions %}checked{% endif %}>
+                                        <label class="form-check-label" for="notif_promotions">
+                                            Special offers and promotions
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-info">Save Preferences</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggerTabList = [].slice.call(document.querySelectorAll('.list-group-item[data-bs-toggle="list"]'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
+
+<!-- Edit Review Modal -->
+<div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editReviewModalLabel">Edit Review</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReviewForm">
+                    <input type="hidden" id="editReviewId">
+                    <div class="mb-3">
+                        <label for="editRating" class="form-label">Rating</label>
+                        <select class="form-control bg-dark text-white" id="editRating" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editContent" class="form-label">Content</label>
+                        <textarea class="form-control bg-dark text-white" id="editContent" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Thread Modal -->
+<div class="modal fade" id="editThreadModal" tabindex="-1" aria-labelledby="editThreadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editThreadModalLabel">Edit Community Thread</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editThreadForm">
+                    <input type="hidden" id="editThreadId">
+                    <div class="mb-3">
+                        <label for="editThreadTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control bg-dark text-white" id="editThreadTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editThreadContent" class="form-label">Content</label>
+                        <textarea class="form-control bg-dark text-white" id="editThreadContent" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Reply Modal -->
+<div class="modal fade" id="editReplyModal" tabindex="-1" aria-labelledby="editReplyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editReplyModalLabel">Edit Reply</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReplyForm">
+                    <input type="hidden" id="editReplyId">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="editReplyContent" class="form-label">Reply Content</label>
+                        <textarea class="form-control bg-dark text-white" id="editReplyContent" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

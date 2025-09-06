@@ -1,0 +1,34 @@
+Finalize Community Analytics Dashboard and Launch User Testing:
+
+1. Review and Confirm Testing Output:
+   - Confirm `test_report.md` includes all test case results (Approve/Reject Doctors, Procedure Listing, Community Threads) and performance metrics for 117 procedures and 6 threads.
+   - Ensure `antidote_full_test_20250421_234956.log` contains relevant entries (e.g., DEBUG:routes:Verification approved, INFO:db:COMMIT).
+   - Verify screenshots cover /dashboard/doctor/verify, /procedures, and /dashboard/community.
+
+2. Verify Data Population:
+   - Confirm the 117 procedures match the RealSelf hierarchy (e.g., Open Rhinoplasty: body_part=Face) with: SELECT COUNT(*) FROM procedures; and spot-check IDs 1, 13, 50.
+   - Validate the 6 threads (including “Test Thread”) with: SELECT COUNT(*) FROM threads; and spot-check with: SELECT id, title, content, created_at, procedure_id, keywords FROM threads LIMIT 6.
+   - Verify trending topics by confirming “cost” with 2 mentions via `/api/community/trends` response.
+
+3. Verify and Finalize AI Tool - Procedure Recommendations:
+   - Confirm `ai_recommendations.py` handles 117 procedures efficiently with weighted features and caching.
+   - Verify `test_recommendation_endpoint.py` results for IDs 1 and 13, ensuring accuracy and load times.
+   - Confirm `routes.py` (`/procedure_detail`) and API endpoints return expected results.
+
+4. Finalize Community Analytics Dashboard:
+   - Review the `/dashboard/community` dashboard in `dashboard_community.html`:
+     - Confirm the “Top Trends” bar chart shows “cost” with 2 mentions, with clear spacing, labels, and tooltips.
+     - Verify the body part distribution pie chart has a visible legend with counts (e.g., Face: 5, Breast: 1) and interactive tooltips.
+     - Ensure the body part filter dropdown dynamically updates to 5 threads when set to “Face”.
+     - Validate the layout is clean, with optimized spacing.
+   - Update `static/js/community-analytics.js` to ensure filter logs are timestamped if not already.
+
+5. Launch User Testing:
+   - **User Testing Plan**: Engage 5 users to create threads via `/community/new`, filter by body part (targeting Face), and interact with charts. Track success rate (goal: 100%), load times (<2s), and feedback on UI/UX (e.g., filter responsiveness, chart clarity). Focus on UI ease, a priority you’ve had since April. Share results in `test_report.md`.
+   - **Execution**: Provide users with access and a feedback form (e.g., via Google Forms) to collect data.
+
+6. Finalize Documentation and Output:
+   - Update `test_report.md` with user testing plan and initial results.
+   - Enhance `ai_implementation_report.md` with UI details, community analytics implementation, real-time updates, and thread creation details.
+   - Share updated `models.py`, `test_report.md`, `ai_implementation_report.md`, `ai_recommendations.py`, `add_procedures_sql.py`, `test_recommendation_endpoint.py`, `routes.py`, `procedure_detail.html`, `base.html` (if modified), `community.html`, `new_thread.html`, `dashboard_community.html`, `community_thread_routes.py`, `seed_community_analytics.py`, `static/js/community-analytics.js`, `antidote_full_test_20250421_234956.log`, console output, and screenshots showing the `/dashboard/community` dashboard with the “Face” filter applied.
+   - Respond: "Testing output confirmed, with all test cases passed—please review `test_report.md`, `ai_implementation_report.md`, logs, and screenshots. Data finalized with 117 procedures and 6 threads. AI tool optimized and tested on IDs 1 and 13. Community analytics dashboard finalized—please review `dashboard_community.html` and screenshots. User testing launched—please review the plan and provide initial user feedback when available.”

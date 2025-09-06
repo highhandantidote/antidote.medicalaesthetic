@@ -1,0 +1,62 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('appointments_id_seq'::regclass)"
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "procedure_name",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "appointment_date",
+    "type": "timestamp without time zone",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "appointment_time",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "status",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "notes",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "updated_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

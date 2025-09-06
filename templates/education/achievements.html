@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+
+{% block title %}My Achievements - Antidote Education Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('education.learn_home') }}">Education Hub</a></li>
+            <li class="breadcrumb-item active" aria-current="page">My Achievements</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">My Achievements</h1>
+            <p class="lead">Track your educational progress and earned achievements</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('education.learn_home') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-home me-2"></i>Education Hub
+            </a>
+            <a href="{{ url_for('education.browse_modules') }}" class="btn btn-outline-info">
+                <i class="fas fa-book-open me-2"></i>Browse Modules
+            </a>
+        </div>
+    </div>
+
+    {% if not achievements %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i> You haven't earned any achievements yet. Start taking quizzes and completing modules to earn achievements!
+    </div>
+    {% endif %}
+
+    <!-- Progress Overview Card -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card bg-dark border-info h-100">
+                <div class="card-header bg-info bg-opacity-10 text-info">
+                    <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Learning Progress</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="progress-ring position-relative mb-3 mx-auto">
+                        <div class="progress-circle" 
+                             style="background: conic-gradient(#0dcaf0 {{ completion_percentage }}%, #2c3034 0%);">
+                        </div>
+                        <div class="progress-text">
+                            <div class="display-4 fw-bold">{{ completion_percentage }}%</div>
+                            <div class="small text-muted">Complete</div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-1">Level {{ user_level }}</h4>
+                    <p class="text-muted mb-3">{{ completed_count }} of {{ total_modules }} modules completed</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('education.browse_modules') }}" class="btn btn-outline-info">
+                            <i class="fas fa-book-open me-2"></i>Continue Learning
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card bg-dark border-light h-100">
+                <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-award me-2"></i>Achievement Summary</h5>
+                    <span class="badge bg-info">{{ achievements|length }} Total</span>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-3 g-3 mb-3">
+                        <div class="col">
+                            <div class="p-3 bg-dark border border-success rounded text-center">
+                                <div class="display-5 text-success mb-2">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <h5 class="mb-0">{{ modules_completed|length }}</h5>
+                                <div class="small text-muted">Modules Completed</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 bg-dark border border-warning rounded text-center">
+                                <div class="display-5 text-warning mb-2">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h5 class="mb-0">{{ quizzes_passed|length }}</h5>
+                                <div class="small text-muted">Quizzes Passed</div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="p-3 bg-dark border border-info rounded text-center">
+                                <div class="display-5 text-info mb-2">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <h5 class="mb-0">{{ (user_level | int) - 1 }}</h5>
+                                <div class="small text-muted">Level Ups</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if modules_completed %}
+                    <div class="achievements-progress mt-4">
+                        <h6 class="text-muted mb-3">Recently Completed Modules</h6>
+                        {% for achievement in modules_completed[:3] %}
+                        <div class="achievement-item d-flex align-items-center p-2 rounded mb-2 
+                                    {% if loop.index == 1 %}border border-warning bg-dark{% else %}bg-dark{% endif %}">
+                            <div class="achievement-icon me-3 text-warning">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="fw-bold">{{ achievement.title }}</div>
+                                        <div class="small text-muted">{{ achievement.earned_at.strftime('%b %d, %Y') }}</div>
+                                    </div>
+                                    {% if achievement.points_awarded %}
+                                    <div class="points badge bg-info">+{{ achievement.points_awarded }} pts</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if modules_completed|length > 3 %}
+                        <div class="text-center mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#moreModules">
+                                Show {{ modules_completed|length - 3 }} more
+                            </button>
+                        </div>
+                        <div class="collapse mt-2" id="moreModules">
+                            {% for achievement in modules_completed[3:] %}
+                            <div class="achievement-item d-flex align-items-center p-2 rounded mb-2 bg-dark">
+                                <div class="achievement-icon me-3 text-warning">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <div class="fw-bold">{{ achievement.title }}</div>
+                                            <div class="small text-muted">{{ achievement.earned_at.strftime('%b %d, %Y') }}</div>
+                                        </div>
+                                        {% if achievement.points_awarded %}
+                                        <div class="points badge bg-info">+{{ achievement.points_awarded }} pts</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement List -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-dark border-light">
+                <div class="card-header bg-dark">
+                    <ul class="nav nav-tabs card-header-tabs" id="achievementTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                                All Achievements
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button" role="tab" aria-controls="modules" aria-selected="false">
+                                Module Completions
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="quizzes-tab" data-bs-toggle="tab" data-bs-target="#quizzes" type="button" role="tab" aria-controls="quizzes" aria-selected="false">
+                                Quiz Completions
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="achievementTabContent">
+                        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                            {% if achievements %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Achievement</th>
+                                            <th>Type</th>
+                                            <th>Points</th>
+                                            <th>Date Earned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for achievement in achievements %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="achievement-icon me-3 
+                                                        {% if achievement.achievement_type == 'module_completed' %}
+                                                            text-warning
+                                                        {% elif achievement.achievement_type == 'quiz_passed' %}
+                                                            text-success
+                                                        {% else %}
+                                                            text-info
+                                                        {% endif %}">
+                                                        {% if achievement.achievement_type == 'module_completed' %}
+                                                            <i class="fas fa-certificate"></i>
+                                                        {% elif achievement.achievement_type == 'quiz_passed' %}
+                                                            <i class="fas fa-check-circle"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-medal"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold">{{ achievement.title }}</div>
+                                                        <div class="small text-muted">{{ achievement.description }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if achievement.achievement_type == 'module_completed' %}
+                                                        bg-warning
+                                                    {% elif achievement.achievement_type == 'quiz_passed' %}
+                                                        bg-success
+                                                    {% else %}
+                                                        bg-info
+                                                    {% endif %}">
+                                                    {% if achievement.achievement_type == 'module_completed' %}
+                                                        Module
+                                                    {% elif achievement.achievement_type == 'quiz_passed' %}
+                                                        Quiz
+                                                    {% else %}
+                                                        {{ achievement.achievement_type|capitalize }}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if achievement.points_awarded %}
+                                                <span class="badge bg-info">+{{ achievement.points_awarded }}</span>
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ achievement.earned_at.strftime('%b %d, %Y') }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-6 text-muted mb-3">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <h5>No Achievements Yet</h5>
+                                <p class="text-muted">Complete modules and quizzes to earn achievements</p>
+                                <a href="{{ url_for('education.browse_modules') }}" class="btn btn-outline-info mt-2">
+                                    Start Learning
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="modules" role="tabpanel" aria-labelledby="modules-tab">
+                            {% if modules_completed %}
+                            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                {% for achievement in modules_completed %}
+                                <div class="col">
+                                    <div class="card h-100 bg-dark border-warning hover-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="achievement-icon text-warning me-3">
+                                                    <i class="fas fa-certificate fa-2x"></i>
+                                                </div>
+                                                <h5 class="card-title mb-0">{{ achievement.title }}</h5>
+                                            </div>
+                                            <p class="card-text text-muted small">{{ achievement.description }}</p>
+                                            <div class="d-flex justify-content-between mt-3">
+                                                <span class="text-muted small">{{ achievement.earned_at.strftime('%b %d, %Y') }}</span>
+                                                {% if achievement.points_awarded %}
+                                                <span class="badge bg-info">+{{ achievement.points_awarded }} pts</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-6 text-muted mb-3">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <h5>No Module Completions Yet</h5>
+                                <p class="text-muted">Complete all quizzes in a module to earn a completion achievement</p>
+                                <a href="{{ url_for('education.browse_modules') }}" class="btn btn-outline-info mt-2">
+                                    Browse Modules
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="quizzes" role="tabpanel" aria-labelledby="quizzes-tab">
+                            {% if quizzes_passed %}
+                            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                {% for achievement in quizzes_passed %}
+                                <div class="col">
+                                    <div class="card h-100 bg-dark border-success hover-card">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="achievement-icon text-success me-3">
+                                                    <i class="fas fa-check-circle fa-2x"></i>
+                                                </div>
+                                                <h5 class="card-title mb-0">{{ achievement.title }}</h5>
+                                            </div>
+                                            <p class="card-text text-muted small">{{ achievement.description }}</p>
+                                            <div class="d-flex justify-content-between mt-3">
+                                                <span class="text-muted small">{{ achievement.earned_at.strftime('%b %d, %Y') }}</span>
+                                                {% if achievement.points_awarded %}
+                                                <span class="badge bg-info">+{{ achievement.points_awarded }} pts</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <div class="display-6 text-muted mb-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h5>No Quiz Completions Yet</h5>
+                                <p class="text-muted">Pass a quiz to earn a quiz completion achievement</p>
+                                <a href="{{ url_for('education.browse_modules') }}" class="btn btn-outline-info mt-2">
+                                    Find Quizzes
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .progress-ring {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .progress-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: conic-gradient(#0dcaf0 0%, #2c3034 0%);
+    }
+    
+    .progress-circle::before {
+        content: '';
+        position: absolute;
+        width: 70%;
+        height: 70%;
+        border-radius: 50%;
+        background-color: #212529;
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .achievement-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+    }
+    
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}

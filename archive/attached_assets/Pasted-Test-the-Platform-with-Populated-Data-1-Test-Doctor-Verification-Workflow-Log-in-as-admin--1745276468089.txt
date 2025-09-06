@@ -1,0 +1,29 @@
+Test the Platform with Populated Data:
+
+1. Test Doctor Verification Workflow:
+   - Log in as "admin_test", navigate to /dashboard/admin, locate "Doctor Test" (ID 101).
+   - Test Case 1: Approve Doctor
+     - Action: Click approve for "Doctor Test" via dashboard or API (/api/doctor/101/approve).
+     - Expected: Verification status changes to "approved".
+   - Test Case 2: Reject Doctor (create new doctor if needed)
+     - Action: Run `test_create_doctor.py` with a new user (e.g., "doctor_test2"), then reject via /api/doctor/<new_id>/reject.
+     - Expected: Verification status changes to "rejected".
+   - Verify changes with: `SELECT id, name, verification_status FROM doctors;`.
+
+2. Test Procedure and Community Sections:
+   - Test Case 3: Procedure Listing
+     - Action: Navigate to /procedures, check if all 5 procedures (Rhinoplasty, Facelift, Eyelid Surgery, Botox, Lip Fillers) display with "Doctor Test" link.
+     - Expected: 5 procedures visible with correct details.
+   - Test Case 4: Community Threads
+     - Action: Navigate to /community, verify 5 threads (e.g., "Rhinoplasty Experience") with replies display.
+     - Expected: 5 threads and associated replies visible.
+   - Take screenshots of each section.
+
+3. Performance Testing:
+   - Measure page load time for /dashboard/doctor/verify, /procedures, /community using browser dev tools.
+   - Note API response time for /api/doctor/101/approve.
+   - Log results (e.g., DEBUG:routes:Verification approved, INFO:db:COMMIT).
+
+4. Provide Output:
+   - Share updated test_doctor_verification.py, test_minimal_data.py, routes.py, procedure.html, community.html, logs, console output, and screenshots.
+   - Respond: "Doctor verification workflow, procedure listing, and community threads tested successfully. All test cases passed, with performance metrics included. Data populates and displays as expected—please review screenshots and logs. Data can be deleted later with a script (e.g., db.session.query(Doctor).delete(); db.session.query(Procedure).delete(); db.session.query(Community).delete(); db.session.query(CommunityReplies).delete(); db.session.query(User).filter(User.username.in_(['admin_test', 'doctor_test', 'doctor_test2'])).delete(); db.session.commit()). Next, expand to 10 doctors, 20 procedures, and 20 threads, then retest performance and scalability."

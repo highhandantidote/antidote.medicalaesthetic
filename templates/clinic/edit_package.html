@@ -1,0 +1,1349 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Package - {{ package.title }}{% endblock %}
+
+{% block head %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+.section-header {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    padding: 15px 20px;
+    margin: 20px -20px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.dynamic-section {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: white;
+}
+
+.remove-btn {
+    color: #dc3545;
+    border: none;
+    background: none;
+    font-size: 1.2rem;
+}
+
+.add-more-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+#procedure_dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#procedure_dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+}
+
+#procedure_dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+#procedure_dropdown .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+#procedure_dropdown .dropdown-item-text {
+    padding: 0.5rem 1rem;
+    color: #6c757d;
+}
+
+#category_dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#category_dropdown .dropdown-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+    cursor: pointer;
+}
+
+#category_dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+#category_dropdown .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+#category_dropdown .dropdown-item-text {
+    padding: 0.5rem 1rem;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Treatment Package
+                    </h4>
+                    <small>Update all sections to modify your package listing</small>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" action="/clinic/packages/edit/{{ package.id }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <!-- 1. Basic Package Information -->
+                        <div class="form-section">
+                            <h5 class="section-header">1. Package Name & Description</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="procedure_search" class="form-label">Select Procedure *</label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="procedure_search" name="procedure_search" placeholder="Start typing procedure name..." autocomplete="off" value="{{ package.procedure_name or '' }}">
+                                        <input type="hidden" id="selected_procedure_id" name="selected_procedure_id" value="{{ package.selected_procedure_id or '' }}">
+                                        <div id="procedure_dropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Type to search existing procedures or enter a new procedure name</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="title" class="form-label">Package Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ package.title or '' }}" required>
+                                    <div class="form-text">Enter a clear, descriptive name for your treatment package</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="description" class="form-label">Package Description *</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" required>{{ package.description or '' }}</textarea>
+                                    <div class="form-text">Describe what's included in this package</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="category" class="form-label">Category *</label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="category" name="category" placeholder="Type category name or select from dropdown..." autocomplete="off" value="{{ package.category or '' }}" required>
+                                        <div id="category_dropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Type to search existing categories or enter a new category name</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Clinic Address Information -->
+                        <div class="form-section">
+                            <h5 class="section-header">2. Clinic Location Details</h5>
+                            
+                            <!-- Google My Business URL Section -->
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label for="google_business_url" class="form-label">Google My Business URL</label>
+                                    <input type="url" class="form-control" id="google_business_url" name="google_business_url" placeholder="https://g.co/kgs/3mX75vm or https://maps.google.com/..." value="{{ package.google_business_url or '' }}">
+                                    <div class="form-text">Paste your Google My Business or Google Maps URL to auto-fill location details</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-primary d-block w-100" onclick="extractLocationFromGoogle()">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Extract Location
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Location Extraction Status -->
+                            <div id="location_extraction_status" class="alert" style="display: none;">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status" id="location_spinner" style="display: none;">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span id="location_status_text"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="clinic_address" class="form-label">Clinic Address</label>
+                                    <textarea class="form-control" id="clinic_address" name="clinic_address" rows="2" placeholder="Full clinic address for this package">{{ package.clinic_address or clinic.address or '' }}</textarea>
+                                    <div class="form-text">Specific address for this package (if different from main clinic address)</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="clinic_latitude" class="form-label">Latitude</label>
+                                    <input type="number" class="form-control" id="clinic_latitude" name="clinic_latitude" step="any" placeholder="e.g., 28.6139" value="{{ package.clinic_latitude or '' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="clinic_longitude" class="form-label">Longitude</label>
+                                    <input type="number" class="form-control" id="clinic_longitude" name="clinic_longitude" step="any" placeholder="e.g., 77.2090" value="{{ package.clinic_longitude or '' }}">
+                                </div>
+                            </div>
+                            
+                            <!-- Location Preview Map -->
+                            <div class="row mb-3" id="location_map_container" style="display: none;">
+                                <div class="col-md-12">
+                                    <label class="form-label">Location Preview</label>
+                                    <div id="location_preview_map" style="height: 300px; border-radius: 8px; overflow: hidden;"></div>
+                                    <div class="form-text">Preview of the extracted location on map</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Pricing Information -->
+                        <div class="form-section">
+                            <h5 class="section-header">3. Pricing Details</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="price_actual" class="form-label">Regular Price (₹) *</label>
+                                    <input type="number" class="form-control" id="price_actual" name="price_actual" min="0" step="0.01" value="{{ package.price_actual or '' }}" required>
+                                    <div class="form-text">Original price (can include decimals)</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="price_discounted" class="form-label">Discounted Price (₹)</label>
+                                    <input type="number" class="form-control" id="price_discounted" name="price_discounted" min="0" step="0.01" value="{{ package.price_discounted or '' }}">
+                                    <div class="form-text">Special offer price (optional)</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="discount_percentage" class="form-label">Discount %</label>
+                                    <input type="number" class="form-control" id="discount_percentage" name="discount_percentage" min="0" max="100" readonly value="{{ package.discount_percentage or '' }}">
+                                    <div class="form-text">Auto-calculated</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="vat_amount" class="form-label">VAT Amount (₹)</label>
+                                    <input type="number" class="form-control" id="vat_amount" name="vat_amount" min="0" step="0.01" placeholder="e.g., 1800.00" value="{{ package.vat_amount or '' }}">
+                                    <div class="form-text">VAT amount if applicable</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Results Gallery -->
+                        <div class="form-section">
+                            <h5 class="section-header">4. Results Gallery (Before/After Images)</h5>
+                            <div id="results-gallery-container">
+                                <div class="dynamic-section">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6>Result Set 1</h6>
+                                        <button type="button" class="remove-btn" onclick="removeResultSet(this)" style="display: none;">×</button>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Title</label>
+                                            <input type="text" class="form-control" name="result_title[]" placeholder="e.g., Natural Lip Enhancement">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Doctor Name</label>
+                                            <select class="form-select" name="result_doctor_id[]" required>
+                                                <option value="">Select Doctor</option>
+                                                {% for doctor in clinic_doctors %}
+                                                <option value="{{ doctor.id }}">{{ doctor.name }} - {{ doctor.specialty }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="form-text">Select from your clinic's doctors</div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Before Image</label>
+                                            <input type="file" class="form-control" name="result_before_image[]" accept="image/*">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">After Image</label>
+                                            <input type="file" class="form-control" name="result_after_image[]" accept="image/*">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea class="form-control" name="result_description[]" rows="3" placeholder="Describe the results and procedure details..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="add-more-btn" onclick="addResultSet()">+ Add Another Result Set</button>
+                        </div>
+
+                        <!-- 5. About the Procedure -->
+                        <div class="form-section">
+                            <h5 class="section-header">5. About the Procedure</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="about_procedure" class="form-label">About the Procedure</label>
+                                    <textarea class="form-control" id="about_procedure" name="about_procedure" rows="5" placeholder="Detailed information about the procedure, techniques used, what to expect...">{{ package.about_procedure or '' }}</textarea>
+                                    <div class="form-text">Comprehensive description of the procedure (first 3 lines will be shown initially)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Key Highlights -->
+                        <div class="form-section">
+                            <h5 class="section-header">6. Key Highlights</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="dosage_type" class="form-label">Dosage/Type</label>
+                                    <input type="text" class="form-control" id="dosage_type" name="dosage_type" placeholder="e.g., 2ml Premium HA" value="{{ package.dosage_type or '' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="recovery_time" class="form-label">Recovery Time</label>
+                                    <input type="text" class="form-control" id="recovery_time" name="recovery_time" placeholder="e.g., 2-3 days" value="{{ package.recovery_time or '' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="duration" class="form-label">Duration</label>
+                                    <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g., 30-45 minutes" value="{{ package.duration or '' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="results_duration" class="form-label">Results Duration</label>
+                                    <input type="text" class="form-control" id="results_duration" name="results_duration" placeholder="e.g., 12-18 months" value="{{ package.results_duration or '' }}">
+                                </div>
+                            </div>
+                            <div id="key-highlights-container">
+                                <!-- Dynamic key highlights will be added here -->
+                            </div>
+                            <button type="button" class="add-more-btn" onclick="addKeyHighlight()">+ Add Custom Highlight</button>
+                        </div>
+
+                        <!-- 7. Procedure Breakdown & Individual Pricing -->
+                        <div class="form-section">
+                            <h5 class="section-header">7. Procedure Breakdown & Individual Pricing</h5>
+                            <div id="procedure-breakdown-container">
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Procedure Name</label>
+                                        <input type="text" class="form-control" name="procedure_name[]" placeholder="e.g., Main Lip Filler Treatment">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Procedure Description</label>
+                                        <textarea class="form-control" name="procedure_desc[]" rows="2" placeholder="What this procedure involves..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Price (₹)</label>
+                                        <input type="number" class="form-control" name="procedure_price_actual[]" min="0" step="0.01">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Discounted Price (₹)</label>
+                                        <input type="number" class="form-control" name="procedure_price_discounted[]" min="0" step="0.01">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Discount %</label>
+                                        <input type="number" class="form-control" name="procedure_discount_percentage[]" min="0" max="100" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="add-more-btn" onclick="addProcedureBreakdown()">+ Add Another Procedure</button>
+                        </div>
+
+                        <!-- 8. VAT, Anesthetic, After Care -->
+                        <div class="form-section">
+                            <h5 class="section-header">8. Treatment Details</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="anesthetic_type" class="form-label">Anesthetic Type</label>
+                                    <select class="form-select" id="anesthetic_type" name="anesthetic_type">
+                                        <option value="">Select anesthetic type</option>
+                                        <option value="Topical numbing cream" {% if package.anesthetic_type == 'Topical numbing cream' %}selected{% endif %}>Topical numbing cream</option>
+                                        <option value="Local anesthetic" {% if package.anesthetic_type == 'Local anesthetic' %}selected{% endif %}>Local anesthetic</option>
+                                        <option value="General anesthetic" {% if package.anesthetic_type == 'General anesthetic' %}selected{% endif %}>General anesthetic</option>
+                                        <option value="None required" {% if package.anesthetic_type == 'None required' %}selected{% endif %}>None required</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="vat_included" class="form-label">VAT Status</label>
+                                    <select class="form-select" id="vat_included" name="vat_included">
+                                        <option value="1" {% if package.vat_included %}selected{% endif %}>VAT Included</option>
+                                        <option value="0" {% if not package.vat_included %}selected{% endif %}>VAT Extra</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="after_care_included" class="form-label">After Care</label>
+                                    <select class="form-select" id="after_care_included" name="after_care_included">
+                                        <option value="1" {% if package.after_care_included %}selected{% endif %}>Included</option>
+                                        <option value="0" {% if not package.after_care_included %}selected{% endif %}>Not Included</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. Recommended For -->
+                        <div class="form-section">
+                            <h5 class="section-header">9. Recommended For</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="recommended_for" class="form-label">Recommended For</label>
+                                    <textarea class="form-control" id="recommended_for" name="recommended_for" rows="3" placeholder="Who is this treatment best suited for? (e.g., people with thin lips, those wanting natural enhancement...)">{{ package.recommended_for or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10. Downtime -->
+                        <div class="form-section">
+                            <h5 class="section-header">10. Downtime Information</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="downtime" class="form-label">Downtime Details</label>
+                                    <textarea class="form-control" id="downtime" name="downtime" rows="3" placeholder="Expected recovery time, restrictions, when to return to normal activities...">{{ package.downtime or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 11. Precautions -->
+                        <div class="form-section">
+                            <h5 class="section-header">11. Precautions & Side Effects</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="precautions" class="form-label">Precautions & Potential Side Effects</label>
+                                    <textarea class="form-control" id="precautions" name="precautions" rows="4" placeholder="Important precautions, potential side effects, and what patients should know...">{{ package.precautions or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 12. Featured Image Upload -->
+                        <div class="form-section">
+                            <h5 class="section-header">12. Featured Image</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="featured_image" class="form-label">Upload Featured Image</label>
+                                    <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
+                                    <div class="form-text">Main image for the package (JPG, PNG recommended)</div>
+                                </div>
+                                <div class="col-md-6">
+                                    {% if package.featured_image %}
+                                    <label class="form-label">Current Featured Image</label>
+                                    <div>
+                                        <img src="{{ package.featured_image }}" alt="Current featured image" class="img-thumbnail" style="max-height: 100px;">
+                                        <div class="form-text">Current image will be replaced if you upload a new one</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 13. Package Settings -->
+                        <div class="form-section">
+                            <h5 class="section-header">13. Package Settings</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if package.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">Package is Active</label>
+                                        <div class="form-text">Uncheck to hide this package from public listing</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" {% if package.is_featured %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_featured">Featured Package</label>
+                                        <div class="form-text">Featured packages appear prominently on your profile</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit and Actions -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="/clinic/dashboard" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger me-2" onclick="deletePackage({{ package.id }})">
+                                    <i class="fas fa-trash me-2"></i>Delete Package
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Package
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Results Gallery Management
+let resultSetCount = 1;
+
+function addResultSet() {
+    resultSetCount++;
+    const container = document.getElementById('results-gallery-container');
+    const newResultSet = document.createElement('div');
+    newResultSet.className = 'dynamic-section';
+    newResultSet.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6>Result Set ${resultSetCount}</h6>
+            <button type="button" class="remove-btn" onclick="removeResultSet(this)">×</button>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-control" name="result_title[]" placeholder="e.g., Natural Lip Enhancement">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Doctor Name</label>
+                <select class="form-select" name="result_doctor_id[]" required>
+                    <option value="">Select Doctor</option>
+                    {% for doctor in clinic_doctors %}
+                    <option value="{{ doctor.id }}">{{ doctor.name }} - {{ doctor.specialty }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Select from your clinic's doctors</div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Before Image</label>
+                <input type="file" class="form-control" name="result_before_image[]" accept="image/*">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">After Image</label>
+                <input type="file" class="form-control" name="result_after_image[]" accept="image/*">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="result_description[]" rows="3" placeholder="Describe the results and procedure details..."></textarea>
+            </div>
+        </div>
+    `;
+    container.appendChild(newResultSet);
+    
+    // Show remove button for first result set if more than one exists
+    if (resultSetCount > 1) {
+        document.querySelector('#results-gallery-container .remove-btn').style.display = 'inline';
+    }
+}
+
+function removeResultSet(button) {
+    button.closest('.dynamic-section').remove();
+    resultSetCount--;
+    
+    // Hide remove button for first result set if only one remains
+    if (resultSetCount <= 1) {
+        const firstRemoveBtn = document.querySelector('#results-gallery-container .remove-btn');
+        if (firstRemoveBtn) {
+            firstRemoveBtn.style.display = 'none';
+        }
+    }
+    
+    // Renumber remaining result sets
+    const resultSets = document.querySelectorAll('#results-gallery-container .dynamic-section');
+    resultSets.forEach((resultSet, index) => {
+        resultSet.querySelector('h6').textContent = `Result Set ${index + 1}`;
+    });
+}
+
+// Procedure Breakdown Management
+let procedureCount = 1;
+
+function addProcedureBreakdown() {
+    procedureCount++;
+    const container = document.getElementById('procedure-breakdown-container');
+    const newProcedure = document.createElement('div');
+    newProcedure.className = 'dynamic-section';
+    newProcedure.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6>Procedure ${procedureCount}</h6>
+            <button type="button" class="remove-btn" onclick="removeProcedureBreakdown(this)">×</button>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label class="form-label">Procedure Name</label>
+                <input type="text" class="form-control" name="procedure_name[]" placeholder="e.g., Follow-up Treatment Session">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label class="form-label">Procedure Description</label>
+                <textarea class="form-control" name="procedure_desc[]" rows="2" placeholder="What this procedure involves..."></textarea>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Price (₹)</label>
+                <input type="number" class="form-control" name="procedure_price_actual[]" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Discounted Price (₹)</label>
+                <input type="number" class="form-control" name="procedure_price_discounted[]" min="0" step="0.01">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Discount %</label>
+                <input type="number" class="form-control" name="procedure_discount_percentage[]" min="0" max="100" readonly>
+            </div>
+        </div>
+    `;
+    container.appendChild(newProcedure);
+    
+    // Add discount calculation for this new procedure
+    setupProcedureDiscountCalculation(newProcedure);
+    
+    // Show remove buttons for all procedures if more than one
+    if (procedureCount > 1) {
+        document.querySelectorAll('#procedure-breakdown-container .remove-btn').forEach(btn => btn.style.display = 'inline');
+    }
+}
+
+function removeProcedureBreakdown(button) {
+    button.closest('.dynamic-section').remove();
+    procedureCount--;
+    
+    // Hide remove buttons if only one procedure remains
+    if (procedureCount <= 1) {
+        document.querySelectorAll('#procedure-breakdown-container .remove-btn').forEach(btn => btn.style.display = 'none');
+    }
+    
+    // Renumber remaining procedures
+    const procedures = document.querySelectorAll('#procedure-breakdown-container .dynamic-section');
+    procedures.forEach((proc, index) => {
+        proc.querySelector('h6').textContent = `Procedure ${index + 1}`;
+    });
+}
+
+// Form validation before submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const category = document.getElementById('category').value;
+    const priceActual = document.getElementById('price_actual').value;
+    
+    if (!title || !description || !category || !priceActual) {
+        e.preventDefault();
+        alert('Please fill in all required fields: Package Title, Description, Category, and Regular Price.');
+        return false;
+    }
+    
+    // Collect and structure data for submission
+    const formData = new FormData(this);
+    
+    // Process results gallery data
+    const resultsGallery = [];
+    const resultTitles = formData.getAll('result_title[]');
+    const resultDoctors = formData.getAll('result_doctor[]');
+    const resultDescriptions = formData.getAll('result_description[]');
+    
+    for (let i = 0; i < resultTitles.length; i++) {
+        if (resultTitles[i] || resultDoctors[i] || resultDescriptions[i]) {
+            resultsGallery.push({
+                title: resultTitles[i],
+                doctor_name: resultDoctors[i],
+                description: resultDescriptions[i]
+            });
+        }
+    }
+    
+    // Process procedure breakdown data
+    const procedureBreakdown = [];
+    const procedureNames = formData.getAll('procedure_name[]');
+    const procedureDescs = formData.getAll('procedure_desc[]');
+    const procedurePricesActual = formData.getAll('procedure_price_actual[]');
+    const procedurePricesDiscounted = formData.getAll('procedure_price_discounted[]');
+    const procedureDiscountPercentages = formData.getAll('procedure_discount_percentage[]');
+    
+    for (let i = 0; i < procedureNames.length; i++) {
+        if (procedureNames[i]) {
+            procedureBreakdown.push({
+                name: procedureNames[i],
+                description: procedureDescs[i],
+                price_actual: parseFloat(procedurePricesActual[i]) || 0,
+                price_discounted: parseFloat(procedurePricesDiscounted[i]) || null,
+                discount_percentage: parseInt(procedureDiscountPercentages[i]) || null
+            });
+        }
+    }
+    
+    // Add structured data to form
+    formData.append('results_gallery', JSON.stringify(resultsGallery));
+    formData.append('procedure_breakdown', JSON.stringify(procedureBreakdown));
+    
+    // Process key highlights
+    const keyHighlights = {
+        dosage: formData.get('key_highlights[dosage]'),
+        recovery: formData.get('key_highlights[recovery]'),
+        results: formData.get('key_highlights[results]'),
+        additional: formData.get('key_highlights[additional]')
+    };
+    formData.append('key_highlights', JSON.stringify(keyHighlights));
+});
+
+// Google My Business Location Extraction
+let locationPreviewMap = null;
+
+async function extractLocationFromGoogle() {
+    const googleUrl = document.getElementById('google_business_url').value.trim();
+    
+    if (!googleUrl) {
+        showLocationStatus('Please enter a Google My Business URL first', 'warning');
+        return;
+    }
+    
+    showLocationStatus('Extracting location from Google My Business...', 'info', true);
+    
+    try {
+        const response = await fetch('/clinic/api/extract-location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            },
+            body: JSON.stringify({
+                google_business_url: googleUrl
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Populate location fields
+            if (data.location.address) {
+                document.getElementById('clinic_address').value = data.location.address;
+            }
+            if (data.location.latitude && data.location.longitude) {
+                document.getElementById('clinic_latitude').value = data.location.latitude;
+                document.getElementById('clinic_longitude').value = data.location.longitude;
+                
+                // Show location on map
+                showLocationOnMap(data.location.latitude, data.location.longitude, data.location.name);
+            }
+            
+            showLocationStatus(`Location extracted successfully: ${data.location.name || 'Location found'}`, 'success');
+        } else {
+            showLocationStatus(`Error: ${data.error}`, 'danger');
+        }
+    } catch (error) {
+        console.error('Location extraction error:', error);
+        showLocationStatus('Failed to extract location. Please check your URL and try again.', 'danger');
+    }
+}
+
+function showLocationStatus(message, type, showSpinner = false) {
+    const statusDiv = document.getElementById('location_extraction_status');
+    const statusText = document.getElementById('location_status_text');
+    const spinner = document.getElementById('location_spinner');
+    
+    statusText.textContent = message;
+    statusDiv.className = `alert alert-${type}`;
+    statusDiv.style.display = 'block';
+    
+    if (showSpinner) {
+        spinner.style.display = 'inline-block';
+    } else {
+        spinner.style.display = 'none';
+    }
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+function showLocationOnMap(lat, lng, locationName = 'Clinic Location') {
+    const mapContainer = document.getElementById('location_map_container');
+    const mapDiv = document.getElementById('location_preview_map');
+    
+    // Show map container
+    mapContainer.style.display = 'block';
+    
+    // Initialize or update map
+    if (locationPreviewMap) {
+        locationPreviewMap.remove();
+    }
+    
+    locationPreviewMap = L.map('location_preview_map').setView([lat, lng], 15);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(locationPreviewMap);
+    
+    // Add marker
+    L.marker([lat, lng])
+        .addTo(locationPreviewMap)
+        .bindPopup(locationName)
+        .openPopup();
+    
+    // Add circle to show service area
+    L.circle([lat, lng], {
+        color: '#4A90E2',
+        fillColor: '#4A90E2',
+        fillOpacity: 0.1,
+        radius: 500
+    }).addTo(locationPreviewMap);
+    
+    // Scroll to map
+    mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Procedure Search and Auto-Population System
+let allProcedures = [];
+let allCategories = [];
+let searchTimeout;
+let categoryTimeout;
+
+// Load procedures and categories on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadProcedures();
+    loadCategories();
+    setupProcedureSearch();
+    setupCategorySearch();
+});
+
+function loadProcedures() {
+    fetch('/clinic/api/procedures/search')
+        .then(response => {
+            console.log('API response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Loaded procedures:', data.procedures ? data.procedures.length : 0);
+            allProcedures = data.procedures || [];
+        })
+        .catch(error => {
+            console.error('Error loading procedures:', error);
+        });
+}
+
+function loadCategories() {
+    fetch('/clinic/api/categories')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Loaded categories:', data.categories ? data.categories.length : 0);
+            allCategories = data.categories || [];
+        })
+        .catch(error => {
+            console.error('Error loading categories:', error);
+            // Fallback to some common categories if API fails
+            allCategories = [
+                { name: 'Rhinoplasty And Nose Shaping' },
+                { name: 'Fillers And Other Injectables' },
+                { name: 'Facial Rejuvenation' },
+                { name: 'Body Contouring' },
+                { name: 'Skin Treatments' },
+                { name: 'Hair Treatments' },
+                { name: 'Breast Surgery' }
+            ];
+        });
+}
+
+function setupProcedureSearch() {
+    const searchInput = document.getElementById('procedure_search');
+    const dropdown = document.getElementById('procedure_dropdown');
+    
+    if (!searchInput || !dropdown) return;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchProcedures(query);
+        }, 300);
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+function setupCategorySearch() {
+    const categoryInput = document.getElementById('category');
+    const categoryDropdown = document.getElementById('category_dropdown');
+    
+    if (!categoryInput || !categoryDropdown) return;
+    
+    // Show all categories when field is focused and empty
+    categoryInput.addEventListener('focus', function() {
+        if (this.value.trim() === '') {
+            showAllCategories();
+        }
+    });
+    
+    categoryInput.addEventListener('input', function() {
+        clearTimeout(categoryTimeout);
+        const query = this.value.trim();
+        
+        if (query.length === 0) {
+            showAllCategories();
+            return;
+        }
+        
+        categoryTimeout = setTimeout(() => {
+            searchCategories(query);
+        }, 200);
+    });
+    
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!categoryInput.contains(e.target) && !categoryDropdown.contains(e.target)) {
+            categoryDropdown.style.display = 'none';
+        }
+    });
+}
+
+function showAllCategories() {
+    const categoryDropdown = document.getElementById('category_dropdown');
+    
+    if (allCategories.length === 0) {
+        categoryDropdown.innerHTML = `
+            <div class="dropdown-item-text text-muted">
+                <i class="fas fa-info-circle me-2"></i>Loading categories...
+            </div>
+        `;
+    } else {
+        categoryDropdown.innerHTML = allCategories.map(category => `
+            <div class="dropdown-item cursor-pointer category-option" data-category-name="${category.name}">
+                <div class="fw-normal">${category.name}</div>
+            </div>
+        `).join('');
+        
+        // Add click handlers to category options
+        categoryDropdown.querySelectorAll('.category-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectCategory(this.dataset.categoryName);
+            });
+        });
+    }
+    
+    categoryDropdown.style.display = 'block';
+}
+
+function searchCategories(query) {
+    const categoryDropdown = document.getElementById('category_dropdown');
+    const filteredCategories = allCategories.filter(category => 
+        category.name.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    if (filteredCategories.length === 0) {
+        categoryDropdown.innerHTML = `
+            <div class="dropdown-item-text text-muted">
+                <i class="fas fa-plus me-2"></i>No matching categories found. Type to create new category: "${query}"
+            </div>
+        `;
+    } else {
+        categoryDropdown.innerHTML = filteredCategories.map(category => `
+            <div class="dropdown-item cursor-pointer category-option" data-category-name="${category.name}">
+                <div class="fw-normal">${category.name}</div>
+            </div>
+        `).join('');
+        
+        // Add click handlers to category options
+        categoryDropdown.querySelectorAll('.category-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectCategory(this.dataset.categoryName);
+            });
+        });
+    }
+    
+    categoryDropdown.style.display = 'block';
+}
+
+function selectCategory(categoryName) {
+    document.getElementById('category').value = categoryName;
+    document.getElementById('category_dropdown').style.display = 'none';
+}
+
+function searchProcedures(query) {
+    console.log('Searching for:', query, 'in', allProcedures.length, 'procedures');
+    const dropdown = document.getElementById('procedure_dropdown');
+    const filteredProcedures = allProcedures.filter(procedure => 
+        procedure.procedure_name.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    console.log('Found', filteredProcedures.length, 'matching procedures');
+    
+    if (filteredProcedures.length === 0) {
+        dropdown.innerHTML = `
+            <div class="dropdown-item-text text-muted">
+                <i class="fas fa-plus me-2"></i>No existing procedures found. You can create a new one.
+            </div>
+        `;
+    } else {
+        dropdown.innerHTML = filteredProcedures.map(procedure => `
+            <div class="dropdown-item cursor-pointer procedure-option" data-procedure-id="${procedure.id}">
+                <div class="fw-bold">${procedure.procedure_name}</div>
+                <small class="text-muted">${procedure.category_name || ''} • ₹${procedure.min_cost ? procedure.min_cost.toLocaleString() : 'Price varies'}</small>
+            </div>
+        `).join('');
+        
+        // Add click handlers to procedure options
+        dropdown.querySelectorAll('.procedure-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectProcedure(parseInt(this.dataset.procedureId));
+            });
+        });
+    }
+    
+    dropdown.style.display = 'block';
+}
+
+function selectProcedure(procedureId) {
+    const procedure = allProcedures.find(p => p.id === procedureId);
+    if (!procedure) return;
+    
+    // Set selected procedure
+    document.getElementById('procedure_search').value = procedure.procedure_name;
+    document.getElementById('selected_procedure_id').value = procedureId;
+    document.getElementById('procedure_dropdown').style.display = 'none';
+    
+    // Auto-populate package title if empty
+    const titleField = document.getElementById('title');
+    if (!titleField.value.trim()) {
+        titleField.value = `Premium ${procedure.procedure_name} Package`;
+    }
+    
+    // Auto-populate sections 5, 6, 8-11 as specified
+    autoPopulateSections(procedure);
+    
+    // Show success notification
+    showAutoPopulationNotice(procedure.procedure_name);
+}
+
+function autoPopulateSections(procedure) {
+    console.log('Auto-populating sections with procedure:', procedure.procedure_name);
+    
+    // Section 5: About the Procedure - Use actual procedure data
+    const aboutProcedure = document.getElementById('about_procedure');
+    if (aboutProcedure && !aboutProcedure.value.trim()) {
+        let aboutText = '';
+        if (procedure.overview) {
+            aboutText = procedure.overview;
+        } else if (procedure.procedure_details) {
+            aboutText = procedure.procedure_details;
+        } else if (procedure.short_description) {
+            aboutText = procedure.short_description;
+        }
+        if (aboutText) {
+            aboutProcedure.value = aboutText;
+            console.log('✓ Populated about_procedure with actual data');
+        }
+    }
+    
+    // Section 6: Key Highlights - Use actual procedure data
+    const dosageType = document.getElementById('dosage_type');
+    if (dosageType && !dosageType.value.trim()) {
+        if (procedure.procedure_duration) {
+            dosageType.value = procedure.procedure_duration;
+            console.log('✓ Populated dosage_type with duration');
+        }
+    }
+    
+    const recoveryTime = document.getElementById('recovery_time');
+    if (recoveryTime && !recoveryTime.value.trim()) {
+        if (procedure.recovery_time) {
+            recoveryTime.value = procedure.recovery_time;
+            console.log('✓ Populated recovery_time with actual data');
+        }
+    }
+    
+    const duration = document.getElementById('duration');
+    if (duration && !duration.value.trim()) {
+        if (procedure.procedure_duration) {
+            duration.value = procedure.procedure_duration;
+            console.log('✓ Populated duration with actual data');
+        }
+    }
+    
+    const resultsDuration = document.getElementById('results_duration');
+    if (resultsDuration && !resultsDuration.value.trim()) {
+        if (procedure.results_duration) {
+            resultsDuration.value = procedure.results_duration;
+            console.log('✓ Populated results_duration with actual data');
+        }
+    }
+    
+    // Section 8: Anesthetic type - Smart mapping based on procedure data
+    const anestheticType = document.getElementById('anesthetic_type');
+    if (anestheticType && anestheticType.value === '') {
+        // Check procedure details for anesthesia info
+        if (procedure.procedure_details && procedure.procedure_details.toLowerCase().includes('general anesthesia')) {
+            anestheticType.value = 'general';
+        } else if (procedure.procedure_details && procedure.procedure_details.toLowerCase().includes('local anesthesia')) {
+            anestheticType.value = 'local';
+        } else {
+            // Default based on procedure duration
+            if (procedure.procedure_duration && procedure.procedure_duration.includes('hour')) {
+                anestheticType.value = 'general';
+            } else {
+                anestheticType.value = 'local';
+            }
+        }
+        console.log('✓ Populated anesthetic_type based on procedure data');
+    }
+    
+    // Section 9: Recommended For - Use actual ideal_candidates data
+    const recommendedFor = document.getElementById('recommended_for');
+    if (recommendedFor && !recommendedFor.value.trim()) {
+        if (procedure.ideal_candidates) {
+            recommendedFor.value = procedure.ideal_candidates;
+            console.log('✓ Populated recommended_for with actual data');
+        }
+    }
+    
+    // Section 10: Downtime - Use actual recovery_process or recovery_time
+    const downtime = document.getElementById('downtime');
+    if (downtime && !downtime.value.trim()) {
+        if (procedure.recovery_process) {
+            downtime.value = procedure.recovery_process;
+            console.log('✓ Populated downtime with recovery_process');
+        } else if (procedure.recovery_time) {
+            downtime.value = procedure.recovery_time;
+            console.log('✓ Populated downtime with recovery_time');
+        }
+    }
+    
+    // Section 11: Precautions - Use actual risks data
+    const precautions = document.getElementById('precautions');
+    if (precautions && !precautions.value.trim()) {
+        if (procedure.risks) {
+            precautions.value = procedure.risks;
+            console.log('✓ Populated precautions with actual risks data');
+        }
+    }
+}
+
+function showAutoPopulationNotice(procedureName) {
+    // Create temporary notification
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    notification.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Procedure Selected!</strong><br>
+        Selected "${procedureName}". Fields auto-populated where available.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 4000);
+}
+
+// Key Highlights Management
+let keyHighlightCount = 0;
+
+function addKeyHighlight() {
+    keyHighlightCount++;
+    const container = document.getElementById('key-highlights-container');
+    const highlightHtml = `
+        <div class="dynamic-section border rounded p-3 mb-3" id="key-highlight-${keyHighlightCount}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Key Highlight ${keyHighlightCount}</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeKeyHighlight(${keyHighlightCount})" ${keyHighlightCount === 1 ? 'style="display: none;"' : ''}>
+                    <i class="fas fa-trash me-1"></i>Remove
+                </button>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <label class="form-label">Highlight Title *</label>
+                    <input type="text" class="form-control" name="highlight_title_${keyHighlightCount}" placeholder="e.g., Recovery Time, Dosage, Technology Used" required>
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label">Highlight Value *</label>
+                    <input type="text" class="form-control" name="highlight_value_${keyHighlightCount}" placeholder="e.g., 2-3 days, 1ml Premium HA, Advanced Laser" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label">Detailed Explanation (Optional)</label>
+                    <textarea class="form-control" name="highlight_explanation_${keyHighlightCount}" rows="2" placeholder="Provide detailed explanation about this highlight (e.g., What makes this recovery time special? How does this technology benefit patients?)"></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', highlightHtml);
+    
+    // Show remove button for all highlights if more than one exists
+    updateKeyHighlightRemoveButtons();
+}
+
+function removeKeyHighlight(id) {
+    const element = document.getElementById(`key-highlight-${id}`);
+    if (element) {
+        element.remove();
+    }
+    updateKeyHighlightRemoveButtons();
+}
+
+function updateKeyHighlightRemoveButtons() {
+    const highlights = document.querySelectorAll('#key-highlights-container .dynamic-section');
+    highlights.forEach((highlight, index) => {
+        const removeButton = highlight.querySelector('button[onclick*="removeKeyHighlight"]');
+        if (removeButton) {
+            if (highlights.length > 1) {
+                removeButton.style.display = 'inline-block';
+            } else {
+                removeButton.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Auto-load one initial highlight when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    addKeyHighlight();
+    setupPriceCalculation();
+    // Set up discount calculation for any existing procedure breakdown items
+    setTimeout(() => {
+        setupAllProcedureDiscountCalculations();
+    }, 100);
+});
+
+// Auto-calculate discount percentage when prices are entered
+function setupPriceCalculation() {
+    const priceActual = document.getElementById('price_actual');
+    const priceDiscounted = document.getElementById('price_discounted');
+    const discountPercentage = document.getElementById('discount_percentage');
+    
+    function calculateDiscount() {
+        const actualPrice = parseFloat(priceActual.value) || 0;
+        const discountedPrice = parseFloat(priceDiscounted.value) || 0;
+        
+        if (actualPrice > 0 && discountedPrice > 0 && discountedPrice < actualPrice) {
+            const discount = Math.round(((actualPrice - discountedPrice) / actualPrice) * 100);
+            discountPercentage.value = discount;
+        } else {
+            discountPercentage.value = '';
+        }
+    }
+    
+    // Add event listeners to both price fields
+    priceActual.addEventListener('input', calculateDiscount);
+    priceDiscounted.addEventListener('input', calculateDiscount);
+    priceActual.addEventListener('change', calculateDiscount);
+    priceDiscounted.addEventListener('change', calculateDiscount);
+}
+
+// Setup discount calculation for procedure breakdown items
+function setupProcedureDiscountCalculation(procedureElement) {
+    const priceActual = procedureElement.querySelector('input[name="procedure_price_actual[]"]');
+    const priceDiscounted = procedureElement.querySelector('input[name="procedure_price_discounted[]"]');
+    const discountPercentage = procedureElement.querySelector('input[name="procedure_discount_percentage[]"]');
+    
+    if (!priceActual || !priceDiscounted || !discountPercentage) return;
+    
+    function calculateProcedureDiscount() {
+        const actualPrice = parseFloat(priceActual.value) || 0;
+        const discountedPrice = parseFloat(priceDiscounted.value) || 0;
+        
+        if (actualPrice > 0 && discountedPrice > 0 && discountedPrice < actualPrice) {
+            const discount = Math.round(((actualPrice - discountedPrice) / actualPrice) * 100);
+            discountPercentage.value = discount;
+        } else {
+            discountPercentage.value = '';
+        }
+    }
+    
+    // Add event listeners to both price fields
+    priceActual.addEventListener('input', calculateProcedureDiscount);
+    priceDiscounted.addEventListener('input', calculateProcedureDiscount);
+    priceActual.addEventListener('change', calculateProcedureDiscount);
+    priceDiscounted.addEventListener('change', calculateProcedureDiscount);
+}
+
+// Setup discount calculation for all existing procedure breakdown items
+function setupAllProcedureDiscountCalculations() {
+    // Handle the initial procedure breakdown section
+    const initialProcedure = document.querySelector('#procedure-breakdown-container');
+    if (initialProcedure) {
+        setupProcedureDiscountCalculation(initialProcedure);
+    }
+    
+    // Handle any additional dynamic procedure sections
+    const procedures = document.querySelectorAll('#procedure-breakdown-container .dynamic-section');
+    procedures.forEach(procedureElement => {
+        setupProcedureDiscountCalculation(procedureElement);
+    });
+}
+
+// Delete package function
+function deletePackage(packageId) {
+    if (confirm('Are you sure you want to delete this package? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/clinic/packages/delete/${packageId}`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrf_token';
+        csrfToken.value = document.querySelector('[name=csrf_token]').value;
+        
+        form.appendChild(csrfToken);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}

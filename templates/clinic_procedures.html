@@ -1,0 +1,752 @@
+{% extends "base.html" %}
+
+{% block title %}{{ clinic.name }} - Procedures & Packages{% endblock %}
+
+{% block content %}
+<style>
+/* Gangnam Unni Procedures Page Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background-color: #ffffff;
+    color: #333;
+    line-height: 1.4;
+}
+
+.procedures-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #ffffff;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.page-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #ffffff;
+}
+
+.clinic-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.page-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.breadcrumb a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+/* Filter Section */
+.filter-section {
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.filter-tab {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tab.active {
+    background: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+.filter-tab:hover {
+    border-color: #2196F3;
+}
+
+.search-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+.price-filter {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.price-select {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Procedures Grid */
+.procedures-section {
+    padding: 16px 20px;
+}
+
+.procedures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.procedure-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.procedure-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.procedure-image {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #2196F3;
+}
+
+.procedure-content {
+    padding: 12px;
+}
+
+.procedure-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.procedure-category {
+    font-size: 10px;
+    color: #666;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+.procedure-description {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.procedure-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.procedure-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.procedure-duration {
+    font-size: 10px;
+    color: #666;
+}
+
+.procedure-features {
+    margin-bottom: 8px;
+}
+
+.feature-tag {
+    display: inline-block;
+    background: #e8f5e8;
+    color: #2e7d32;
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 6px;
+    margin-right: 3px;
+    margin-bottom: 2px;
+}
+
+.procedure-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-book {
+    flex: 1;
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-book:hover {
+    background: #1976D2;
+}
+
+.btn-info {
+    background: white;
+    color: #2196F3;
+    border: 1px solid #2196F3;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-info:hover {
+    background: #f5f5f5;
+}
+
+/* Package Deals Section */
+.packages-section {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+}
+
+.view-all-btn {
+    background: white;
+    color: #2196F3;
+    border: 1px solid #2196F3;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.package-card {
+    background: white;
+    border: 2px solid #2196F3;
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.package-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-bottom-left-radius: 8px;
+}
+
+.package-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.package-procedures {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.package-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.package-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.savings {
+    font-size: 12px;
+    color: #4caf50;
+    font-weight: 600;
+}
+
+.package-includes {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 16px;
+}
+
+/* Consultation Section */
+.consultation-section {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    text-align: center;
+}
+
+.consultation-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.consultation-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+}
+
+.consultation-btn {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.consultation-btn:hover {
+    background: #1976D2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .procedures-grid,
+    .packages-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .procedure-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<div class="procedures-page">
+    <!-- Header Section -->
+    <div class="page-header">
+        <h1 class="clinic-name">{{ clinic.name }}</h1>
+        <h2 class="page-title">Procedures & Packages</h2>
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>›</span>
+            <a href="/clinic/{{ clinic.id }}">{{ clinic.name }}</a>
+            <span>›</span>
+            <span>Procedures</span>
+        </nav>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterCategory('all')">All Procedures</div>
+            <div class="filter-tab" onclick="filterCategory('facial')">Facial</div>
+            <div class="filter-tab" onclick="filterCategory('body')">Body</div>
+            <div class="filter-tab" onclick="filterCategory('non-surgical')">Non-Surgical</div>
+            <div class="filter-tab" onclick="filterCategory('surgical')">Surgical</div>
+        </div>
+        
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search procedures..." onkeyup="searchProcedures(this.value)">
+            <div class="price-filter">
+                <label for="priceRange">Price Range:</label>
+                <select id="priceRange" class="price-select" onchange="filterByPrice(this.value)">
+                    <option value="all">All Prices</option>
+                    <option value="0-25000">Under ₹25,000</option>
+                    <option value="25000-50000">₹25,000 - ₹50,000</option>
+                    <option value="50000-100000">₹50,000 - ₹1,00,000</option>
+                    <option value="100000+">Above ₹1,00,000</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Procedures Section -->
+    <div class="procedures-section">
+        <div class="procedures-grid" id="proceduresGrid">
+            <!-- Lip Fillers -->
+            <div class="procedure-card" data-category="facial non-surgical" data-price="35000">
+                <div class="procedure-image">💋</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Facial Enhancement</div>
+                    <h3 class="procedure-name">Lip Fillers</h3>
+                    <p class="procedure-description">Premium hyaluronic acid fillers to enhance lip volume and shape with natural-looking results.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹15,000 - ₹35,000</div>
+                        <div class="procedure-duration">30-45 mins</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">FDA Approved</span>
+                        <span class="feature-tag">No Downtime</span>
+                        <span class="feature-tag">Instant Results</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('lip-fillers')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('lip-fillers')">Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botox -->
+            <div class="procedure-card" data-category="facial non-surgical" data-price="25000">
+                <div class="procedure-image">✨</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Anti-Aging</div>
+                    <h3 class="procedure-name">Botox Treatment</h3>
+                    <p class="procedure-description">Reduce fine lines and wrinkles with premium botulinum toxin injections for a youthful appearance.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹8,000 - ₹25,000</div>
+                        <div class="procedure-duration">15-30 mins</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">Quick Treatment</span>
+                        <span class="feature-tag">No Surgery</span>
+                        <span class="feature-tag">Long Lasting</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('botox')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('botox')">Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rhinoplasty -->
+            <div class="procedure-card" data-category="facial surgical" data-price="150000">
+                <div class="procedure-image">👃</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Facial Surgery</div>
+                    <h3 class="procedure-name">Rhinoplasty</h3>
+                    <p class="procedure-description">Surgical nose reshaping to improve appearance and breathing function with expert precision.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹80,000 - ₹1,50,000</div>
+                        <div class="procedure-duration">2-3 hours</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">Permanent Results</span>
+                        <span class="feature-tag">Expert Surgeon</span>
+                        <span class="feature-tag">Custom Design</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('rhinoplasty')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('rhinoplasty')">Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chin Filler -->
+            <div class="procedure-card" data-category="facial non-surgical" data-price="40000">
+                <div class="procedure-image">🎭</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Facial Contouring</div>
+                    <h3 class="procedure-name">Chin Filler</h3>
+                    <p class="procedure-description">Define and enhance chin projection for better facial balance and profile improvement.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹18,000 - ₹40,000</div>
+                        <div class="procedure-duration">30-45 mins</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">Profile Enhancement</span>
+                        <span class="feature-tag">Reversible</span>
+                        <span class="feature-tag">Natural Look</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('chin-filler')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('chin-filler')">Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jawline Contouring -->
+            <div class="procedure-card" data-category="facial non-surgical" data-price="35000">
+                <div class="procedure-image">💪</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Facial Contouring</div>
+                    <h3 class="procedure-name">Jawline Slimming Botox</h3>
+                    <p class="procedure-description">Slim and contour jawline with botox injections for a more defined facial structure.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹15,000 - ₹35,000</div>
+                        <div class="procedure-duration">20-30 mins</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">V-Shape Face</span>
+                        <span class="feature-tag">No Downtime</span>
+                        <span class="feature-tag">Gradual Results</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('jawline-botox')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('jawline-botox')">Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Contouring -->
+            <div class="procedure-card" data-category="body non-surgical" data-price="75000">
+                <div class="procedure-image">🏃</div>
+                <div class="procedure-content">
+                    <div class="procedure-category">Body Sculpting</div>
+                    <h3 class="procedure-name">CoolSculpting</h3>
+                    <p class="procedure-description">Non-invasive fat reduction treatment using advanced cryolipolysis technology.</p>
+                    <div class="procedure-details">
+                        <div class="procedure-price">₹35,000 - ₹75,000</div>
+                        <div class="procedure-duration">45-60 mins</div>
+                    </div>
+                    <div class="procedure-features">
+                        <span class="feature-tag">FDA Cleared</span>
+                        <span class="feature-tag">No Surgery</span>
+                        <span class="feature-tag">Proven Results</span>
+                    </div>
+                    <div class="procedure-actions">
+                        <button class="btn-book" onclick="bookProcedure('coolsculpting')">Book Now</button>
+                        <button class="btn-info" onclick="viewDetails('coolsculpting')">Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Package Deals Section -->
+    <div class="packages-section">
+        <div class="section-header">
+            <h2 class="section-title">Special Package Deals</h2>
+            <a href="/clinic/{{ clinic.id }}/packages" class="view-all-btn">View All Packages</a>
+        </div>
+        
+        <div class="packages-grid">
+            <div class="package-card">
+                <div class="package-badge">Save 25%</div>
+                <h3 class="package-name">Complete Lip Enhancement</h3>
+                <p class="package-procedures">Lip Fillers + Lip Corner Filler + Follow-up</p>
+                <div class="package-pricing">
+                    <span class="original-price">₹47,000</span>
+                    <span class="package-price">₹35,000</span>
+                    <span class="savings">Save ₹12,000</span>
+                </div>
+                <p class="package-includes">Includes: 2 sessions, aftercare kit, 6-month follow-up</p>
+                <button class="btn-book" onclick="bookPackage('lip-enhancement')">Book Package</button>
+            </div>
+
+            <div class="package-card">
+                <div class="package-badge">Save 30%</div>
+                <h3 class="package-name">Anti-Aging Combo</h3>
+                <p class="package-procedures">Botox + Dermal Fillers + Skin Treatment</p>
+                <div class="package-pricing">
+                    <span class="original-price">₹85,000</span>
+                    <span class="package-price">₹59,500</span>
+                    <span class="savings">Save ₹25,500</span>
+                </div>
+                <p class="package-includes">Includes: Full face treatment, premium products, 1-year maintenance</p>
+                <button class="btn-book" onclick="bookPackage('anti-aging')">Book Package</button>
+            </div>
+
+            <div class="package-card">
+                <div class="package-badge">Popular</div>
+                <h3 class="package-name">Facial Harmony Package</h3>
+                <p class="package-procedures">Nose + Chin + Jawline Enhancement</p>
+                <div class="package-pricing">
+                    <span class="original-price">₹2,25,000</span>
+                    <span class="package-price">₹1,80,000</span>
+                    <span class="savings">Save ₹45,000</span>
+                </div>
+                <p class="package-includes">Includes: Complete facial design, 3D imaging, recovery support</p>
+                <button class="btn-book" onclick="bookPackage('facial-harmony')">Book Package</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consultation CTA -->
+    <div class="consultation-section">
+        <h2 class="consultation-title">Not sure which procedure is right for you?</h2>
+        <p class="consultation-subtitle">Book a free consultation with our expert surgeons</p>
+        <button class="consultation-btn" onclick="bookConsultation()">Book Free Consultation</button>
+    </div>
+</div>
+
+<script>
+function filterCategory(category) {
+    const cards = document.querySelectorAll('.procedure-card');
+    const tabs = document.querySelectorAll('.filter-tab');
+    
+    // Update active tab
+    tabs.forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Filter cards
+    cards.forEach(card => {
+        if (category === 'all' || card.dataset.category.includes(category)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function searchProcedures(query) {
+    const cards = document.querySelectorAll('.procedure-card');
+    const searchTerm = query.toLowerCase();
+    
+    cards.forEach(card => {
+        const name = card.querySelector('.procedure-name').textContent.toLowerCase();
+        const description = card.querySelector('.procedure-description').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByPrice(range) {
+    const cards = document.querySelectorAll('.procedure-card');
+    
+    cards.forEach(card => {
+        const price = parseInt(card.dataset.price);
+        let show = true;
+        
+        switch(range) {
+            case '0-25000':
+                show = price <= 25000;
+                break;
+            case '25000-50000':
+                show = price > 25000 && price <= 50000;
+                break;
+            case '50000-100000':
+                show = price > 50000 && price <= 100000;
+                break;
+            case '100000+':
+                show = price > 100000;
+                break;
+            default:
+                show = true;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function bookProcedure(procedureId) {
+    alert('Booking procedure: ' + procedureId);
+    // Add actual booking logic here
+}
+
+function viewDetails(procedureId) {
+    window.location.href = '/procedure/' + procedureId;
+}
+
+function bookPackage(packageId) {
+    alert('Booking package: ' + packageId);
+    // Add actual package booking logic here
+}
+
+function bookConsultation() {
+    alert('Booking free consultation...');
+    // Add consultation booking logic here
+}
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "analysis_id": 1,
+    "procedure_id": null,
+    "relevance_score": 0.7,
+    "area_of_concern": "Chin Augmentation",
+    "recommendation_reason": "Based on the limited information provided, the most prominent area for potential cosmetic improvement is the chin projection.  Both surgical chin augmentation and non-surgical dermal filler injections are viable options, depending on the patient\u2019s preferences and risk tolerance.  Addressing any under-eye concerns could involve topical skincare or makeup application.",
+    "recommendation_type": "procedure",
+    "created_at": "2025-05-14 13:34:58.021997"
+  },
+  {
+    "id": 2,
+    "analysis_id": 1,
+    "procedure_id": null,
+    "relevance_score": 0.6,
+    "area_of_concern": "Dermal Fillers",
+    "recommendation_reason": "Based on the limited information provided, the most prominent area for potential cosmetic improvement is the chin projection.  Both surgical chin augmentation and non-surgical dermal filler injections are viable options, depending on the patient\u2019s preferences and risk tolerance.  Addressing any under-eye concerns could involve topical skincare or makeup application.",
+    "recommendation_type": "treatment",
+    "created_at": "2025-05-14 13:34:58.022483"
+  },
+  {
+    "id": 3,
+    "analysis_id": 1,
+    "procedure_id": null,
+    "relevance_score": 0.6,
+    "area_of_concern": "Chemical Peel",
+    "recommendation_reason": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+    "recommendation_type": "treatment",
+    "created_at": "2025-05-14 13:34:58.022618"
+  },
+  {
+    "id": 4,
+    "analysis_id": 1,
+    "procedure_id": null,
+    "relevance_score": 0.6,
+    "area_of_concern": "Microdermabrasion",
+    "recommendation_reason": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+    "recommendation_type": "treatment",
+    "created_at": "2025-05-14 13:34:58.022717"
+  },
+  {
+    "id": 5,
+    "analysis_id": 1,
+    "procedure_id": null,
+    "relevance_score": 0.6,
+    "area_of_concern": "Vitamin C Treatment",
+    "recommendation_reason": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+    "recommendation_type": "treatment",
+    "created_at": "2025-05-14 13:34:58.022823"
+  }
+]

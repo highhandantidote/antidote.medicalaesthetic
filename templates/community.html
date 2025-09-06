@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Community Discussion - Antidote{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-filters.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Community Discussions</h1>
+            <p class="lead">Join the conversation about plastic surgery procedures and experiences.</p>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" id="createThreadBtn">
+                <i data-feather="plus" class="feather-sm me-2"></i> Create Thread
+            </button>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Enhanced Search Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" id="communityFilterForm">
+                        <!-- Basic Filters Row -->
+                        <div class="row g-3 mb-3">
+                            <!-- Search Input -->
+                            <div class="col-md-4">
+                                <div class="position-relative">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" name="search" class="form-control" 
+                                               placeholder="Search discussions..." 
+                                               value="{{ request.args.get('search', request.args.get('q', '')) }}" id="communitySearchInput">
+                                    </div>
+                                    <div id="communitySearchSuggestions" class="dropdown-suggestions" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div class="col-md-4">
+                                <div class="position-relative">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                        <select name="category" class="form-select" id="communityCategoryInput">
+                                            <option value="">All Categories</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}" {% if request.args.get('category') == category.id|string %}selected{% endif %}>{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Search Button -->
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100" type="submit">
+                                    <i class="fas fa-search me-2"></i>Search Discussions
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Filters Toggle -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" id="communityAdvancedFiltersToggle">
+                                    <i class="fas fa-chevron-down me-1"></i>
+                                    <span>Advanced Filters</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Filters Section (Hidden by default) -->
+                        <div id="communityAdvancedFiltersSection" style="display: none;" class="mt-3">
+                            <div class="row g-3">
+                                <!-- Username Filter -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label mb-1">Username</label>
+                                    <input type="text" name="username" class="form-control" placeholder="Filter by username..." 
+                                           value="{{ request.args.get('username', '') }}" id="communityUsernameInput">
+                                </div>
+
+                                <!-- Date Range Filter -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label mb-1">Date Range</label>
+                                    <select name="date_range" class="form-select">
+                                        <option value="">Any time</option>
+                                        <option value="today" {% if request.args.get('date_range') == 'today' %}selected{% endif %}>Today</option>
+                                        <option value="week" {% if request.args.get('date_range') == 'week' %}selected{% endif %}>This week</option>
+                                        <option value="month" {% if request.args.get('date_range') == 'month' %}selected{% endif %}>This month</option>
+                                        <option value="year" {% if request.args.get('date_range') == 'year' %}selected{% endif %}>This year</option>
+                                    </select>
+                                </div>
+
+                                <!-- Doctor Response Filter -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label mb-1">Doctor Response</label>
+                                    <select name="doctor_response" class="form-select">
+                                        <option value="">All threads</option>
+                                        <option value="has_doctor" {% if request.args.get('doctor_response') == 'has_doctor' %}selected{% endif %}>With doctor response</option>
+                                        <option value="no_doctor" {% if request.args.get('doctor_response') == 'no_doctor' %}selected{% endif %}>Without doctor response</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sort Filter -->
+                                <div class="col-md-6 col-lg-3">
+                                    <label class="form-label mb-1">Sort by</label>
+                                    <select name="sort" class="form-select">
+                                        <option value="latest" {% if request.args.get('sort') == 'latest' %}selected{% endif %}>Latest</option>
+                                        <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
+                                        <option value="popular" {% if request.args.get('sort') == 'popular' %}selected{% endif %}>Most Popular</option>
+                                        <option value="most_replies" {% if request.args.get('sort') == 'most_replies' %}selected{% endif %}>Most Replies</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="threads-list">
+        {% if threads %}
+            {% for thread in threads %}
+            <div class="thread-card mb-3 p-3 border rounded thread-item" 
+                 data-username="{{ thread.username }}" 
+                 data-date="{{ thread.created_at.strftime('%Y-%m-%d') }}"
+                 data-views="{{ thread.view_count or 0 }}"
+                 data-has-doctor-response="{{ thread.has_doctor_response|lower }}">
+                <h5 class="thread-title"><a href="{{ url_for('community_thread.community_thread', thread_id=thread.id) }}">{{ thread.title }}</a></h5>
+                <p class="thread-content">{{ thread.content|truncate(200) }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small>
+                        Posted by 
+                        {% if thread.is_anonymous %}
+                            Anonymous
+                        {% elif thread.user and (thread.user.role == 'doctor' or thread.user.is_expert) %}
+                            {{ thread.username }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                        on {{ thread.created_at.strftime('%B %d, %Y') }}
+                    </small>
+                    <div class="thread-badges">
+                        <span class="badge bg-secondary me-1">{{ thread.view_count or 0 }} views</span>
+                        {% if thread.category_name %}
+                        <span class="badge bg-primary">{{ thread.category_name }}</span>
+                        {% endif %}
+                        {% if thread.has_doctor_response %}
+                        <span class="badge bg-success">Doctor Response</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center my-5">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='img/empty-state-threads.svg') }}" alt="No discussions" class="img-fluid" style="max-width: 250px;">
+                </div>
+                <h3>No discussions yet</h3>
+                <p class="text-muted mb-4">Be the first to start a conversation in the community.</p>
+                <button id="emptyStateCreateBtn" class="btn btn-primary">
+                    <i data-feather="plus" class="feather-sm me-2"></i> Start a New Discussion
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-4 d-flex justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if current_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('web.community', page=current_page-1) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in range(1, pages + 1) %}
+                    {% if page_num == current_page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('web.community', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if current_page < pages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('web.community', page=current_page+1) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Create Thread Modal -->
+<div class="modal fade" id="createThreadModal" tabindex="-1" aria-labelledby="createThreadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createThreadModalLabel">Create New Discussion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createThreadForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="threadTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="threadTitle" required placeholder="Give your discussion a descriptive title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="threadContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="threadContent" rows="6" required placeholder="Share your question, experience, or information..."></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="threadCategory" class="form-label">Category (Optional)</label>
+                            <select class="form-select" id="threadCategory">
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="threadProcedure" class="form-label">Related Procedure (Optional)</label>
+                            <select class="form-select" id="threadProcedure">
+                                <option value="">Select a procedure</option>
+                                {% for procedure in procedures %}
+                                <option value="{{ procedure.id }}">{{ procedure.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="anonymousThread">
+                        <label class="form-check-label" for="anonymousThread">Post anonymously</label>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <h6>Community Guidelines</h6>
+                        <ul class="mb-0">
+                            <li>Be respectful and considerate of others</li>
+                            <li>Do not share personal contact information</li>
+                            <li>Avoid promotional content or spam</li>
+                            <li>Stay on topic and provide relevant information</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Thread</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/community.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+</script>
+<script src="{{ url_for('static', filename='js/community-filters.js') }}"></script>
+{% endblock %}

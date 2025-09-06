@@ -1,0 +1,67 @@
+/* Search Dropdown Z-Index Fix */
+/* This file specifically addresses the z-index issue where search dropdown gets hidden behind banners */
+
+/* Navigation Bar - High Z-Index */
+.navbar {
+    z-index: 99999 !important;
+    position: relative !important;
+}
+
+/* Search Form Container - Higher Z-Index */
+.search-form-container {
+    position: relative !important;
+    z-index: 100000 !important;
+}
+
+/* Search Autocomplete Dropdown - Highest Z-Index */
+.search-autocomplete {
+    position: fixed !important;
+    z-index: 100001 !important;
+    width: 280px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 0 .75rem .75rem !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Ensure search autocomplete appears above everything */
+.search-autocomplete.show,
+.search-autocomplete[style*="display: block"] {
+    z-index: 100002 !important;
+}
+
+/* Banner and other elements should not interfere */
+.banner-container,
+.banner-slider,
+.carousel {
+    z-index: 1 !important;
+}
+
+/* Hero sections should stay below navbar */
+.hero-section,
+.hero-banner,
+.main-banner,
+.hero-banner-container,
+.hero-banner-container .banner-slider,
+.hero-banner-container .banner-slider .slide,
+.hero-banner-container .banner-slider .slide-content {
+    z-index: 1 !important;
+    position: relative !important;
+}
+
+/* Additional positioning fixes for mobile */
+@media (max-width: 768px) {
+    .search-autocomplete {
+        position: fixed !important;
+        top: auto !important;
+        left: 15px !important;
+        right: 15px !important;
+        width: auto !important;
+        z-index: 10002 !important;
+        margin-top: 5px !important;
+    }
+}

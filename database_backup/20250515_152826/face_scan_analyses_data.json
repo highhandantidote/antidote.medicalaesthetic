@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "user_id": null,
+    "image_path": "static/uploads/face_scans/3df8da95804b413c825dd68ca7e28927_238b9f222b8a43c519adf955c6610bcc.jpg",
+    "analysis_data": {
+      "timestamp": "2025-05-14T13:34:56.719443",
+      "analysis": "**Cosmetic and Plastic Surgery Consultation**\n\nThis consultation is based on a single image and does not constitute a formal medical evaluation.  A thorough in-person examination is necessary for a definitive diagnosis and personalized treatment plan.\n\n\n**1. Facial Structure and Proportions:**\n\n* **Observation:** The patient appears to have a naturally oval face shape with generally good facial symmetry.  The proportions of the facial thirds appear balanced. The profile shows a slightly recessed chin.\n\n* **Treatment Options:**\n    * **Surgical:** Chin augmentation (e.g., chin implant) to enhance chin projection and improve profile harmony.\n    * **Non-surgical:** Dermal fillers injected into the chin to add volume and improve projection.\n\n* **Expected Outcomes:**  Chin augmentation can create a more balanced and defined jawline, enhancing facial harmony.  Results are typically long-lasting with implants, and temporary with fillers (requiring periodic touch-ups).\n\n* **Key Considerations:**  Surgical options involve incisions and recovery time (swelling, bruising). Filler injections have minimal downtime but require repeat treatments for long-term effects.\n\n\n\n**2. Skin Quality and Texture:**\n\n* **Observation:** The image shows relatively clear skin with a healthy complexion. There are no visible signs of significant aging, scarring, or hyperpigmentation.  There's a slight suggestion of potential mild under-eye darkness, which could be due to several factors.\n\n* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.\n\n\n* **Expected Outcomes:**  Topical treatments can improve skin texture and tone over time. Microdermabrasion can provide immediate improvement in texture. Concealer may instantly hide this problem.\n\n\n* **Key Considerations:** Topical treatments may take several weeks or months to show noticeable results and may cause slight irritation initially.  Chemical peels may result in temporary peeling and redness. Fillers for under-eye darkness may cause bruising and carry a higher risk of complications compared to other areas.\n\n\n**3. Specific Feature Analysis:**\n\n* **Eyes:**  The eyes appear relatively symmetrical in shape and size.  There is a subtle suggestion of mild under-eye hollowness or darkness which could be masked by makeup or addressed with topical skin care treatments. \n\n* **Nose:** The nose appears proportionate to other facial features and aesthetically pleasing. No visible asymmetries are observed in this view.\n\n* **Lips:**  The lips appear naturally full and well-proportioned.  \n\n* **Cheeks:** Cheek volume seems appropriate for the overall facial structure.\n\n* **Jawline:**  The jawline is moderately defined. Chin augmentation (as mentioned above) could slightly improve definition.\n\n* **Chin:**  A slightly recessed chin is noted, as discussed above.\n\n* **Forehead:** The forehead appears smooth and without significant wrinkles or asymmetry.\n\n\n**Recommendations Summary:**\n\nBased on the limited information provided, the most prominent area for potential cosmetic improvement is the chin projection.  Both surgical chin augmentation and non-surgical dermal filler injections are viable options, depending on the patient\u2019s preferences and risk tolerance.  Addressing any under-eye concerns could involve topical skincare or makeup application.\n\n**Disclaimer:** This analysis is for educational purposes only and should not be interpreted as a substitute for a thorough in-person consultation with a qualified medical professional.  A comprehensive medical history, physical examination, and potentially additional diagnostic tests are required before any treatment recommendations can be made.\n",
+      "image_path": "static/uploads/face_scans/3df8da95804b413c825dd68ca7e28927_238b9f222b8a43c519adf955c6610bcc.jpg",
+      "procedures": [
+        {
+          "name": "Chin Augmentation",
+          "context": "Based on the limited information provided, the most prominent area for potential cosmetic improvement is the chin projection.  Both surgical chin augmentation and non-surgical dermal filler injections are viable options, depending on the patient\u2019s preferences and risk tolerance.  Addressing any under-eye concerns could involve topical skincare or makeup application.",
+          "relevance_score": 0.7
+        }
+      ],
+      "treatments": [
+        {
+          "name": "Dermal Fillers",
+          "context": "Based on the limited information provided, the most prominent area for potential cosmetic improvement is the chin projection.  Both surgical chin augmentation and non-surgical dermal filler injections are viable options, depending on the patient\u2019s preferences and risk tolerance.  Addressing any under-eye concerns could involve topical skincare or makeup application.",
+          "relevance_score": 0.6
+        },
+        {
+          "name": "Chemical Peel",
+          "context": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+          "relevance_score": 0.6
+        },
+        {
+          "name": "Microdermabrasion",
+          "context": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+          "relevance_score": 0.6
+        },
+        {
+          "name": "Vitamin C Treatment",
+          "context": "* **Treatment Options:**\n    * **Non-surgical (for potential under-eye darkness):**  Topical treatments (e.g., retinoids, vitamin C serums), chemical peels, microdermabrasion, and/or professional strength concealer for improved coverage.  If darkness is related to underlying dark circles, fillers can be considered but are generally only used in more mature patients.",
+          "relevance_score": 0.6
+        }
+      ]
+    },
+    "created_at": "2025-05-14 13:34:48.730488",
+    "is_anonymous": false
+  }
+]

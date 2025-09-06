@@ -1,0 +1,208 @@
+---
+
+# Antidote Core System Architecture & Functional Documentation
+
+## Phase: Clinics & Packages Implementation
+
+---
+
+## 🏥 Overview
+
+This document defines the schema-level implementation plan and system architecture for the upcoming **Clinics** and **Packages** functionalities in the Antidote platform. These features power core user journeys like:
+
+* Discovering verified cosmetic surgery clinics
+* Browsing detailed procedure packages
+* Generating high-intent leads
+* Clinic-level dashboards and billing integrations
+
+This documentation also outlines how these new modules interact with the **existing lead generation, review, and profile display logic**, including legacy doctor profile functionality.
+
+---
+
+## 🔢 Core Entities & Relationships (Database Schema)
+
+### 1. `clinics`
+
+| Field           | Type         | Description                                   |
+| --------------- | ------------ | --------------------------------------------- |
+| id              | UUID (PK)    | Unique clinic ID                              |
+| name            | String       | Name of the clinic                            |
+| address         | Text         | Full address                                  |
+| city            | String       | City (for filtering/search)                   |
+| contact\_number | String       | Clinic's phone number                         |
+| working\_hours  | JSON         | e.g., `{mon: "10am - 8pm", tue: ...}`         |
+| rating          | Float        | Average rating                                |
+| review\_count   | Integer      | Number of reviews                             |
+| highlights      | String\[]    | e.g., \["Post-procedure care", "Evening hrs"] |
+| specialties     | String\[]    | e.g., \["Botox", "Fillers"]                   |
+| is\_approved    | Boolean      | Shown only when true                          |
+| profile\_image  | String (URL) | Hero image or logo                            |
+| banner\_image   | String (URL) | Optional top banner                           |
+| created\_at     | Timestamp    |                                               |
+| updated\_at     | Timestamp    |                                               |
+
+### 2. `doctors`
+
+| Field                    | Type      | Description                                 |
+| ------------------------ | --------- | ------------------------------------------- |
+| id                       | UUID (PK) |                                             |
+| user\_id                 | FK        | Link to `users` table                       |
+| clinic\_id               | FK        | Link to `clinics`                           |
+| name                     | String    | Full name                                   |
+| title                    | String    | Designation e.g. Aesthetic Surgeon          |
+| specialty                | String    | Medical specialty                           |
+| experience               | Integer   | Years of experience                         |
+| city                     | String    | Practice city                               |
+| state                    | String    | Practice state                              |
+| hospital                 | String    | Hospital/clinic affiliation                 |
+| consultation\_fee        | Decimal   | Consultation cost                           |
+| is\_verified             | Boolean   | Profile verification flag                   |
+| verification\_status     | String    | Detailed status (pending/approved/rejected) |
+| verification\_date       | Timestamp | When verification was updated               |
+| verification\_notes      | Text      | Admin notes                                 |
+| medical\_license\_number | String    | Medical license                             |
+| credentials\_url         | String    | Path to license/credentials                 |
+| aadhaar\_number          | String    | India-specific ID                           |
+| bio                      | Text      | Professional biography                      |
+| certifications           | JSON      | Certificates                                |
+| education                | JSON      | Educational background                      |
+| qualification            | String    | Main qualification                          |
+| practice\_location       | String    | Full practice address                       |
+| profile\_image           | String    | Image path                                  |
+| image\_url               | String    | Original image source                       |
+| video\_url               | String    | Introduction video                          |
+| rating                   | Float     | Average rating                              |
+| review\_count            | Integer   | Total reviews                               |
+| success\_stories         | Integer   | Success stories count                       |
+| top\_skills              | String\[] | e.g., \["Rhinoplasty", "Fillers"]           |
+
+### 3. `packages`
+
+| Field             | Type      | Description                         |
+| ----------------- | --------- | ----------------------------------- |
+| id                | UUID (PK) | Unique ID                           |
+| clinic\_id        | FK        | Belongs to a clinic                 |
+| title             | String    | Package name                        |
+| price\_actual     | Decimal   | Original price                      |
+| price\_discounted | Decimal   | Discounted price                    |
+| procedure\_info   | Text      | Rich HTML or markdown               |
+| results           | JSON\[]   | Before/after sections               |
+| category          | String    | Category (e.g., Rhinoplasty, Botox) |
+| tags              | String\[] | \["30% OFF", "Popular"]             |
+| side\_effects     | Text      | Description                         |
+| recommended\_for  | Text      | Use case info                       |
+| downtime          | Text      | e.g., "2-3 days"                    |
+| duration          | Text      | e.g., "45 mins"                     |
+| anesthetic        | String    | Included anesthetic                 |
+| vat\_included     | Boolean   | Billing transparency                |
+| is\_active        | Boolean   | Deactivation flag                   |
+
+### 4. `leads`
+
+| Field         | Type                                | Description                      |
+| ------------- | ----------------------------------- | -------------------------------- |
+| id            | UUID (PK)                           |                                  |
+| clinic\_id    | FK                                  |                                  |
+| package\_id   | FK (nullable)                       | If initiated from a package page |
+| doctor\_id    | FK (nullable)                       | If initiated from a doctor page  |
+| user\_id      | UUID (optional)                     | Anonymous users allowed          |
+| action\_type  | Enum("chat", "call")                |                                  |
+| source\_page  | Enum("clinic", "package", "doctor") |                                  |
+| contact\_info | String                              | e.g., phone/email if captured    |
+| created\_at   | Timestamp                           |                                  |
+
+---
+
+## 🌐 Pages & Frontend Routes
+
+### **User-Facing Pages**
+
+| Page                   | Route               | Description                              |
+| ---------------------- | ------------------- | ---------------------------------------- |
+| Clinic Directory       | `/clinics`          | All approved clinics with filters        |
+| Clinic Detail Page     | `/clinics/[slug]`   | Full profile, doctors, reviews, packages |
+| Package Directory      | `/packages`         | All active packages                      |
+| Package Detail Page    | `/packages/[id]`    | Full pricing, doctor, results, contact   |
+| Doctor Detail Page     | `/doctors/[id]`     | Full profile with lead CTA               |
+| Lead Generation Modals | `chat/call` (popup) | Opens on buttons                         |
+
+### **Dashboards**
+
+| Dashboard Type  | Route               | Features                                           |
+| --------------- | ------------------- | -------------------------------------------------- |
+| Admin Dashboard | `/admin`            | Approve clinics, manage billing, see all leads     |
+| Clinic Admin    | `/clinic-dashboard` | Edit profile, packages, view leads, top-up credits |
+
+---
+
+## 💼 Admin Dashboard Features
+
+### Admin Role (Internal)
+
+* See all registered clinics
+* Review and approve submitted forms
+* Enable/disable clinics or packages
+* View all leads platform-wide
+* Resolve refund requests
+* Manage credit pricing/offers
+* Configure special banners/offers on frontend
+
+---
+
+## 📈 Billing & Monetization Strategy
+
+### Billing Model: **Pay-per-lead via credits**
+
+| Item              | Description                                                 |
+| ----------------- | ----------------------------------------------------------- |
+| Lead Pricing      | Chat = 300 credits, Call = 500 credits (example)            |
+| Credit Packs      | Clinics pre-purchase credits (e.g., ₹5000 = 5000 credits)   |
+| Promotions        | Admins can run 2x credit offers for top-ups                 |
+| Deduction Trigger | Lead is created & credit deducted on click of chat/call     |
+| Refund System     | Clinics can raise refund requests for fake/incomplete leads |
+
+### Credit Management
+
+* Visible in clinic dashboard
+* Ledger showing deduction history
+* Manual admin override possible
+
+---
+
+## 🤷🏼‍♀️ User Journey Flow
+
+1. **Patient visits Antidote**
+2. Explores `/clinics`, `/packages`, or `/doctors`
+3. Visits detail page of a clinic, treatment, or doctor
+4. Views verified info, reviews, pricing, results
+5. Clicks "Chat with Clinic" or "Call Doctor"
+6. Lead is generated, credit deducted from clinic
+7. Clinic views lead in dashboard, follows up
+8. Consultation booked externally or via WhatsApp integration
+
+---
+
+## ✨ Technical Notes
+
+* **SEO-optimized pages** with structured data for clinics, packages, and doctors
+* Use SSR/SSG via Next.js for `/clinics`, `/packages`, `/doctors`
+* Consider implementing caching via Redis for directory endpoints
+* Image CDN (e.g., ImageKit or Cloudflare) for faster load times
+* Admin email notifications on lead generation
+
+---
+
+## 📆 Next Steps (Implementation Order)
+
+1. Set up database schema for `clinics`, `packages`, `doctors`, `leads`
+2. Build `/admin` interface to onboard clinics
+3. Create public directory pages `/clinics`, `/packages`, `/doctors`
+4. Build detail pages with dynamic routing and UI elements
+5. Implement lead generation trigger logic & credit deduction
+6. Build clinic dashboard to manage listings and leads
+7. Integrate top-up billing via Stripe/Razorpay
+8. Launch and test with selected partner clinics
+
+---
+
+Let me know when you're ready to wireframe the dashboard UIs or start with Prisma schema definitions or API route planning.

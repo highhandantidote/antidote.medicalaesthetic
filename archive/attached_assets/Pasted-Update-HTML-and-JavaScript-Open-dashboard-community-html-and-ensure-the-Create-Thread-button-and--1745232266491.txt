@@ -1,0 +1,38 @@
+Update HTML and JavaScript:
+Open dashboard_community.html and ensure the "Create Thread" button and action buttons have the correct classes:
+html
+
+Copy
+<button class="create-thread">Create Thread</button>
+<tr data-thread-id="{{ thread.id }}">
+    <td>{{ thread.title }}</td>
+    <td>{{ thread.author }}</td>
+    <td>{{ thread.category }}</td>
+    <td>{{ thread.created }}</td>
+    <td>{{ thread.replies }}</td>
+    <td class="actions">
+        <button>View</button>
+        <button>Edit</button>
+        <button>Delete</button>
+    </td>
+</tr>
+Update static/js/main.js with the debug logging version above.
+Ensure the script is included at the bottom of dashboard_community.html.
+Test Interactivity:
+Restart the application.
+Navigate to /dashboard/community:
+Click "Create Thread" and check the console for "Create Thread clicked."
+Click "View," "Edit," and "Delete" on a thread (e.g., thread #3) and check for "Action clicked: [action]."
+If redirects work, follow them to confirm the forms or thread view load.
+Take a screenshot of the dashboard with a successful action (e.g., after clicking "View" on thread #3).
+Validate Media and Thread Detail:
+Navigate to /community/thread/3:
+Confirm sample.jpg displays and the Media Preview modal opens/closes without freezing.
+Take a screenshot.
+Debug and Log:
+Check browser console for errors or logs.
+Generate server logs for route access and API calls (e.g., DEBUG:routes:Redirecting to /community/thread/3).
+Update and save: dashboard_community.html, static/js/main.js, routes.py (if modified).
+Provide Output:
+Share updated files, logs, browser console output, and screenshots.
+Respond to Replit’s question and your feedback: "Yes, the community page loads properly with media attachments (sample.jpg) showing correctly. The media preview modal works without freezing. For the community dashboard, I’ve added debug logging to identify why actions aren’t clickable. Please test /dashboard/community again, check the browser console for logs, and let me know what appears."

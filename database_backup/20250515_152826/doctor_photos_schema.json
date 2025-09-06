@@ -1,0 +1,32 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('doctor_photos_id_seq'::regclass)"
+  },
+  {
+    "name": "doctor_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "photo_url",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "description",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  }
+]

@@ -1,0 +1,840 @@
+{% extends 'base.html' %}
+{% from 'reply_template.html' import render_reply with context %}
+
+{% block title %}{{ thread.title }} - Antidote Community{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --reddit-orange: #ff4500;
+    --reddit-blue: #0079d3;
+    --reddit-bg: #dae0e6;
+    --reddit-card: #ffffff;
+    --reddit-border: #edeff1;
+    --reddit-text: #1c1c1c;
+    --reddit-text-meta: #7c7c7c;
+    --reddit-hover: #f8f9fa;
+    --reddit-upvote: #ff4500;
+    --reddit-downvote: #7193ff;
+}
+
+body {
+    background-color: var(--reddit-bg);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.reddit-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.reddit-post {
+    background: var(--reddit-card);
+    border: 1px solid var(--reddit-border);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.post-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--reddit-border);
+    background: #fafafa;
+}
+
+.post-content {
+    padding: 16px;
+}
+
+.vote-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: #fafafa;
+    min-width: 60px;
+    border-right: 1px solid var(--reddit-border);
+}
+
+.vote-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--reddit-text-meta);
+    font-size: 18px;
+}
+
+.vote-btn:hover {
+    background: var(--reddit-hover);
+    border-radius: 2px;
+}
+
+.post-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--reddit-text);
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--reddit-text-meta);
+    font-size: 12px;
+}
+
+.reddit-comment {
+    background: var(--reddit-card);
+    border: 1px solid var(--reddit-border);
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.comment-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--reddit-border);
+    font-size: 12px;
+    color: var(--reddit-text-meta);
+}
+
+.comment-content {
+    padding: 12px 16px;
+    color: var(--reddit-text);
+    line-height: 1.5;
+}
+
+.comment-actions {
+    padding: 8px 16px;
+    border-top: 1px solid var(--reddit-border);
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+}
+
+.action-link {
+    color: var(--reddit-text-meta);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 2px;
+}
+
+.action-link:hover {
+    background: var(--reddit-hover);
+}
+
+.user-info h6 {
+    margin: 0;
+    color: var(--community-text);
+    font-weight: 600;
+}
+
+.user-info small {
+    color: var(--community-text-light);
+}
+
+.doctor-badge {
+    background: #10b981;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+.thread-content {
+    color: var(--community-text);
+    line-height: 1.6;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.thread-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 0;
+    border-top: 1px solid var(--community-border);
+}
+
+.action-btn {
+    background: none;
+    border: 1px solid var(--community-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--community-text-light);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: var(--community-accent);
+    color: var(--community-primary);
+    border-color: var(--community-primary);
+}
+
+.breadcrumb {
+    background: none;
+    padding: 1rem 0;
+}
+
+.breadcrumb-item a {
+    color: var(--community-primary);
+    text-decoration: none;
+}
+
+.replies-section {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--community-border);
+}
+
+.replies-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--community-border);
+}
+
+.replies-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--community-text);
+    margin: 0;
+}
+
+.sort-tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sort-tab {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--community-border);
+    background: white;
+    color: var(--community-text-light);
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.sort-tab.active, .sort-tab:hover {
+    background: var(--community-primary);
+    color: white;
+    border-color: var(--community-primary);
+}
+
+.reply-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--community-border);
+}
+
+.reply-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.reply-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--community-primary), var(--community-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.reply-content {
+    color: var(--community-text);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.reply-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--community-text-light);
+}
+
+.reply-form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--community-border);
+    margin-top: 2rem;
+}
+
+.reply-form-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--community-text);
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--community-border);
+    padding: 0.75rem;
+}
+
+.form-control:focus {
+    border-color: var(--community-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.25);
+}
+
+.btn-primary {
+    background: var(--community-primary);
+    border-color: var(--community-primary);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: var(--community-secondary);
+    border-color: var(--community-secondary);
+}
+
+/* Mobile Responsive Fixes */
+@media (max-width: 768px) {
+    .reddit-container {
+        padding: 10px;
+    }
+    
+    .reddit-post {
+        margin-bottom: 10px;
+    }
+    
+    .post-content {
+        padding: 12px;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .post-title {
+        font-size: 16px;
+        line-height: 1.3;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .post-content div {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%;
+    }
+    
+    .comment-content {
+        padding: 10px 12px;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .vote-section {
+        min-width: 50px;
+        padding: 6px;
+    }
+    
+    .reddit-post > div {
+        flex-direction: column;
+    }
+    
+    .reddit-post > div > div:first-child {
+        order: 2;
+        display: flex;
+        justify-content: center;
+        border-right: none;
+        border-top: 1px solid var(--reddit-border);
+        padding: 8px;
+    }
+    
+    .reddit-post > div > div:last-child {
+        order: 1;
+        flex: 1;
+    }
+    
+    .comment-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .action-link {
+        padding: 2px 6px;
+        font-size: 11px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reddit-container">
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+
+
+    <!-- Main Post -->
+    <div class="reddit-post">
+        <div style="display: flex;">
+            <!-- View Count Section -->
+            <div class="vote-section">
+                <div style="text-align: center;">
+                    <i class="fas fa-eye" style="font-size: 20px; color: var(--reddit-text-meta); margin-bottom: 4px;"></i>
+                </div>
+                <div style="font-size: 12px; font-weight: bold; margin: 4px 0;">
+                    {{ thread.view_count or 0 }}
+                </div>
+                <div style="font-size: 10px; color: var(--reddit-text-meta);">
+                    views
+                </div>
+            </div>
+            
+            <!-- Post Content -->
+            <div style="flex: 1;">
+                <div class="post-header">
+                    <div class="post-meta">
+                        <span>Posted by</span>
+                        <strong>
+                            {% if thread.is_anonymous %}
+                                u/Anonymous
+                            {% else %}
+                                u/{% if thread.user and (thread.user.role == 'doctor' or thread.user.is_expert) %}{{ thread.user.username }}{% else %}Anonymous{% endif %}
+                            {% endif %}
+                        </strong>
+                        <span>{{ thread.created_at.strftime('%b %d, %Y') if thread.created_at else 'Unknown date' }}</span>
+                        {% if thread.is_professional_verified %}
+                        <span style="background: #0079d3; color: white; padding: 2px 6px; border-radius: 2px; font-size: 11px;">VERIFIED DOCTOR</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    <h1 class="post-title">{{ thread.title }}</h1>
+                    <div style="margin-top: 12px; line-height: 1.6;">
+                        {{ thread.content|safe }}
+                    </div>
+                </div>
+                
+                <div class="comment-actions">
+                    <a href="#" class="action-link">
+                        <i class="fas fa-comment"></i> {{ all_replies|length }} Comments
+                    </a>
+                    <a href="#" class="action-link">
+                        <i class="fas fa-share"></i> Share
+                    </a>
+                    <a href="#" class="action-link">
+                        <i class="fas fa-bookmark"></i> Save
+                    </a>
+                    <a href="#" class="action-link">
+                        <i class="fas fa-flag"></i> Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+    <!-- Comments Section -->
+    <div style="margin-top: 16px;">
+        <!-- Sort Options -->
+        <div style="background: var(--reddit-card); border: 1px solid var(--reddit-border); border-radius: 4px; padding: 12px; margin-bottom: 16px;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <span style="font-size: 14px; font-weight: 500;">Sort by:</span>
+                <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id, sort='oldest') }}" 
+                   style="color: {% if sort == 'oldest' %}var(--reddit-blue){% else %}var(--reddit-text-meta){% endif %}; text-decoration: none; font-weight: 700;">Best</a>
+                <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id, sort='latest') }}" 
+                   style="color: {% if sort == 'latest' %}var(--reddit-blue){% else %}var(--reddit-text-meta){% endif %}; text-decoration: none; font-weight: 700;">New</a>
+                <a href="{{ url_for('web.community_thread_detail', thread_id=thread.id, sort='popular') }}" 
+                   style="color: {% if sort == 'popular' %}var(--reddit-blue){% else %}var(--reddit-text-meta){% endif %}; text-decoration: none; font-weight: 700;">Top</a>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        {% if top_level_replies %}
+            {% for reply in top_level_replies %}
+                <div class="reddit-comment">
+                    <div class="comment-header">
+                        <strong>
+                            {% if reply.is_anonymous %}
+                                u/Anonymous
+                            {% else %}
+                                u/{% if reply.user and (reply.user.role == 'doctor' or reply.user.is_expert) %}{{ reply.user.username }}{% else %}Anonymous{% endif %}
+                            {% endif %}
+                        </strong>
+                        <span>{{ reply.created_at.strftime('%b %d, %Y') if reply.created_at else 'Unknown date' }}</span>
+                        {% if reply.doctor_verified %}
+                        <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 2px; font-size: 11px; margin-left: 8px;">VERIFIED DOCTOR</span>
+                        {% endif %}
+                    </div>
+                    <div class="comment-content">
+                        {{ reply.content|safe }}
+                    </div>
+                    <div class="comment-actions">
+                        <span class="action-link">
+                            <i class="fas fa-eye"></i> {{ thread.view_count or 0 }} views
+                        </span>
+                        <a href="#" class="action-link">
+                            <i class="fas fa-reply"></i> Reply
+                        </a>
+                        <a href="#" class="action-link">
+                            <i class="fas fa-share"></i> Share
+                        </a>
+                        <a href="#" class="action-link">
+                            <i class="fas fa-flag"></i> Report
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="background: var(--reddit-card); border: 1px solid var(--reddit-border); border-radius: 4px; padding: 32px; text-align: center;">
+                <p style="color: var(--reddit-text-meta); margin: 0;">No comments yet. Be the first to comment!</p>
+            </div>
+        {% endif %}
+    </div>
+            
+    <!-- Reply Form -->
+    <div style="background: var(--reddit-card); border: 1px solid var(--reddit-border); border-radius: 4px; padding: 16px; margin-top: 16px;">
+        <div style="font-size: 14px; font-weight: 500; margin-bottom: 12px;">Add a comment</div>
+        <form class="reply-form" data-thread-id="{{ thread.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" id="reply_csrf_token">
+            <div style="margin-bottom: 12px;">
+                <textarea 
+                    class="form-control" 
+                    name="content" 
+                    rows="4" 
+                    placeholder="What are your thoughts?" 
+                    required
+                    style="border: 1px solid var(--reddit-border); border-radius: 4px; padding: 12px; font-family: inherit; resize: vertical; width: 100%; box-sizing: border-box;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button 
+                    type="submit" 
+                    style="background: var(--reddit-blue); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer;">
+                    Comment
+                </button>
+            </div>
+        </form>
+                        
+                        <!-- Original advanced form with more features -->
+                        <form id="replyForm" enctype="multipart/form-data" class="mt-4 pt-4 border-top d-none">
+                            <h6 class="mb-3">Advanced Reply Form</h6>
+                            <input type="hidden" id="threadId" value="{{ thread.id }}">
+                            <input type="hidden" id="parentReplyId" value="">
+                            <!-- Pass user ID if available from session -->
+                            <input type="hidden" id="userId" value="{{ session.get('user_id', '') }}">
+                            
+                            <div class="mb-3">
+                                <label for="replyContent" class="form-label">Your Reply</label>
+                                <textarea class="form-control" id="replyContent" rows="4" required></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="replyPhoto" class="form-label">Add Photo (Optional)</label>
+                                <input class="form-control" type="file" id="replyPhoto" accept="image/*">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="anonymousReply">
+                                    <label class="form-check-label" for="anonymousReply">
+                                        Post Anonymously
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Submit Advanced Reply</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Thread Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Discussion Info</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        <i data-feather="calendar" class="feather-sm me-2"></i> Posted on: {{ thread.created_at.strftime('%b %d, %Y') }}
+                    </p>
+                    {% if thread.tags %}
+                    <p class="mb-0">
+                        <i data-feather="tag" class="feather-sm me-2"></i> Tags:
+                        {% for tag in thread.tags %}
+                            <span class="badge bg-secondary me-1">{{ tag }}</span>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Related Threads -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Related Discussions</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if related_threads %}
+                        {% for related in related_threads %}
+                            <a href="{{ url_for('web.community_thread_detail', thread_id=related.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ related.title }}</h6>
+                                    <small class="text-muted">{{ related.reply_count }} replies</small>
+                                </div>
+                                <small class="text-muted">{{ related.created_at.strftime('%b %d, %Y') }}</small>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-3">
+                            <p class="mb-0 text-muted">No related discussions found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Community Guidelines -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Community Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i data-feather="check-circle" class="text-success me-2 feather-sm"></i> Be respectful to others</li>
+                        <li class="mb-2"><i data-feather="check-circle" class="text-success me-2 feather-sm"></i> Share your authentic experiences</li>
+                        <li class="mb-2"><i data-feather="check-circle" class="text-success me-2 feather-sm"></i> Ask specific questions</li>
+                        <li class="mb-2"><i data-feather="check-circle" class="text-success me-2 feather-sm"></i> Respect privacy and confidentiality</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Media Preview -->
+<div class="modal fade" id="mediaPreviewModal" tabindex="-1" aria-labelledby="mediaPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mediaPreviewModalLabel">Media Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="mediaPreviewContent">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Feather icons
+        feather.replace();
+        
+        // Handle media preview modal
+        document.querySelectorAll('.media-preview-trigger').forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const mediaType = this.getAttribute('data-media-type');
+                const mediaUrl = this.getAttribute('data-media-url');
+                const modalContent = document.getElementById('mediaPreviewContent');
+                
+                // Clear previous content
+                modalContent.innerHTML = '';
+                
+                if (mediaType === 'photo') {
+                    const img = document.createElement('img');
+                    img.src = mediaUrl;
+                    img.className = 'img-fluid';
+                    img.alt = 'Media preview';
+                    modalContent.appendChild(img);
+                } else if (mediaType === 'video') {
+                    const videoContainer = document.createElement('div');
+                    videoContainer.className = 'ratio ratio-16x9';
+                    const iframe = document.createElement('iframe');
+                    iframe.src = mediaUrl;
+                    iframe.allowFullscreen = true;
+                    videoContainer.appendChild(iframe);
+                    modalContent.appendChild(videoContainer);
+                }
+                
+                // Show the modal
+                const modalEl = document.getElementById('mediaPreviewModal');
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                
+                // Clean up when modal is closed
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    // Clear the content
+                    modalContent.innerHTML = '';
+                    
+                    // Reset body styles that might get stuck
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    
+                    // Remove any stuck backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }, { once: true });
+            });
+        });
+        
+        // Handle reply form submission
+        const replyForm = document.getElementById('replyForm');
+        if (replyForm) {
+            replyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const threadId = document.getElementById('threadId').value;
+                const userId = document.getElementById('userId').value;
+                const replyContent = document.getElementById('replyContent').value;
+                const parentReplyId = document.getElementById('parentReplyId').value;
+                const isAnonymous = document.getElementById('anonymousReply').checked;
+                
+                // Check if user is authenticated
+                if (!userId) {
+                    alert('Please log in to post a reply.');
+                    return;
+                }
+                
+                // Check if content is provided
+                if (!replyContent.trim()) {
+                    alert('Please enter your reply content.');
+                    return;
+                }
+                
+                // Prepare request data
+                const requestData = {
+                    thread_id: parseInt(threadId),
+                    user_id: parseInt(userId),
+                    content: replyContent,
+                    is_anonymous: isAnonymous,
+                    parent_reply_id: parentReplyId ? parseInt(parentReplyId) : null
+                };
+                
+                // Handle photo upload if present
+                const photoFile = document.getElementById('replyPhoto').files[0];
+                if (photoFile) {
+                    // For now, just store the file name as we'd need a proper file upload endpoint
+                    requestData.photo_url = photoFile.name;
+                }
+                
+                // Submit reply via API
+                fetch('/api/community-replies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page to show the new reply
+                        window.location.reload();
+                    } else {
+                        alert('Error posting reply: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while submitting your reply.');
+                });
+            });
+        }
+        
+        // Handle reply to comments
+        document.querySelectorAll('.reply-to-comment').forEach(button => {
+            button.addEventListener('click', function() {
+                const parentId = this.getAttribute('data-parent-id');
+                const threadId = this.getAttribute('data-thread-id');
+                
+                // Set the parent reply ID
+                document.getElementById('parentReplyId').value = parentId;
+                
+                // Scroll to the reply form
+                document.getElementById('replyForm').scrollIntoView({ behavior: 'smooth' });
+                
+                // Focus on the reply content textarea
+                document.getElementById('replyContent').focus();
+                
+                // Update form heading to indicate replying to a comment
+                const formHeader = document.querySelector('#replyForm').closest('.card').querySelector('.card-header h5');
+                formHeader.textContent = 'Reply to Comment';
+            });
+        });
+        
+        // Handle upvoting replies
+        document.querySelectorAll('.upvote-reply').forEach(button => {
+            button.addEventListener('click', function() {
+                const replyId = this.getAttribute('data-reply-id');
+                
+                // Call the upvote API
+                fetch(`/api/community-replies/${replyId}/upvote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the upvote count in the UI
+                        const upvoteText = this.innerHTML;
+                        const upvoteCount = data.data.upvotes;
+                        this.innerHTML = `<i data-feather="thumbs-up" class="feather-sm me-1"></i> Helpful (${upvoteCount})`;
+                        feather.replace();
+                    } else {
+                        alert('Error upvoting reply: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while upvoting the reply.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

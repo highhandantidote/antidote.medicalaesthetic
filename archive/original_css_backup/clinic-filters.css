@@ -1,0 +1,194 @@
+/* Clinic Filters Styling */
+.dropdown-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item .fw-medium {
+    font-weight: 500;
+}
+
+.dropdown-item small {
+    font-size: 0.875rem;
+}
+
+/* Dropdown arrow styling */
+.dropdown-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+    font-size: 0.875rem;
+    z-index: 2;
+}
+
+.dropdown-arrow:hover {
+    color: #00A0B0;
+}
+
+/* Advanced Filters Toggle */
+#clinicAdvancedFiltersToggle {
+    color: #00A0B0;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#clinicAdvancedFiltersToggle:hover {
+    color: #008A98;
+    text-decoration: none !important;
+}
+
+#clinicAdvancedFiltersToggle i {
+    transition: transform 0.3s ease;
+}
+
+#clinicAdvancedFiltersSection {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+}
+
+/* Location button styling */
+#useLocationBtn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    color: #00A0B0;
+    border: none;
+    background: none;
+}
+
+#useLocationBtn:hover {
+    color: #008A98;
+}
+
+/* Enhanced search input */
+#clinicSearchInput {
+    border-right: none;
+}
+
+#clinicSearchInput:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 176, 0.25);
+    border-color: #00A0B0;
+}
+
+/* Form controls focus states */
+.form-control:focus,
+.form-select:focus {
+    border-color: #00A0B0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 176, 0.25);
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #00A0B0;
+    border-color: #00A0B0;
+}
+
+.btn-primary:hover {
+    background-color: #008A98;
+    border-color: #008A98;
+}
+
+.btn-outline-secondary {
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .dropdown-suggestions {
+        position: fixed;
+        left: 1rem;
+        right: 1rem;
+        max-height: 250px;
+    }
+    
+    #clinicAdvancedFiltersSection .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    #clinicAdvancedFiltersSection .col-md-6,
+    #clinicAdvancedFiltersSection .col-lg-3 {
+        padding-left: 0;
+        padding-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading input,
+.loading select {
+    background-color: #f8f9fa;
+}
+
+/* Suggestion icons */
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Input group enhancements */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.position-relative {
+    position: relative;
+}
+
+/* Smooth transitions */
+.form-control,
+.form-select {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Filter section styling */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Advanced filters section animation */
+#clinicAdvancedFiltersSection {
+    transition: all 0.3s ease;
+}

@@ -1,0 +1,32 @@
+{
+  "table": "doctor_categories",
+  "schema": [
+    {
+      "name": "id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "doctor_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "category_id",
+      "type": "integer",
+      "nullable": false
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "name": "is_verified",
+      "type": "boolean",
+      "nullable": true
+    }
+  ],
+  "data": [],
+  "count": 0
+}

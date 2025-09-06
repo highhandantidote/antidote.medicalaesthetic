@@ -1,0 +1,94 @@
+Fix the Edit Route:
+Open routes.py and ensure the edit route is defined:
+python
+
+Copy
+@web.route('/dashboard/community/edit/<int:thread_id>', methods=['GET', 'POST'])
+def edit_thread(thread_id):
+    thread = Community.query.get_or_404(thread_id)
+    if request.method == 'POST':
+        thread.title = request.form['title']
+        thread.category = request.form['category']
+        db.session.commit()
+        return redirect(url_for('web.community_dashboard'))
+    return render_template('edit_thread.html', thread=thread)
+Create a basic edit_thread.html template if missing:
+html
+
+Copy
+<!-- templates/edit_thread.html -->
+<form method="POST">
+    <input name="title" value="{{ thread.title }}" required>
+    <select name="category">
+        <option value="Facial Surgery" {% if thread.category == "Facial Surgery" %}selected{% endif %}>Facial Surgery</option>
+        <option value="Non-Surgical Treatments" {% if thread.category == "Non-Surgical Treatments" %}selected{% endif %}>Non-Surgical Treatments</option>
+    </select>
+    <button type="submit">Save</button>
+</form>
+Verify JavaScript and HTML Alignment:
+Ensure dashboard_community.html includes the script and correct button structure:
+html
+
+Copy
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<tr data-thread-id="{{ thread.id }}">
+    <td>{{ thread.title }}</td>
+    <td>{{ thread.author }}</td>
+    <td>{{ thread.category }}</td>
+    <td>{{ thread.created }}</td>
+    <td>{{ thread.replies }}</td>
+    <td class="actions">
+        <button>View</button>
+        <button>Edit</button>
+        <button>Delete</button>
+    </td>
+</tr>
+Confirm static/js/main.js has the debug logging:
+javascript
+
+Copy
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    const createButton = document.querySelector('.create-thread');
+    if (createButton) {
+        createButton.addEventListener('click', () => {
+            console.log('Create Thread clicked');
+            window.location.href = '/dashboard/community/create';
+        });
+    } else {
+        console.log('Create Thread button not found');
+    }
+
+    document.querySelectorAll('.actions button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            console.log('Action clicked:', e.target.textContent, 'Thread ID:', button.closest('tr')?.dataset.threadId);
+            const action = e.target.textContent.toLowerCase();
+            const threadId = button.closest('tr')?.dataset.threadId;
+            if (threadId) {
+                if (action === 'view') window.location.href = `/community/thread/${threadId}`;
+                else if (action === 'edit') window.location.href = `/dashboard/community/edit/${threadId}`;
+                else if (action === 'delete') {
+                    if (confirm('Are you sure?')) {
+                        fetch(`/api/community/${threadId}`, { method: 'DELETE' })
+                            .then(response => response.json())
+                            .then(data => location.reload());
+                    }
+                }
+            } else {
+                console.log('Thread ID not found for action:', action);
+            }
+        });
+    });
+});
+Test and Debug:
+Restart the application.
+Navigate to /dashboard/community:
+Click "Edit" on thread 2, check for the console log, and confirm the edit page loads.
+Click "Create Thread," "View," and "Delete" to test all actions, noting console output.
+Take a screenshot of the dashboard with the console open (F12) showing logs or errors.
+Navigate to /community/thread/3:
+Verify sample.jpg displays and the media preview modal works without freezing.
+Take a screenshot.
+Provide Output:
+Share updated routes.py, dashboard_community.html, static/js/main.js, edit_thread.html (if created), logs, and screenshots.
+Respond to Replit’s question and your feedback: "I tested /dashboard/community, and the console shows [insert logs/errors]. The 'Edit' button on thread 2 returns a 404, which I suspect is due to a missing route—I’ve added it. The media preview on /community/thread/3 works with sample.jpg and no freezing. Please verify the route fix and check the console for action logs."

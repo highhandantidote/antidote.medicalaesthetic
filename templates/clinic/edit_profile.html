@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Clinic Profile - {{ clinic.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/clinic/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Edit Profile</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Edit Clinic Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form action="/clinic/profile/update" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Basic Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Clinic Name *</label>
+                                <input type="text" class="form-control" name="name" value="{{ clinic.name }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" name="contact_number" value="{{ clinic.contact_number or '' }}">
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="4" placeholder="Tell patients about your clinic, services, and what makes you special">{{ clinic.description or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Specialties -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Specialties</h5>
+                                <label class="form-label">Areas of Expertise</label>
+                                <textarea class="form-control" name="specialties" rows="3" placeholder="Enter specialties separated by commas (e.g., Rhinoplasty, Botox, Fillers, Hair Transplant)">{{ clinic.specialties or '' }}</textarea>
+                                <div class="form-text">Separate each specialty with a comma</div>
+                            </div>
+                        </div>
+
+                        <!-- Services -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Services & Facilities</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Services Offered</label>
+                                    <textarea class="form-control" name="services_offered" rows="4" placeholder="List all services and treatments you provide">{{ clinic.services_offered or '' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Clinic Highlights</label>
+                                    <textarea class="form-control" name="highlights" rows="3" placeholder="Key features and benefits that set your clinic apart">{{ clinic.highlights or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Working Hours -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Working Hours</h5>
+                                <label class="form-label">Operating Hours</label>
+                                <textarea class="form-control" name="working_hours" rows="3" placeholder="Monday-Friday: 9:00 AM - 8:00 PM&#10;Saturday: 9:00 AM - 6:00 PM&#10;Sunday: Closed">{{ clinic.working_hours or '' }}</textarea>
+                                <div class="form-text">Enter your operating hours for each day of the week</div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Location</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea class="form-control" name="address" rows="2">{{ clinic.address or '' }}</textarea>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">City</label>
+                                <input type="text" class="form-control" name="city" value="{{ clinic.city or '' }}">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">State</label>
+                                <input type="text" class="form-control" name="state" value="{{ clinic.state or '' }}">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" class="form-control" name="pincode" value="{{ clinic.pincode or '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Contact Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" value="{{ clinic.email or '' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">WhatsApp Number</label>
+                                <input type="tel" class="form-control" name="whatsapp_number" value="{{ clinic.whatsapp_number or '' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Website URL</label>
+                                <input type="url" class="form-control" name="website" value="{{ clinic.website or '' }}" placeholder="https://yourwebsite.com">
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="/clinic/dashboard" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Profile Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Profile Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if clinic.profile_image %}
+                        <img src="{{ clinic.profile_image }}" alt="Clinic Logo" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                            <i class="fas fa-clinic-medical fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <h6 class="mt-2 mb-1">{{ clinic.name }}</h6>
+                        <small class="text-muted">{{ clinic.city }}, {{ clinic.state }}</small>
+                    </div>
+                    
+                    <div class="small">
+                        <div class="mb-2">
+                            <strong>Status:</strong>
+                            {% if clinic.is_approved %}
+                            <span class="badge bg-success">Approved</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending Approval</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if clinic.rating %}
+                        <div class="mb-2">
+                            <strong>Rating:</strong>
+                            <span class="text-warning">
+                                {% for i in range(5) %}
+                                    {% if i < clinic.rating|int %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            <small class="text-muted">({{ clinic.review_count or 0 }} reviews)</small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            <strong>Profile Views:</strong> {{ clinic.view_count or 0 }}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <strong>Lead Count:</strong> {{ clinic.lead_count or 0 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="/clinic/view/{{ clinic.id }}" class="btn btn-outline-primary btn-sm w-100" target="_blank">
+                        <i class="fas fa-external-link-alt me-1"></i>View Public Profile
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/clinic/packages/add" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add Treatment Package
+                        </a>
+                        <a href="/clinic/dashboard" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-chart-line me-1"></i>View Analytics
+                        </a>
+                        <a href="/clinic/billing-dashboard" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-credit-card me-1"></i>Billing Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-save form data to localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, textarea, select');
+    
+    // Load saved data
+    inputs.forEach(input => {
+        const saved = localStorage.getItem('clinic_edit_' + input.name);
+        if (saved && !input.value) {
+            input.value = saved;
+        }
+    });
+    
+    // Save data on change
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            localStorage.setItem('clinic_edit_' + this.name, this.value);
+        });
+    });
+    
+    // Clear saved data on successful submit
+    form.addEventListener('submit', function() {
+        inputs.forEach(input => {
+            localStorage.removeItem('clinic_edit_' + input.name);
+        });
+    });
+});
+</script>
+{% endblock %}

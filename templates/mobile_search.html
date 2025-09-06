@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Search - Antidote{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Use the same search functionality from header -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="text-gradient fw-bold mb-4 text-center">Find Procedures & Doctors</h2>
+                    
+                    <!-- Search Form -->
+                    <form action="{{ url_for('web.search') }}" method="GET" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           name="q" 
+                                           placeholder="Search procedures, doctors, or treatments..."
+                                           value="{{ request.args.get('q', '') }}"
+                                           style="border-radius: 25px 0 0 25px;">
+                                    <button class="btn btn-primary px-4" 
+                                            type="submit" 
+                                            style="border-radius: 0 25px 25px 0; background: linear-gradient(135deg, #00A0B0, #30C2D0); border: none;">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Quick Search Categories -->
+                    <div class="text-center">
+                        <p class="text-muted mb-3">Popular Searches:</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a href="{{ url_for('web.search') }}?q=rhinoplasty" class="btn btn-outline-primary btn-sm rounded-pill">Rhinoplasty</a>
+                            <a href="{{ url_for('web.search') }}?q=breast augmentation" class="btn btn-outline-primary btn-sm rounded-pill">Breast Augmentation</a>
+                            <a href="{{ url_for('web.search') }}?q=liposuction" class="btn btn-outline-primary btn-sm rounded-pill">Liposuction</a>
+                            <a href="{{ url_for('web.search') }}?q=tummy tuck" class="btn btn-outline-primary btn-sm rounded-pill">Tummy Tuck</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            {% if request.args.get('q') %}
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="fw-bold mb-3">Search Results for "{{ request.args.get('q') }}"</h3>
+                    
+                    <!-- Results will be populated by the existing search functionality -->
+                    {% if procedures %}
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3">Procedures</h4>
+                        <div class="row">
+                            {% for procedure in procedures %}
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">{{ procedure.name }}</h5>
+                                        <p class="card-text text-muted small">{{ procedure.category.name if procedure.category else '' }}</p>
+                                        {% if procedure.min_cost and procedure.max_cost %}
+                                        <p class="text-success fw-semibold">₹{{ "{:,}".format(procedure.min_cost) }} - ₹{{ "{:,}".format(procedure.max_cost) }}</p>
+                                        {% endif %}
+                                        <a href="{{ url_for('web.procedure_detail', procedure_id=procedure.id) }}" class="btn btn-sm btn-primary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if doctors %}
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3">Doctors</h4>
+                        <div class="row">
+                            {% for doctor in doctors %}
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card border-0 h-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">{{ doctor.name }}</h5>
+                                        <p class="card-text text-muted small">{{ doctor.specialization }}</p>
+                                        <p class="card-text text-muted small">{{ doctor.location }}</p>
+                                        {% if doctor.rating %}
+                                        <div class="mb-2">
+                                            <span class="text-warning">
+                                                {% for i in range(5) %}
+                                                    {% if i < doctor.rating|round %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <small class="text-muted">({{ "%.1f"|format(doctor.rating) }})</small>
+                                        </div>
+                                        {% endif %}
+                                        <a href="{{ url_for('web.doctor_detail', doctor_id=doctor.id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if not procedures and not doctors and request.args.get('q') %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search text-muted" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted mt-3">No results found</h4>
+                        <p class="text-muted">Try searching with different keywords or browse our categories below.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

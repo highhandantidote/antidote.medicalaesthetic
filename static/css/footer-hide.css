@@ -1,0 +1,15 @@
+/* Hide footer on all pages except homepage */
+body:not(.homepage) footer {
+    display: none !important;
+}
+
+/* Ensure main content adjusts properly when footer is hidden */
+body:not(.homepage) main {
+    margin-bottom: 0 !important;
+    padding-bottom: 2rem !important;
+}
+
+/* Adjust mobile bottom navigation positioning when footer is hidden */
+body:not(.homepage) .mobile-bottom-nav {
+    bottom: 0 !important;
+}

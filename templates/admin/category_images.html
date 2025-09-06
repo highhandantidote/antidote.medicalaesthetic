@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block title %}Category Image Management | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Category Image Management</h1>
+                <a href="/admin/dashboard" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Category List Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-images me-2"></i>Category Images ({{ categories|length }} categories)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Image</th>
+                            <th>Category Name</th>
+                            <th>Body Part</th>
+                            <th style="width: 100px;">Procedures</th>
+                            <th style="width: 250px;">Upload New Image</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <!-- Current Image -->
+                            <td class="text-center align-middle">
+                                {% if category.image_url and category.image_url.strip() %}
+                                    <img src="{{ category.image_url }}" alt="{{ category.name }}" 
+                                         class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Category Info -->
+                            <td class="align-middle">
+                                <strong>{{ category.name }}</strong>
+                                {% if not category.image_url or not category.image_url.strip() %}
+                                    <br><small class="text-danger">No image uploaded</small>
+                                {% else %}
+                                    <br><small class="text-success">✓ Image uploaded</small>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="align-middle">
+                                <span class="badge bg-secondary">{{ category.body_part.name if category.body_part else 'No Body Part' }}</span>
+                            </td>
+                            
+                            <td class="align-middle text-center">
+                                <span class="badge bg-info">{{ category.procedures|length if category.procedures else 0 }}</span>
+                            </td>
+                            
+                            <!-- Upload Form -->
+                            <td class="align-middle">
+                                <form action="{{ url_for('web.upload_category_image', category_id=category.id) }}" 
+                                      method="post" enctype="multipart/form-data" class="d-flex gap-2 upload-form-{{ category.id }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="file" class="form-control form-control-sm" 
+                                           name="image" accept="image/*" style="font-size: 12px;" required>
+                                    <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                                        <i class="fas fa-upload"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td class="align-middle">
+                                {% if category.image_url %}
+                                <a href="{{ url_for('web.remove_category_image', category_id=category.id) }}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Remove image for {{ category.name }}?')" 
+                                   title="Remove Image">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if not categories %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-info-circle text-muted fa-3x mb-3"></i>
+            <h5 class="text-muted">No categories found</h5>
+            <p class="text-muted">Please add some categories first before uploading images.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Usage Guidelines -->
+    <div class="card mt-4 border-info">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Image Upload Guidelines</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6 class="text-info">File Requirements:</h6>
+                    <ul class="mb-0 small">
+                        <li>Format: PNG, JPG, or SVG</li>
+                        <li>Size: Under 5MB</li>
+                        <li>Dimensions: 200x200px recommended</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-info">Best Practices:</h6>
+                    <ul class="mb-0 small">
+                        <li>Use consistent style</li>
+                        <li>High contrast colors</li>
+                        <li>Simple, clear designs</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-info">Upload Process:</h6>
+                    <ul class="mb-0 small">
+                        <li>Select file and click upload</li>
+                        <li>Images appear instantly</li>
+                        <li>Visible on homepage/category pages</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+.upload-form-loading .btn {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.upload-form-loading .btn i:before {
+    content: "\f110";
+    animation: fa-spin 1s infinite linear;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+.form-control-sm {
+    font-size: 12px;
+}
+
+.img-thumbnail {
+    border: 2px solid #dee2e6;
+    transition: border-color 0.2s ease;
+}
+
+.img-thumbnail:hover {
+    border-color: #007bff;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.uploading {
+    animation: pulse 1s infinite;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submissions with visual feedback
+    document.querySelectorAll('form[class*="upload-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const fileInput = form.querySelector('input[type="file"]');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Check if file is selected
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Please select an image file first.');
+                return;
+            }
+            
+            // Check file size (5MB limit)
+            if (fileInput.files[0].size > 5 * 1024 * 1024) {
+                e.preventDefault();
+                alert('File is too large. Please upload an image under 5MB.');
+                return;
+            }
+            
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
+            if (!allowedTypes.includes(fileInput.files[0].type)) {
+                e.preventDefault();
+                alert('Please upload a valid image file (JPG, PNG, or SVG).');
+                return;
+            }
+            
+            // Show loading state
+            form.classList.add('upload-form-loading');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            submitBtn.disabled = true;
+            
+            // Find the row and add uploading class
+            const row = form.closest('tr');
+            if (row) {
+                row.classList.add('uploading');
+                
+                // Create a preview of the image while uploading
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = row.querySelector('img, .bg-light');
+                    if (imgElement && imgElement.tagName === 'IMG') {
+                        imgElement.src = e.target.result;
+                        imgElement.style.opacity = '0.5';
+                    } else if (imgElement) {
+                        // Replace placeholder with image preview
+                        const newImg = document.createElement('img');
+                        newImg.src = e.target.result;
+                        newImg.className = 'img-thumbnail';
+                        newImg.style.width = '50px';
+                        newImg.style.height = '50px';
+                        newImg.style.objectFit = 'cover';
+                        newImg.style.opacity = '0.5';
+                        imgElement.parentNode.replaceChild(newImg, imgElement);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+    
+    // File input change handler for preview
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Show file name and size info
+                const fileName = file.name;
+                const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+                
+                // Update button text to show file info
+                const btn = this.parentElement.querySelector('button');
+                btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
+                btn.setAttribute('title', `Ready to upload: ${fileName} (${fileSize})`);
+                btn.disabled = false;
+                
+                // Visual feedback that file is selected
+                this.style.borderColor = '#28a745';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}Face Analysis History{% endblock %}
+
+{% block extra_css %}
+<style>
+    .history-container {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .history-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+        display: flex;
+        align-items: center;
+    }
+    
+    .history-title i {
+        margin-right: 0.75rem;
+        color: #4361ee;
+    }
+    
+    .analysis-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        transition: all 0.3s;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .analysis-card:hover {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .analysis-card-header {
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .analysis-card-title {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .analysis-card-body {
+        display: flex;
+        padding: 1rem;
+    }
+    
+    .analysis-card-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 0.25rem;
+        object-fit: cover;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .analysis-card-details {
+        flex: 1;
+    }
+    
+    .analysis-card-summary {
+        color: #4b5563;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .analysis-counts {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .analysis-count-item {
+        display: flex;
+        align-items: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .analysis-count-item i {
+        margin-right: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background-color: #f9fafb;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .empty-state-text {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">Your Face Analysis History</h1>
+            <p class="text-center mb-5">View your previous facial analyses and track changes over time</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="history-container">
+                <h3 class="history-title">
+                    <i class="fas fa-sliders-h"></i> Options
+                </h3>
+                
+                <div class="d-grid gap-2">
+                    <a href="/face-analysis/" class="btn btn-primary mb-3">
+                        <i class="fas fa-plus-circle me-2"></i> New Analysis
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <label class="form-label">Filter by Date</label>
+                    <select class="form-select" id="dateFilter">
+                        <option value="all">All Time</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                        <option value="year">Past Year</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" id="sortFilter">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            {% if analyses %}
+                <div class="history-container">
+                    <h3 class="history-title">
+                        <i class="fas fa-history"></i> Your Analysis History
+                    </h3>
+                    
+                    <div id="analysisCards">
+                        {% for analysis in analyses %}
+                            <div class="analysis-card" data-date="{{ analysis.created_at.isoformat() }}">
+                                <div class="analysis-card-header">
+                                    <h5 class="analysis-card-title">Analysis {{ analysis.id }}</h5>
+                                    <span class="text-secondary">{{ analysis.created_at.strftime('%B %d, %Y') }}</span>
+                                </div>
+                                
+                                <div class="analysis-card-body">
+                                    <img src="{{ url_for('static', filename=analysis.image_path.replace('static/', '')) }}" 
+                                         alt="Analysis {{ analysis.id }}" 
+                                         class="analysis-card-image">
+                                    
+                                    <div class="analysis-card-details">
+                                        <p class="analysis-card-summary">
+                                            {{ analysis.analysis_data.get('overall_summary', 'Analysis completed successfully.') }}
+                                        </p>
+                                        
+                                        <div class="analysis-counts">
+                                            {% set skin_count = analysis.recommendations|selectattr('recommendation_type', 'equalto', 'skin')|list|length %}
+                                            {% set structure_count = analysis.recommendations|selectattr('recommendation_type', 'equalto', 'structure')|list|length %}
+                                            
+                                            <div class="analysis-count-item">
+                                                <i class="fas fa-leaf"></i> {{ skin_count }} Skin Features
+                                            </div>
+                                            
+                                            <div class="analysis-count-item">
+                                                <i class="fas fa-cube"></i> {{ structure_count }} Structure Features
+                                            </div>
+                                        </div>
+                                        
+                                        <a href="/face-analysis/results/{{ analysis.id }}" class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Analyses Yet</h3>
+                    <p class="empty-state-text">You haven't performed any face analyses yet. Start your first analysis to see your results here.</p>
+                    
+                    <a href="/face-analysis/" class="btn btn-primary">
+                        <i class="fas fa-camera me-2"></i> Start Your First Analysis
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFilter = document.getElementById('dateFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const analysisCards = document.getElementById('analysisCards');
+    
+    if (!analysisCards) return;
+    
+    function filterAndSortCards() {
+        // Get all cards
+        const cards = Array.from(analysisCards.querySelectorAll('.analysis-card'));
+        if (cards.length === 0) return;
+        
+        // Apply date filtering
+        const filteredCards = filterCardsByDate(cards, dateFilter.value);
+        
+        // Apply sorting
+        const sortedCards = sortCards(filteredCards, sortFilter.value);
+        
+        // Clear and re-add cards
+        analysisCards.innerHTML = '';
+        sortedCards.forEach(card => {
+            analysisCards.appendChild(card);
+        });
+    }
+    
+    function filterCardsByDate(cards, filter) {
+        if (filter === 'all') return cards;
+        
+        const now = new Date();
+        let cutoffDate;
+        
+        switch (filter) {
+            case 'week':
+                cutoffDate = new Date(now.setDate(now.getDate() - 7));
+                break;
+            case 'month':
+                cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+                break;
+            case 'year':
+                cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                break;
+            default:
+                return cards;
+        }
+        
+        return cards.filter(card => {
+            const cardDate = new Date(card.dataset.date);
+            return cardDate >= cutoffDate;
+        });
+    }
+    
+    function sortCards(cards, sortType) {
+        return cards.sort((a, b) => {
+            const dateA = new Date(a.dataset.date);
+            const dateB = new Date(b.dataset.date);
+            
+            if (sortType === 'newest') {
+                return dateB - dateA;
+            } else {
+                return dateA - dateB;
+            }
+        });
+    }
+    
+    // Add event listeners to filters
+    dateFilter.addEventListener('change', filterAndSortCards);
+    sortFilter.addEventListener('change', filterAndSortCards);
+});
+</script>
+{% endblock %}

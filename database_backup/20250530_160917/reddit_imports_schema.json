@@ -1,0 +1,56 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('reddit_imports_id_seq'::regclass)"
+  },
+  {
+    "name": "reddit_url",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "reddit_post_id",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "import_status",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "imported_by_admin",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "community_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "original_post_data",
+    "type": "json",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "import_date",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "error_message",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  }
+]

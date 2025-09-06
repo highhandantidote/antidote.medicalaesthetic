@@ -1,0 +1,605 @@
+{% extends 'base.html' %}
+
+{% block title %}Community - Antidote Medical Marketplace{% endblock %}
+
+{% block extra_css %}
+    
+    <style>
+        :root {
+            --primary-teal: #00A0B0;
+            --primary-teal-dark: #008A9A;
+            --primary-teal-light: #33B7C7;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --upvote-color: #ff4500;
+            --downvote-color: #7193ff;
+            --reddit-blue: #0079d3;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Header Styles */
+        .community-header {
+            background: white;
+            color: var(--primary-teal);
+            padding: 2rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-teal-light);
+        }
+
+        /* Navigation Pills */
+        .nav-pills .nav-link {
+            color: var(--text-secondary);
+            border-radius: 20px;
+            margin: 0 0.25rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-teal);
+            color: white;
+        }
+
+        .nav-pills .nav-link:hover {
+            background-color: var(--primary-teal-light);
+            color: white;
+        }
+
+        /* Post Card Styles */
+        .post-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .post-card:hover {
+            border-color: var(--primary-teal-light);
+            box-shadow: 0 2px 8px rgba(0, 160, 176, 0.1);
+        }
+
+        .post-vote {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            min-width: 60px;
+            background-color: #fafafa;
+        }
+
+        .vote-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            padding: 0.25rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .vote-btn:hover {
+            color: var(--primary-teal);
+        }
+
+        .vote-btn.upvoted {
+            color: var(--upvote-color);
+        }
+
+        .vote-btn.downvoted {
+            color: var(--downvote-color);
+        }
+
+        .vote-count {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0.25rem 0;
+            color: var(--text-primary);
+        }
+
+        .post-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .post-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .post-title:hover {
+            color: var(--primary-teal);
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .post-badge {
+            background: var(--primary-teal);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .source-badge {
+            background: var(--reddit-blue);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .post-snippet {
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-teal-light);
+            color: white;
+        }
+
+        /* Sidebar Styles */
+        .sidebar-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        /* Create Post Button */
+        .create-post-btn {
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--primary-teal-dark) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .create-post-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 160, 176, 0.3);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .community-header {
+                padding: 1rem 0;
+            }
+            
+            .community-header h1 {
+                font-size: 1.5rem !important; /* Reduced to half of original size */
+            }
+            
+            .post-card {
+                margin-bottom: 0.25rem;
+            }
+            
+            .post-vote {
+                min-width: 50px;
+                padding: 0.25rem;
+            }
+            
+            .post-content {
+                padding: 0.75rem;
+            }
+            
+            .post-title {
+                font-size: 1rem;
+            }
+            
+            .nav-pills {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 0.5rem;
+            }
+            
+            .nav-pills .nav-item {
+                display: inline-block;
+            }
+        }
+
+        /* Loading States */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Professional Badge */
+        .professional-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Community Header -->
+    <div class="community-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">
+                        <i class="fas fa-users me-2"></i>
+                        Community Discussions
+                    </h1>
+                    <p class="mb-0 opacity-90">Share experiences, ask questions, and connect with others on their cosmetic surgery journey</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <button class="btn btn-lg" style="background: var(--primary-teal); color: white; border: none;" onclick="showCreatePost()">
+                        <i class="fas fa-plus me-2"></i>Create Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Navigation Pills -->
+                <div class="mb-3">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-sort="hot" href="#" onclick="loadPosts('hot')">
+                                <i class="fas fa-fire me-1"></i>Hot
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-sort="new" href="#" onclick="loadPosts('new')">
+                                <i class="fas fa-clock me-1"></i>New
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-sort="top" href="#" onclick="loadPosts('top')">
+                                <i class="fas fa-trophy me-1"></i>Top
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-sort="imported" href="#" onclick="loadPosts('imported')">
+                                <i class="fab fa-reddit me-1"></i>From Reddit
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-sort="professional" href="#" onclick="loadPosts('professional')">
+                                <i class="fas fa-user-md me-1"></i>Expert Insights
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Posts Container -->
+                <div id="posts-container">
+                    <!-- Posts will be loaded here via JavaScript -->
+                </div>
+
+                <!-- Load More Button -->
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary" id="load-more-btn" onclick="loadMorePosts()">
+                        Load More Posts
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Create Post Card -->
+                <div class="sidebar-card">
+                    <button class="create-post-btn" onclick="showCreatePost()">
+                        <i class="fas fa-plus me-2"></i>Create Post
+                    </button>
+                    <p class="text-muted small mb-0">Share your experience, ask questions, or start a discussion</p>
+                </div>
+
+                <!-- Community Rules -->
+                <div class="sidebar-card">
+                    <h5 class="sidebar-title">Community Guidelines</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Be respectful and supportive</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Share authentic experiences</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Protect personal information</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Follow medical disclaimers</li>
+                    </ul>
+                </div>
+
+                <!-- Trending Topics -->
+                <div class="sidebar-card">
+                    <h5 class="sidebar-title">Trending Now</h5>
+                    <div id="trending-topics">
+                        <!-- Trending topics will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Professional Experts -->
+                <div class="sidebar-card">
+                    <h5 class="sidebar-title">Featured Experts</h5>
+                    <div id="featured-experts">
+                        <!-- Featured experts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let currentSort = 'hot';
+        let currentPage = 1;
+        let isLoading = false;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPosts('hot');
+            loadTrendingTopics();
+            loadFeaturedExperts();
+        });
+
+        // Load posts based on sort type
+        async function loadPosts(sort) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            currentSort = sort;
+            currentPage = 1;
+            
+            // Update nav active state
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-sort="${sort}"]`).classList.add('active');
+            
+            // Show loading skeleton
+            showLoadingSkeleton();
+            
+            try {
+                const response = await fetch(`/api/community/posts?sort=${sort}&page=${currentPage}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderPosts(data.posts);
+                } else {
+                    showError('Failed to load posts');
+                }
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                showError('Error loading posts');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Load more posts
+        async function loadMorePosts() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            currentPage++;
+            
+            try {
+                const response = await fetch(`/api/community/posts?sort=${currentSort}&page=${currentPage}`);
+                const data = await response.json();
+                
+                if (data.success && data.posts.length > 0) {
+                    appendPosts(data.posts);
+                } else {
+                    document.getElementById('load-more-btn').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading more posts:', error);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Render posts
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '';
+            
+            posts.forEach(post => {
+                container.appendChild(createPostCard(post));
+            });
+        }
+
+        // Append posts for pagination
+        function appendPosts(posts) {
+            const container = document.getElementById('posts-container');
+            
+            posts.forEach(post => {
+                container.appendChild(createPostCard(post));
+            });
+        }
+
+        // Create post card element
+        function createPostCard(post) {
+            const card = document.createElement('div');
+            card.className = 'post-card d-flex';
+            
+            const sourceIndicator = post.source_type === 'reddit' ? 
+                `<span class="source-badge"><i class="fab fa-reddit"></i> Reddit</span>` : 
+                post.is_professional_verified ? 
+                `<span class="professional-badge"><i class="fas fa-user-md"></i> Expert</span>` : '';
+            
+            card.innerHTML = `
+                <div class="post-vote">
+                    <div style="text-align: center; padding: 0.5rem;">
+                        <i class="fas fa-eye" style="color: var(--primary-teal); font-size: 1.2rem;"></i>
+                        <div class="vote-count">${post.view_count || 0}</div>
+                        <small style="color: var(--text-secondary); font-size: 0.7rem;">views</small>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <a href="/community/thread/${post.id}" class="post-title">${post.title}</a>
+                    <div class="post-meta">
+                        <span><i class="fas fa-user"></i> ${post.is_anonymous ? 'Anonymous' : post.user.username}</span>
+                        <span><i class="fas fa-clock"></i> ${formatTime(post.created_at)}</span>
+                        ${sourceIndicator}
+                        ${post.category ? `<span class="post-badge">${post.category.name}</span>` : ''}
+                    </div>
+                    <div class="post-snippet">${truncateText(post.content, 150)}</div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="window.location.href='/community/thread/${post.id}'">
+                            <i class="fas fa-comment"></i> ${post.reply_count} comments
+                        </button>
+                        <button class="action-btn" onclick="sharePost(${post.id})">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                        <button class="action-btn" onclick="savePost(${post.id})">
+                            <i class="fas fa-bookmark"></i> Save
+                        </button>
+                        ${post.source_url ? `<a href="${post.source_url}" target="_blank" class="action-btn" style="text-decoration: none;">
+                            <i class="fas fa-external-link-alt"></i> Original
+                        </a>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // View counts are now displayed instead of voting
+
+        // Show loading skeleton
+        function showLoadingSkeleton() {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = `
+                <div class="post-card d-flex">
+                    <div class="post-vote">
+                        <div class="loading-skeleton" style="width: 30px; height: 60px; border-radius: 4px;"></div>
+                    </div>
+                    <div class="post-content">
+                        <div class="loading-skeleton" style="width: 70%; height: 20px; margin-bottom: 10px; border-radius: 4px;"></div>
+                        <div class="loading-skeleton" style="width: 40%; height: 15px; margin-bottom: 10px; border-radius: 4px;"></div>
+                        <div class="loading-skeleton" style="width: 90%; height: 40px; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            `.repeat(5);
+        }
+
+        // Utility functions
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            
+            if (hours < 1) return 'Just now';
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength).trim() + '...';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = `
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${message}
+                </div>
+            `;
+        }
+
+        function showCreatePost() {
+            window.location.href = '/community/create';
+        }
+
+        // Load trending topics and featured experts
+        async function loadTrendingTopics() {
+            // Implementation for trending topics
+        }
+
+        async function loadFeaturedExperts() {
+            // Implementation for featured experts
+        }
+
+        function sharePost(postId) {
+            // Implementation for sharing
+        }
+
+        function savePost(postId) {
+            // Implementation for saving posts
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,83 @@
+In my Flask app Antidote, on the Doctor Detail Page (/doctors/detail/3) for Dr. John Smith, the "Test User" logged-in account dropdown isn’t showing, and the "Write a Review" button doesn’t open the modal (console error: Uncaught ReferenceError: $ is not defined). The "Save" button works. Fix these issues and test the functionality:
+1. Fix the "Test User" dropdown:
+   - Open templates/base.html and check the navigation bar for the user dropdown:
+     <li class="nav-item dropdown">
+       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+         {{ current_user.email if current_user.is_authenticated else 'Guest' }}
+       </a>
+       <ul class="dropdown-menu" aria-labelledby="userDropdown">
+         <li><a class="dropdown-item" href="{{ url_for('web.logout') }}">Logout</a></li>
+       </ul>
+     </li>
+   - Ensure `current_user` is available (e.g., using Flask-Login: `from flask_login import current_user`).
+   - If missing, add the Flask-Login initialization in app.py:
+     from flask_login import LoginManager
+     login_manager = LoginManager()
+     login_manager.init_app(app)
+     login_manager.login_view = 'web.login'
+   - Restart the application:
+     Restarted Start application
+   - Navigate to /doctors/detail/3 and confirm the "Test User" dropdown appears.
+
+2. Fix the "Write a Review" button:
+   - Check the browser console (F12 > Console) for the error and confirm jQuery is missing.
+   - Open templates/base.html and ensure jQuery is loaded before Bootstrap:
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+   - Open templates/procedure_detail.html (or doctor_detail.html if applicable) and update the button and modal:
+     <button type="button" class="btn btn-info" id="writeReviewButton" data-bs-toggle="modal" data-bs-target="#writeReviewModal">Write a Review</button>
+     <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header">
+             <h5 class="modal-title" id="writeReviewModalLabel">Write a Review</h5>
+             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+             <form id="reviewForm" action="{{ url_for('web.submit_review') }}" method="POST">
+               <input type="hidden" name="doctor_id" value="3">
+               <div class="mb-3">
+                 <label for="rating" class="form-label">Rating (1-5)</label>
+                 <select name="rating" id="rating" class="form-control" required>
+                   <option value="1">1</option>
+                   <option value="2">2</option>
+                   <option value="3">3</option>
+                   <option value="4">4</option>
+                   <option value="5">5</option>
+                 </select>
+               </div>
+               <div class="mb-3">
+                 <label for="comment" class="form-label">Comment</label>
+                 <textarea name="comment" id="comment" class="form-control" required></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Submit Review</button>
+             </form>
+           </div>
+         </div>
+       </div>
+     </div>
+   - Remove any custom JavaScript modal triggers (e.g., `$(document).ready`) since Bootstrap 5 handles this natively.
+   - Restart the application:
+     Restarted Start application
+   - Navigate to /doctors/detail/3, click "Write a Review," and confirm the modal appears without console errors.
+
+3. Test the page:
+   - Navigate to /doctors/detail/3.
+   - Confirm the "Test User" dropdown is visible.
+   - Click "Write a Review" and verify the modal opens with the form.
+   - Submit a review with rating 4 and comment "Great experience" (ensure the submit_review route exists in routes.py).
+   - Check the Reviews tab to see if the review appears.
+   - Check the browser console (F12 > Console) for errors.
+   - Check the Network tab (F12 > Network) for a POST request to /submit-review, confirming a 200 response.
+   - Verify server logs:
+     tail -n 50 /tmp/replit-nix-errors.log
+   - Verify the database:
+     SELECT * FROM reviews WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') AND doctor_id = 3 LIMIT 5;
+     - Expect: A review with rating=4, comment="Great experience", user_id=1, doctor_id=3.
+
+4. Provide a screenshot of /doctors/detail/3 showing:
+   - The "Test User" dropdown.
+   - The review form modal (after clicking "Write a Review").
+   - The submitted review in the Reviews tab.
+5. Share observations for each step, including any errors or issues.
+6. Once fixed, confirm the Doctor Detail Page functionality is resolved and suggest testing /procedure/2 next.

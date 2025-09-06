@@ -1,0 +1,116 @@
+/**
+ * Search Form Specific Fixes
+ * 
+ * Targeted fixes for search-related elements and the autocomplete dropdown
+ * Specifically addresses the comma formatting issues in "Popular:" sections
+ */
+
+/* ------- Search Form Specific Fixes ------- */
+
+/* Fix layout for search components */
+#searchInput, 
+#searchAutocomplete, 
+.search-autocomplete,
+.search-autocomplete-item {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+}
+
+/* Fix autocomplete items - ensure proper display */
+.search-autocomplete-item {
+    display: block !important;
+    white-space: nowrap !important;
+}
+
+/* Fix all links within search components */
+.search-form-container a,
+#searchAutocomplete a,
+.search-autocomplete a,
+.search-autocomplete-item a {
+    display: inline !important;
+    white-space: nowrap !important;
+    vertical-align: baseline !important;
+    position: static !important;
+    line-height: 1.5 !important;
+    float: none !important;
+}
+
+/* Fix all commas within search components */
+.search-form-container span.text-muted,
+#searchAutocomplete span.text-muted,
+.search-autocomplete span.text-muted,
+.search-autocomplete-item span.text-muted {
+    display: inline !important;
+    white-space: nowrap !important;
+    vertical-align: baseline !important;
+    position: static !important;
+    float: none !important;
+    line-height: 1.5 !important;
+    margin-left: 0px !important;
+    margin-right: 3px !important;
+}
+
+/* Ensure that Popular section in search has proper spacing */
+.search-form-container .Popular,
+#searchAutocomplete .Popular {
+    white-space: nowrap !important;
+    line-height: 1.5 !important;
+}
+
+/* Fix entire words to stay together */
+#searchAutocomplete strong,
+.search-autocomplete strong {
+    white-space: nowrap !important;
+    display: inline !important;
+}
+
+/* Targeted fix for the specific search popup visible in the screenshot */
+body .form-control + .Popular {
+    margin-top: 10px !important;
+    display: block !important;
+}
+
+body .form-control + .Popular a,
+body .form-control + .Popular span {
+    display: inline !important;
+    white-space: nowrap !important;
+    float: none !important;
+    line-height: 1.5 !important;
+    vertical-align: baseline !important;
+}
+
+/* Mobile specific fixes for the Popular section */
+@media (max-width: 768px) {
+    /* Fix alignment for "Popular:" label and scrolling content in mobile view */
+    .mt-2.position-relative.d-flex.align-items-center {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: baseline !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+    
+    /* Make the "Popular:" label stay in place */
+    .hero-popular-label {
+        display: inline-block !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        margin-right: 15px !important; /* Increased from 5px to 15px for more space */
+    }
+    
+    /* Make scrolling procedures container take remaining width */
+    .scrolling-procedures {
+        width: auto !important;
+        flex-grow: 1 !important;
+        overflow: hidden !important;
+        padding-bottom: 5px !important;
+        position: relative !important;
+    }
+    
+    /* Restore animation for automatic scrolling but keep inline display */
+    .scrolling-procedures .scrolling-content {
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        animation: scroll-left 20s linear infinite !important;
+    }
+}

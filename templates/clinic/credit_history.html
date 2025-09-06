@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Credit Transaction History{% endblock %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('clinic.clinic_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Credit History</li>
+        </ol>
+    </nav>
+
+    <div class="credit-history-page">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-history"></i> Credit Transaction History</h1>
+                    <p class="text-muted">View all your credit transactions and account activity</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-primary" onclick="exportTransactions()">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                    <a href="{{ url_for('clinic.clinic_dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="summary-icon bg-success">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value">₹{{ "{:,.0f}".format(total_credits_added or 0) }}</div>
+                        <div class="summary-label">Total Credits Added</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="summary-icon bg-danger">
+                        <i class="fas fa-minus-circle"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value">₹{{ "{:,.0f}".format(total_credits_used or 0) }}</div>
+                        <div class="summary-label">Total Credits Used</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="summary-icon bg-info">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value">{{ transactions|length }}</div>
+                        <div class="summary-label">Total Transactions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <div class="summary-icon bg-primary">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-value">₹{{ "{:,.0f}".format(current_balance or 0) }}</div>
+                        <div class="summary-label">Current Balance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="topup">Top-up</option>
+                                <option value="debit">Lead Cost</option>
+                                <option value="refund">Refund</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" id="dateFilter">
+                                <option value="">All Time</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="transactions-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Transaction History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="transactionsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Transaction ID</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Balance After</th>
+                                    <th>Payment Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr class="transaction-row" 
+                                    data-type="{{ transaction.transaction_type }}" 
+                                    data-status="{{ transaction.status }}"
+                                    data-date="{{ transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else '' }}">
+                                    <td>
+                                        <div class="transaction-date">
+                                            {{ transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else 'N/A' }}
+                                        </div>
+                                        <div class="transaction-time text-muted">
+                                            {{ transaction.created_at.strftime('%H:%M:%S') if transaction.created_at else '' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code class="transaction-id">{{ transaction.transaction_reference or f'TXN_{transaction.id}' }}</code>
+                                    </td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'topup' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-plus"></i> Top-up
+                                            </span>
+                                        {% elif transaction.transaction_type == 'debit' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-minus"></i> Lead Cost
+                                            </span>
+                                        {% elif transaction.transaction_type == 'refund' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-undo"></i> Refund
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ transaction.transaction_type|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="transaction-description">
+                                            {{ transaction.description or 'No description' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="transaction-amount {% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {% if transaction.amount > 0 %}+{% endif %}₹{{ "{:,.0f}".format(transaction.amount) }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% elif transaction.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                                            {{ transaction.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="balance-after">
+                                            ₹{{ "{:,.0f}".format(transaction.balance_after or 0) }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if transaction.payment_method %}
+                                            <span class="payment-method">{{ transaction.payment_method|title }}</span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                                        <div>No transactions found</div>
+                                        <div class="small">Your transaction history will appear here</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.credit-history-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.summary-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.summary-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+
+.summary-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-section .card,
+.transactions-section .card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-date {
+    font-weight: 500;
+    color: #333;
+}
+
+.transaction-time {
+    font-size: 0.85rem;
+}
+
+.transaction-id {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.transaction-description {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.transaction-amount {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.balance-after {
+    font-weight: 500;
+    color: #495057;
+}
+
+.payment-method {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.table th {
+    border-top: none;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        text-align: center;
+    }
+    
+    .summary-card {
+        margin-bottom: 1rem;
+    }
+    
+    .filter-section .row > div {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<script>
+function exportTransactions() {
+    window.open('/clinic/credits/history/export', '_blank');
+}
+
+function clearFilters() {
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    filterTransactions();
+}
+
+function filterTransactions() {
+    const typeFilter = document.getElementById('typeFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    
+    const rows = document.querySelectorAll('.transaction-row');
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Type filter
+        if (typeFilter && row.dataset.type !== typeFilter) {
+            show = false;
+        }
+        
+        // Status filter
+        if (statusFilter && row.dataset.status !== statusFilter) {
+            show = false;
+        }
+        
+        // Date filter
+        if (dateFilter && row.dataset.date) {
+            const transactionDate = new Date(row.dataset.date);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - parseInt(dateFilter));
+            
+            if (transactionDate < cutoffDate) {
+                show = false;
+            }
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('typeFilter').addEventListener('change', filterTransactions);
+    document.getElementById('statusFilter').addEventListener('change', filterTransactions);
+    document.getElementById('dateFilter').addEventListener('change', filterTransactions);
+});
+</script>
+{% endblock %}

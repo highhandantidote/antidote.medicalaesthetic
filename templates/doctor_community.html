@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Community Engagement | Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <h4>Doctor Profile</h4>
+                    <p>{{ doctor.name }}</p>
+                    <p>★ {{ doctor.rating }} ({{ doctor.review_count }} reviews)</p>
+                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+
+                    <h4 class="mt-4">Dashboard Menu</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}" class="text-white">Overview</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#appointments" class="text-white">Appointments</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_leads', doctor_id=doctor.id) }}" class="text-white">Patient Leads</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_dashboard', doctor_id=doctor.id) }}#reviews" class="text-white">Reviews</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_procedures', doctor_id=doctor.id) }}" class="text-white">My Procedures</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_availability', doctor_id=doctor.id) }}" class="text-white">Availability</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_gallery', doctor_id=doctor.id) }}" class="text-white">Gallery</a></li>
+                        <li class="list-group-item bg-dark text-white active"><a href="{{ url_for('web.doctor_community', doctor_id=doctor.id) }}" class="text-white">Community</a></li>
+                        <li class="list-group-item bg-dark text-white"><a href="{{ url_for('web.doctor_verification', doctor_id=doctor.id) }}" class="text-white">Verification <span class="badge bg-warning">NEW</span></a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Community Stats Card -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Community Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>Responses</div>
+                        <div class="badge bg-primary rounded-pill">{{ community_stats.responses|default(0) }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>Helpful Votes</div>
+                        <div class="badge bg-success rounded-pill">{{ community_stats.helpful_votes|default(0) }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>Threads Started</div>
+                        <div class="badge bg-info rounded-pill">{{ community_stats.threads|default(0) }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>Expert Status</div>
+                        <div class="badge {{ 'bg-success' if community_stats.is_expert|default(false) else 'bg-secondary' }} rounded-pill">
+                            {{ 'Expert' if community_stats.is_expert|default(false) else 'Regular' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Specialty Threads -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Threads In Your Specialty</h3>
+                    <div>
+                        <a href="{{ url_for('web.community_dashboard') }}" class="btn btn-outline-light me-2">
+                            <i class="fas fa-th-list me-1"></i> All Threads
+                        </a>
+                        <a href="{{ url_for('web.create_thread') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> New Thread
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if specialty_threads %}
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Topic</th>
+                                        <th>Category</th>
+                                        <th>Replies</th>
+                                        <th>Posted By</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for thread in specialty_threads %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ url_for('web.thread', thread_id=thread.id) }}" class="text-white">
+                                                    {% if thread.featured %}
+                                                        <span class="badge bg-warning me-1">Featured</span>
+                                                    {% endif %}
+                                                    {{ thread.title }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {% if thread.category %}
+                                                    <span class="badge bg-primary">{{ thread.category.name }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ thread.reply_count|default(0) }}</td>
+                                            <td>
+                                                {% if thread.user %}
+                                                    {% if thread.is_anonymous %}
+                                                        Anonymous
+                                                    {% else %}
+                                                        {{ thread.user.username or thread.user.name }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    Unknown
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ thread.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                <a href="{{ url_for('web.thread', thread_id=thread.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-reply"></i> Answer
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No threads found in your specialty. Threads related to your procedures will appear here.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Your Contributions -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Your Contributions</h4>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-light active" id="responsesTab">Responses</button>
+                        <button type="button" class="btn btn-outline-light" id="threadsTab">Threads</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Responses Tab (default active) -->
+                    <div id="responsesContent">
+                        {% if doctor_responses %}
+                            <div class="list-group list-group-flush">
+                                {% for response in doctor_responses %}
+                                    <div class="list-group-item bg-dark text-white">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <a href="{{ url_for('web.thread', thread_id=response.thread_id) }}" class="text-white">
+                                                        {{ response.thread.title }}
+                                                    </a>
+                                                </h6>
+                                                <p class="mb-1 text-truncate">{{ response.content }}</p>
+                                                <small class="text-muted">{{ response.created_at.strftime('%b %d, %Y') }}</small>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-light text-dark rounded-pill">
+                                                    <i class="fas fa-eye"></i> {{ response.thread.view_count|default(0) }} views
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> You haven't responded to any community threads yet.
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('web.community_dashboard') }}" class="btn btn-primary">
+                                    <i class="fas fa-reply"></i> Start Answering Questions
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Threads Tab (hidden by default) -->
+                    <div id="threadsContent" class="d-none">
+                        {% if doctor_threads %}
+                            <div class="list-group list-group-flush">
+                                {% for thread in doctor_threads %}
+                                    <div class="list-group-item bg-dark text-white">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <a href="{{ url_for('web.thread', thread_id=thread.id) }}" class="text-white">
+                                                        {{ thread.title }}
+                                                    </a>
+                                                </h6>
+                                                <p class="mb-1 text-truncate">{{ thread.content }}</p>
+                                                <small class="text-muted">{{ thread.created_at.strftime('%b %d, %Y') }}</small>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-info rounded-pill">
+                                                    <i class="fas fa-comment"></i> {{ thread.reply_count|default(0) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> You haven't created any threads in the community yet.
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('web.create_thread') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Create New Thread
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Popular Topics Card -->
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h4 class="mb-0">Popular Topics In Your Specialty</h4>
+                </div>
+                <div class="card-body">
+                    {% if popular_topics %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="chart-container" style="position: relative; height: 250px;">
+                                    <canvas id="topicsChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="list-group list-group-flush">
+                                    {% for topic in popular_topics %}
+                                        <a href="{{ url_for('web.community_dashboard', tag=topic.name) }}" class="list-group-item list-group-item-action bg-dark text-white">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>{{ topic.name }}</span>
+                                                <span class="badge bg-primary rounded-pill">{{ topic.count }}</span>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No popular topics found in your specialty.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching
+        const responsesTab = document.getElementById('responsesTab');
+        const threadsTab = document.getElementById('threadsTab');
+        const responsesContent = document.getElementById('responsesContent');
+        const threadsContent = document.getElementById('threadsContent');
+        
+        if (responsesTab && threadsTab) {
+            responsesTab.addEventListener('click', function() {
+                responsesContent.classList.remove('d-none');
+                threadsContent.classList.add('d-none');
+                responsesTab.classList.add('active');
+                threadsTab.classList.remove('active');
+            });
+            
+            threadsTab.addEventListener('click', function() {
+                responsesContent.classList.add('d-none');
+                threadsContent.classList.remove('d-none');
+                responsesTab.classList.remove('active');
+                threadsTab.classList.add('active');
+            });
+        }
+        
+        // Popular topics chart
+        {% if popular_topics %}
+            const topicsCtx = document.getElementById('topicsChart').getContext('2d');
+            new Chart(topicsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        {% for topic in popular_topics %}
+                            '{{ topic.name }}',
+                        {% endfor %}
+                    ],
+                    datasets: [{
+                        label: 'Thread Count',
+                        data: [
+                            {% for topic in popular_topics %}
+                                {{ topic.count }},
+                            {% endfor %}
+                        ],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+.comma-fix{position:relative;display:inline-block}.comma-fix::after{content:',';position:absolute;left:100%;top:0;margin-left:-0.1em}.procedure-list .comma-fix::after,.tag-list .comma-fix::after{color:#6b7280;font-weight:normal}@media (max-width:768px){.comma-fix::after{margin-left:0}}

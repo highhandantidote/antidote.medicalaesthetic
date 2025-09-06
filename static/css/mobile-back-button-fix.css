@@ -1,0 +1,151 @@
+/* Mobile Back Button Critical Fix - Maximum Priority CSS */
+/* This file forces the mobile back button to be visible with the highest specificity */
+
+/* Force Mobile Back Button Visibility - Mobile Only */
+/* Desktop: Hide back button completely */
+@media (min-width: 992px) {
+    .navbar .container .d-flex .mobile-back-btn,
+    button.mobile-back-btn,
+    .btn.mobile-back-btn,
+    .mobile-back-btn.btn.btn-link,
+    .mobile-back-btn.d-lg-none,
+    .floating-back-btn {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+}
+
+/* Mobile: Show back button */
+@media (max-width: 991.98px) {
+    /* Ultra-high specificity selector to override any conflicting styles */
+    .navbar .container .d-flex .mobile-back-btn,
+    button.mobile-back-btn,
+    .btn.mobile-back-btn,
+    .mobile-back-btn.btn.btn-link {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 99999 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 12px !important;
+        margin-right: 8px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        
+        /* Force overrides for any Bootstrap conflicts */
+        font-size: inherit !important;
+        line-height: inherit !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        
+        /* Remove any potential hiding styles */
+        clip: unset !important;
+        clip-path: unset !important;
+        overflow: visible !important;
+        transform: none !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+    }
+    
+    /* Force icon visibility with ultra-high specificity */
+    .navbar .container .d-flex .mobile-back-btn i,
+    button.mobile-back-btn i,
+    .btn.mobile-back-btn i,
+    .mobile-back-btn.btn.btn-link i,
+    .mobile-back-btn .fas,
+    .mobile-back-btn .fa-arrow-left {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: #4FACFE !important;
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        line-height: 1 !important;
+        width: 20px !important;
+        height: 20px !important;
+        text-align: center !important;
+        
+        /* Remove any hiding styles */
+        clip: unset !important;
+        clip-path: unset !important;
+        overflow: visible !important;
+        transform: none !important;
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 0 !important;
+    }
+    
+    /* Hover states */
+    .mobile-back-btn:hover,
+    .mobile-back-btn:focus,
+    .mobile-back-btn:active {
+        background: rgba(79, 172, 254, 0.1) !important;
+        border-radius: 8px !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure the button container has proper layout */
+    .navbar .container .d-flex.align-items-center {
+        align-items: center !important;
+        gap: 0 !important;
+    }
+    
+    /* Force display on non-homepage pages only */
+    body:not(.homepage) .mobile-back-btn {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Hide on homepage */
+    body.homepage .mobile-back-btn {
+        display: none !important;
+    }
+}
+
+/* Desktop: Ensure floating back button is also hidden */
+@media (min-width: 992px) {
+    .floating-back-btn,
+    .mobile-back-btn.d-lg-none {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+}
+
+/* Extra specificity for smaller screens */
+@media (max-width: 768px) {
+    .mobile-back-btn,
+    .floating-back-btn {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 100000 !important;
+    }
+    
+    .mobile-back-btn i {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: #4FACFE !important;
+        font-size: 20px !important;
+    }
+}
+
+/* Debug styles removed - button should be visible now */

@@ -1,0 +1,386 @@
+/* Typography Optimization - Lighter Font Weights for Better Visual Balance */
+
+/* Updated CSS Custom Properties for Typography */
+:root {
+    /* Refined font weight scale - reduced heaviness */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 450;  /* Reduced from 500 */
+    --font-weight-semibold: 500;  /* Reduced from 600 */
+    --font-weight-bold: 600;  /* Reduced from 700 */
+    --font-weight-extra-bold: 700;  /* For special emphasis only */
+}
+
+/* Global Typography Refinements */
+body {
+    font-weight: var(--font-weight-normal);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Headings - Lighter approach */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from semibold */
+    letter-spacing: -0.02em;
+    color: var(--antidote-text);
+}
+
+h1 {
+    font-weight: var(--font-weight-semibold) !important;  /* Only h1 gets semibold */
+    font-size: 1.75rem;
+    letter-spacing: -0.03em;
+}
+
+h2 {
+    font-weight: var(--font-weight-medium) !important;
+    font-size: 1.5rem;
+}
+
+/* Card titles - lighter weight */
+.card-title {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from semibold */
+    font-size: 1.125rem;
+}
+
+/* Navigation - refined weights */
+.navbar-brand h3 {
+    font-weight: var(--font-weight-semibold) !important;  /* Reduced from bold */
+    font-size: 1.5rem;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    font-weight: var(--font-weight-normal) !important;  /* Reduced from medium */
+    transition: all var(--transition-fast) var(--easing);
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    font-weight: var(--font-weight-medium) !important;  /* Subtle weight increase on hover */
+}
+
+/* Buttons - lighter approach */
+.btn {
+    font-weight: var(--font-weight-normal) !important;  /* Reduced from medium */
+    letter-spacing: 0.01em;
+}
+
+.btn-primary, .btn-gradient-primary {
+    font-weight: var(--font-weight-medium) !important;  /* Only primary buttons get medium */
+}
+
+/* Hero section - refined typography */
+.hero-title {
+    font-weight: var(--font-weight-bold) !important;  /* Reduced from 800 */
+    font-size: 1.75rem;
+    letter-spacing: -0.04em;
+}
+
+.hero-subtitle {
+    font-weight: var(--font-weight-normal) !important;
+    font-size: 1rem;
+    color: var(--antidote-text-secondary);
+}
+
+/* Doctor and clinic cards - lighter weights */
+.doctor-card .card-title,
+.clinic-card .card-title {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from semibold */
+}
+
+.doctor-badge-name {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from 600 */
+    font-size: 0.9rem;
+}
+
+.doctor-badge-specialty {
+    font-weight: var(--font-weight-normal) !important;
+    font-size: 0.75rem;
+}
+
+/* Procedure cards - refined */
+.procedure-card .card-title {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Stats and counters - lighter emphasis */
+.counter-card h3 {
+    font-weight: var(--font-weight-semibold) !important;  /* Reduced from bold */
+}
+
+.counter-card p {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+/* Badges and labels - refined */
+.badge {
+    font-weight: var(--font-weight-normal) !important;  /* Reduced from 500 */
+    padding: 0.5em 0.75em;
+}
+
+.badge.bg-primary,
+.badge.bg-gradient-primary {
+    font-weight: var(--font-weight-medium) !important;  /* Only primary badges get medium */
+}
+
+/* Form elements - lighter labels */
+.form-label {
+    font-weight: var(--font-weight-normal) !important;
+    color: var(--antidote-text);
+}
+
+.form-control {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+/* Alert messages - refined */
+.alert {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+.alert-heading {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Footer - lighter text */
+footer h5 {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from semibold */
+}
+
+footer p, footer a {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+/* Testimonials - refined */
+.testimonial-text {
+    font-weight: var(--font-weight-normal) !important;
+    font-style: italic;
+}
+
+.testimonial-author {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Search results - lighter emphasis */
+.search-result-title {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.search-highlight {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--antidote-primary);
+}
+
+/* Category buttons - refined */
+.category-btn {
+    font-weight: var(--font-weight-normal) !important;
+    transition: all 0.3s ease;
+}
+
+.category-btn:hover {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Package cards - lighter approach */
+.package-card .card-title {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.package-price {
+    font-weight: var(--font-weight-semibold) !important;  /* Price gets emphasis */
+}
+
+/* Dropdown menus - refined */
+.dropdown-item {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+.dropdown-item:hover {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Breadcrumb - lighter */
+.breadcrumb-item {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+.breadcrumb-item.active {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Timeline elements - refined */
+.timeline-title {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.timeline-text {
+    font-weight: var(--font-weight-normal) !important;
+}
+
+/* Special emphasis - only for critical information */
+.text-emphasis {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.text-strong {
+    font-weight: var(--font-weight-semibold) !important;
+}
+
+/* Override any remaining heavy fonts */
+strong, b {
+    font-weight: var(--font-weight-medium) !important;  /* Reduced from bold */
+}
+
+/* Exception for very critical elements that need bold */
+.critical-bold {
+    font-weight: var(--font-weight-bold) !important;
+}
+
+/* Responsive typography adjustments */
+@media (max-width: 768px) {
+    /* Mobile - even lighter weights for better readability */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: var(--font-weight-normal) !important;
+    }
+    
+    h1 {
+        font-weight: var(--font-weight-medium) !important;
+    }
+    
+    .hero-title {
+        font-weight: var(--font-weight-semibold) !important;
+    }
+    
+    .btn {
+        font-weight: var(--font-weight-normal) !important;
+    }
+    
+    .card-title {
+        font-weight: var(--font-weight-normal) !important;
+    }
+}
+
+/* FONT SIZE OPTIMIZATION - Reduce description and text sizes */
+
+/* Card text and descriptions */
+.card-text {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Procedure descriptions */
+.procedure-description {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Doctor descriptions and specialties */
+.doctor-description {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Category descriptions */
+.category-description {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Card subtitles */
+.card-subtitle {
+    font-size: 0.8rem !important;
+}
+
+/* General description classes */
+.description {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Package descriptions */
+.package-description {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Clinic descriptions */
+.clinic-description {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Feature descriptions */
+.feature-description {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Service descriptions */
+.service-description {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Small text elements */
+.small-text {
+    font-size: 0.75rem !important;
+}
+
+/* Muted text */
+.text-muted {
+    font-size: 0.8rem !important;
+}
+
+/* Secondary text */
+.text-secondary {
+    font-size: 0.8rem !important;
+}
+
+/* Reduce paragraph font sizes in cards */
+.card-body p {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Reduce list item font sizes */
+.card-body ul li,
+.card-body ol li {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Section subtitles */
+.section-subtitle {
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+}
+
+/* Hero subtitle */
+.hero-subtitle {
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+}
+
+/* Modal body text */
+.modal-body p {
+    font-size: 0.8rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Alert text */
+.alert {
+    font-size: 0.8rem !important;
+}
+
+/* Toast text */
+.toast-body {
+    font-size: 0.8rem !important;
+}
+
+/* Print styles - lighter weights for better print readability */
+@media print {
+    body, h1, h2, h3, h4, h5, h6 {
+        font-weight: var(--font-weight-normal) !important;
+    }
+    
+    .critical-bold {
+        font-weight: var(--font-weight-semibold) !important;
+    }
+}

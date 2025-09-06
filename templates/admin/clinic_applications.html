@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Clinic Applications - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Clinic Applications Management
+                    </h4>
+                    <p class="mb-0 mt-2">Review and process clinic applications from Google Forms</p>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Actions -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5>Manual Application Entry</h5>
+                                    <p class="mb-3">Add clinic data directly from Google Form responses</p>
+                                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addApplicationModal">
+                                        <i class="fas fa-plus me-1"></i>Add New Application
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5>Bulk Import</h5>
+                                    <p class="mb-3">Import multiple applications from CSV export</p>
+                                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#bulkImportModal">
+                                        <i class="fas fa-upload me-1"></i>Import CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Applications -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Application Date</th>
+                                    <th>Clinic Name</th>
+                                    <th>Contact Person</th>
+                                    <th>Location</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                <tr>
+                                    <td>{{ app.created_at.strftime('%d %b %Y') }}</td>
+                                    <td><strong>{{ app.clinic_name }}</strong></td>
+                                    <td>{{ app.contact_person }}</td>
+                                    <td>{{ app.city }}, {{ app.state }}</td>
+                                    <td>{{ app.email }}</td>
+                                    <td>{{ app.phone }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if app.status == 'pending' %}bg-warning{% endif %}
+                                            {% if app.status == 'approved' %}bg-success{% endif %}
+                                            {% if app.status == 'rejected' %}bg-danger{% endif %}">
+                                            {{ app.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewApplication({{ app.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if app.status == 'pending' %}
+                                            <button class="btn btn-sm btn-success" 
+                                                    onclick="approveApplication({{ app.id }})">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="rejectApplication({{ app.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        No applications found. Start by adding applications from Google Form responses.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Application Modal -->
+<div class="modal fade" id="addApplicationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Clinic Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin.add_clinic_application') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Clinic Name *</label>
+                                <input type="text" class="form-control" name="clinic_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Person *</label>
+                                <input type="text" class="form-control" name="contact_person" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phone *</label>
+                                <input type="tel" class="form-control" name="phone" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Address *</label>
+                        <textarea class="form-control" name="address" rows="2" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">City *</label>
+                                <input type="text" class="form-control" name="city" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">State *</label>
+                                <input type="text" class="form-control" name="state" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" class="form-control" name="pincode">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Website</label>
+                                <input type="url" class="form-control" name="website">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Specialties</label>
+                        <input type="text" class="form-control" name="specialties" 
+                               placeholder="e.g., Plastic Surgery, Dermatology, Hair Transplant">
+                        <small class="form-text text-muted">Separate multiple specialties with commas</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Internal)</label>
+                        <textarea class="form-control" name="notes" rows="2" 
+                                  placeholder="Internal notes about this application"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div class="modal fade" id="bulkImportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Import Applications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin.bulk_import_applications') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">CSV File</label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                        <small class="form-text text-muted">
+                            Upload CSV with columns: clinic_name, contact_person, email, phone, address, city, state, pincode, website, specialties, description
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>CSV Format Requirements:</h6>
+                        <ul class="mb-0">
+                            <li>First row should contain column headers</li>
+                            <li>Required fields: clinic_name, contact_person, email, phone, address, city, state</li>
+                            <li>Optional fields: pincode, website, specialties, description</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import Applications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewApplication(appId) {
+    // Implementation for viewing application details
+    window.location.href = `/admin/clinic-applications/${appId}`;
+}
+
+function approveApplication(appId) {
+    if (confirm('Are you sure you want to approve this application? This will create a clinic profile and send login credentials.')) {
+        fetch(`/admin/clinic-applications/${appId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error approving application: ' + data.message);
+            }
+        });
+    }
+}
+
+function rejectApplication(appId) {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (reason) {
+        fetch(`/admin/clinic-applications/${appId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error rejecting application: ' + data.message);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

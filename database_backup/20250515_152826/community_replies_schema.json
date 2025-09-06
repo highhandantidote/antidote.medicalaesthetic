@@ -1,0 +1,80 @@
+[
+  {
+    "name": "id",
+    "type": "integer",
+    "nullable": false,
+    "default": "nextval('community_replies_id_seq'::regclass)"
+  },
+  {
+    "name": "thread_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "user_id",
+    "type": "integer",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "content",
+    "type": "text",
+    "nullable": false,
+    "default": null
+  },
+  {
+    "name": "is_anonymous",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_doctor_response",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "created_at",
+    "type": "timestamp without time zone",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "upvotes",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "parent_reply_id",
+    "type": "integer",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_expert_advice",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "is_ai_response",
+    "type": "boolean",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "photo_url",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  },
+  {
+    "name": "video_url",
+    "type": "text",
+    "nullable": true,
+    "default": null
+  }
+]

@@ -1,0 +1,98 @@
+Let’s get these updates rolling to make the community page more user-friendly and private.
+
+Add Image Upload to Create Thread:
+Update or create templates/create_thread.html to include an image upload field:
+```html
+<form method="POST" enctype="multipart/form-data">
+    <input name="title" placeholder="Title" required>
+    <textarea name="content" placeholder="Content" required></textarea>
+    <select name="category_id">
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="file" name="image" accept="image/*">
+    <button type="submit">Create Thread</button>
+    <button type="button" onclick="window.location.href='/dashboard/community'">Cancel</button>
+</form>
+Update routes.py to handle the image upload in the create route (add from werkzeug.utils import secure_filename at the top if not present):
+
+python
+
+Copy
+@web.route('/dashboard/community/create', methods=['GET', 'POST'])
+def create_thread():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        category_id = request.form['category_id']
+        new_thread = Community(title=title, content=content, category_id=category_id, author_id=current_user.id)
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('static/media', filename))
+                new_thread.photo_url = filename
+        db.session.add(new_thread)
+        db.session.commit()
+        return redirect(url_for('web.community_dashboard'))
+    return render_template('create_thread.html', categories=Category.query.all())
+If the Community model lacks a content field, update models.py:
+
+python
+
+Copy
+class Community(db.Model):
+    __tablename__ = 'community'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text)  # Add this if missing
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    photo_url = db.Column(db.String(200))
+    user = db.relationship('User', backref='threads')
+Fix Author Name to Use Username:
+Ensure the logged-in user’s username (from Google signup) is used instead of "John Smith." Update routes.py or the model to set author_id to current_user.id, and modify the template to display the username. The model relationship is already included above.
+Update community_thread_detail.html and dashboard_community.html to show the username:
+
+html
+
+Copy
+<!-- Replace {{ thread.author }} with -->
+{{ thread.user.username if thread.user else 'Anonymous' }}
+Adjust the create form to default to the current user’s username (no manual selection needed).
+
+Enable Username Posting Option:
+Since users sign up with usernames via Google, ensure the form doesn’t allow manual author input—auto-populate it from current_user.username. If you want a dropdown of existing users for admin purposes, add it conditionally:
+
+html
+
+Copy
+<!-- Optional for admin: -->
+{% if current_user.is_admin %}
+    <select name="author_id" disabled>
+        {% for user in User.query.all() %}
+            <option value="{{ user.id }}" {% if user.id == current_user.id %}selected{% endif %}>{{ user.username }}</option>
+        {% endfor %}
+    </select>
+{% endif %}
+Update Community Discussions to Show Usernames:
+Open templates/community.html and replace author name rendering with usernames:
+
+html
+
+Copy
+<!-- Replace -->
+<span>By {{ thread.author }}</span>
+<!-- With -->
+<span>By {{ thread.user.username if thread.user else 'Anonymous' }}</span>
+Test and Validate:
+Restart the application.
+Navigate to /dashboard/community, click "Create Thread," upload an image (e.g., a test JPG), fill in title and content, select a category, and submit. Verify the new thread appears with the image and your username as author.
+Check /community to ensure all threads show usernames (e.g., not "John Smith").
+Take screenshots of the create form (with image upload), the new thread, and the community page with updated author names.
+Open the console (F12) and logs to catch any errors.
+
+Provide Output:
+Share updated routes.py, create_thread.html, community.html, models.py (if modified), logs, console output, and screenshots.
+Respond: "The create thread form now includes an image upload option. The author name defaults to my username (not John Smith) after login. The community discussions show usernames instead of real names. Please test and confirm the image upload and username display work as expected."

@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Antidote Education Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('education.learn_home') }}">Education Hub</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('education.view_module', module_id=module.id) }}">{{ module.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ quiz.title }}</li>
+        </ol>
+    </nav>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ quiz.title }}</h1>
+            {% if quiz.description %}
+            <p class="lead">{{ quiz.description }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Module
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card bg-dark border-info mb-4">
+                <div class="card-header bg-info bg-opacity-10 text-info d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-question-circle me-2"></i>Quiz Questions</h4>
+                    <span class="badge bg-info">{{ questions|length }} Questions</span>
+                </div>
+                <div class="card-body">
+                    {% if previous_attempt and previous_attempt.passed %}
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle me-2"></i> You've already passed this quiz with a score of {{ previous_attempt.score }}%. You can retake it to improve your score.
+                    </div>
+                    {% endif %}
+                    
+                    {% if questions %}
+                    <form action="{{ url_for('education.submit_quiz', quiz_id=quiz.id) }}" method="POST" id="quizForm">
+                        {% for question in questions %}
+                        <div class="quiz-question mb-4 p-3 border border-light rounded">
+                            <h5 class="mb-3">{{ loop.index }}. {{ question.question_text }}</h5>
+                            
+                            {% if question.question_type == 'multiple_choice' %}
+                                <div class="options">
+                                    {% for option in question.options %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" 
+                                               id="q{{ question.id }}_option{{ loop.index }}" 
+                                               value="{{ option }}">
+                                        <label class="form-check-label" for="q{{ question.id }}_option{{ loop.index }}">
+                                            {{ option }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% elif question.question_type == 'true_false' %}
+                                <div class="options">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" 
+                                               id="q{{ question.id }}_true" 
+                                               value="True">
+                                        <label class="form-check-label" for="q{{ question.id }}_true">
+                                            True
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" 
+                                               id="q{{ question.id }}_false" 
+                                               value="False">
+                                        <label class="form-check-label" for="q{{ question.id }}_false">
+                                            False
+                                        </label>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="form-group">
+                                    <input type="text" class="form-control" name="question_{{ question.id }}" 
+                                           placeholder="Enter your answer here">
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('education.view_module', module_id=module.id) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            {% if current_user.is_authenticated %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Answers
+                            </button>
+                            {% else %}
+                            <div>
+                                <div class="alert alert-warning mb-3">
+                                    <i class="fas fa-exclamation-circle me-2"></i> You need to be logged in to submit this quiz.
+                                </div>
+                                <a href="{{ url_for('web.login') }}" class="btn btn-outline-info">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Continue
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i> This quiz has no questions yet. Please check back later.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card bg-dark border-secondary mb-4 sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Quiz Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush bg-transparent mb-3">
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                            <span>Module:</span>
+                            <span class="fw-bold">{{ module.title }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                            <span>Questions:</span>
+                            <span class="fw-bold">{{ questions|length }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                            <span>Passing Score:</span>
+                            <span class="fw-bold text-info">{{ quiz.passing_score }}%</span>
+                        </li>
+                        {% if previous_attempt %}
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-0">
+                            <span>Your Best Score:</span>
+                            <span class="fw-bold {% if previous_attempt.passed %}text-success{% else %}text-warning{% endif %}">
+                                {{ previous_attempt.score }}%
+                            </span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    
+                    <div class="alert bg-dark border border-info text-info">
+                        <i class="fas fa-lightbulb me-2"></i> <strong>Tip:</strong> Answer all questions to complete the quiz. You can retake quizzes to improve your score.
+                    </div>
+                    
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div class="progress-bar bg-info progress-bar-striped" role="progressbar" style="width: 0%" id="quizProgress"></div>
+                    </div>
+                    <p class="small text-end text-muted mb-0" id="progressText">0 of {{ questions|length }} answered</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Track quiz progress
+    const quizForm = document.getElementById('quizForm');
+    const quizProgress = document.getElementById('quizProgress');
+    const progressText = document.getElementById('progressText');
+    const totalQuestions = {{ questions|length }};
+    
+    if (quizForm) {
+        const inputs = quizForm.querySelectorAll('input[type="radio"], input[type="text"]');
+        let answeredQuestions = new Set();
+        
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Extract question ID from the name attribute
+                const questionId = this.name.split('_')[1];
+                
+                if (this.type === 'radio' && this.checked) {
+                    answeredQuestions.add(questionId);
+                } else if (this.type === 'text' && this.value.trim() !== '') {
+                    answeredQuestions.add(questionId);
+                } else if (this.type === 'text' && this.value.trim() === '') {
+                    answeredQuestions.delete(questionId);
+                }
+                
+                // Update progress
+                updateProgress(answeredQuestions.size);
+            });
+        });
+        
+        function updateProgress(answered) {
+            const percentage = Math.round((answered / totalQuestions) * 100);
+            quizProgress.style.width = percentage + '%';
+            progressText.textContent = answered + ' of ' + totalQuestions + ' answered';
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .quiz-question {
+        transition: transform 0.2s ease;
+    }
+    
+    .quiz-question:hover {
+        transform: translateY(-2px);
+    }
+    
+    .form-check-input:checked {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+</style>
+{% endblock %}

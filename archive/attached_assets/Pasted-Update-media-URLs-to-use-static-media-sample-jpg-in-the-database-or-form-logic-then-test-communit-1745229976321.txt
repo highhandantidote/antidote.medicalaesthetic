@@ -1,0 +1,69 @@
+Update media URLs to use /static/media/sample.jpg in the database or form logic, then test /community/thread/3 with a reply containing the image.
+Fix Media URL Configuration:
+Update the application to use local media (e.g., static/media/sample.jpg) instead of external URLs. Check where media URLs are set (e.g., in the database or thread/reply models) and replace with relative paths like /static/media/sample.jpg.
+Example adjustment in community_replies model or form submission logic:
+python
+
+Copy
+# In models.py or routes.py
+reply.media_url = '/static/media/sample.jpg'  # Replace external URL
+Re-test serve_media by accessing /api/media/static/media/sample.jpg with curl and log the result.
+Validate Nested Replies and Media in UI:
+Ensure community_thread_detail and reply_template.html are correctly implemented (as per previous code).
+Navigate to /community/thread/3 in the browser:
+Confirm 5 levels of nested replies are visible.
+Add a test reply with sample.jpg (upload or set via code) and verify it displays.
+Take a screenshot showing the nested structure and media.
+Test Reply Submission:
+Ensure static/js/main.js and community_thread_detail.html include the provided code (already edited, but confirm):
+javascript
+
+Copy
+function createReply(threadId, content) {
+    fetch(`/api/community/${threadId}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content, is_anonymous: false })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) location.reload();
+        else alert(data.message);
+    })
+    .catch(error => console.error('Error:', error));
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.reply-form').forEach(form => {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const threadId = form.dataset.threadId;
+            const content = form.querySelector('textarea').value;
+            createReply(threadId, content);
+        });
+    });
+});
+html
+
+Copy
+<form class="reply-form" data-thread-id="{{ thread.id }}">
+    <textarea name="content" required></textarea>
+    <button type="submit">Submit Reply</button>
+</form>
+Submit a test reply on /community/thread/3 and confirm it appears (check logs for POST activity).
+Take a screenshot of the submitted reply.
+Validate Dashboards:
+Test /dashboard/community and /dashboard/doctor/1 in the browser.
+Confirm the community dashboard lists threads (e.g., thread 3) and the doctor dashboard shows the rating fix.
+Take screenshots of both.
+Comprehensive Testing:
+Restart the application.
+Test:
+/community/thread/3 for nested replies, media, and reply submission.
+/dashboard/doctor/1 for the rating fix.
+/dashboard/community for thread listing.
+API endpoints (/api/community, /api/community-replies/3, /api/media/static/media/sample.jpg) with curl and log results.
+Update and save: routes.py, community_reply_routes.py (if modified), community_thread_detail.html, reply_template.html, dashboard_community.html, static/js/main.js.
+Generate detailed logs (e.g., media serving, reply submission, dashboard access).
+Provide Output:
+Share updated files, logs, and screenshots (community thread with 5-level nesting and media, doctor dashboard, community dashboard).
+Respond to FL’s request: "Yes, /community/thread/3 loads correctly with 5 levels of nested replies and media (sample.jpg) now displays after fixing the URL configuration. The community dashboard at /dashboard/community also loads correctly."

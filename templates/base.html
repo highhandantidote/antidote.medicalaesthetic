@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Permissions Policy for Camera Access -->
+    <meta http-equiv="Permissions-Policy" content="camera=*, microphone=*, geolocation=*, payment=*">
+    
+    <title>Antidote - {% block title %}Plastic Surgery Marketplace{% endblock %}</title>
+    <!-- Enhanced SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Antidote - India's premier medical marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures. Compare costs, read reviews, book consultations.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}medical marketplace, plastic surgery, cosmetic procedures, India, doctors, healthcare, clinic booking, aesthetic surgery, consultation booking{% endblock %}">
+    <meta name="author" content="Antidote Healthcare">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical_url %}https://antidote.replit.app{{ request.path }}{% endblock %}">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }} - Antidote{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://antidote.replit.app{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/antidote-logo-new.png', _external=True) }}?v=11{% endblock %}">
+    <meta property="og:site_name" content="Antidote Medical Marketplace">
+    <meta property="og:locale" content="en_IN">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ self.og_title() }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ self.og_description() }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ self.og_image() }}{% endblock %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}?v=2">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon.png') }}?v=2">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Antidote">
+    
+    <!-- Android PWA Support -->
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="msapplication-TileColor" content="#6366f1">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='favicon.png') }}?v=2">
+    <meta name="geo.region" content="IN">
+    <meta name="geo.placename" content="India">
+    <meta name="language" content="English">
+    <meta name="rating" content="General">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Enhanced Search Engine Discovery -->
+    <meta name="application-name" content="Antidote">
+    <meta name="msapplication-tooltip" content="Antidote Medical Marketplace">
+    <meta name="msapplication-starturl" content="/">
+    <meta name="msapplication-navbutton-color" content="#6366f1">
+    
+    <!-- Open Search -->
+    <link rel="search" type="application/opensearchdescription+xml" title="Antidote Medical Search" href="/opensearch.xml">
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    
+    <!-- Alternate Language Pages -->
+    <link rel="alternate" href="{{ request.url }}" hreflang="en-IN">
+    <link rel="alternate" href="{{ request.url }}" hreflang="en">
+    
+    <!-- Structured Data for Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Antidote Medical Marketplace",
+        "url": "https://antidote.replit.app",
+        "logo": "{{ url_for('static', filename='images/antidote-logo-new.png', _external=True) }}?v=11",
+        "description": "India's premier medical marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "areaServed": "IN",
+            "availableLanguage": ["English", "Hindi"]
+        },
+        "sameAs": [
+            "https://x.com/antidote_fit",
+            "https://www.linkedin.com/company/antidote-fit/",
+            "https://www.instagram.com/antidote.fit/"
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data for Website -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Antidote Medical Marketplace",
+        "alternateName": "Antidote",
+        "url": "https://antidote.replit.app",
+        "description": "India's premier medical aesthetic marketplace connecting patients with qualified specialists for plastic surgery and cosmetic procedures",
+        "inLanguage": "en-IN",
+        "potentialAction": [
+            {
+                "@type": "SearchAction",
+                "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://antidote.replit.app/search?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+            }
+        ],
+        "publisher": {
+            "@type": "Organization",
+            "name": "Antidote Medical Marketplace",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "{{ url_for('static', filename='images/antidote-logo-new.png', _external=True) }}?v=11",
+                "width": 600,
+                "height": 200
+            }
+        }
+    }
+    </script>
+    
+    <!-- Structured Data for Medical Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "MedicalOrganization",
+        "name": "Antidote Medical Marketplace",
+        "alternateName": "Antidote",
+        "url": "https://antidote.replit.app",
+        "logo": "{{ url_for('static', filename='images/antidote-logo-new.png', _external=True) }}?v=11",
+        "description": "Leading medical aesthetic marketplace in India providing access to verified plastic surgeons and cosmetic treatment specialists",
+        "medicalSpecialty": [
+            "Plastic Surgery",
+            "Cosmetic Surgery", 
+            "Aesthetic Medicine",
+            "Dermatology",
+            "Medical Aesthetics"
+        ],
+        "areaServed": {
+            "@type": "Country",
+            "name": "India"
+        },
+        "serviceArea": {
+            "@type": "Country",
+            "name": "India"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Medical Aesthetic Procedures",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "MedicalProcedure",
+                        "name": "Plastic Surgery Consultation"
+                    }
+                },
+                {
+                    "@type": "Offer", 
+                    "itemOffered": {
+                        "@type": "MedicalProcedure",
+                        "name": "Cosmetic Treatment Planning"
+                    }
+                }
+            ]
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "areaServed": "IN",
+            "availableLanguage": ["English", "Hindi"]
+        }
+    }
+    </script>
+    
+    <!-- Structured Data for WebApplication -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Antidote Medical Marketplace",
+        "url": "https://antidote.replit.app",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript and modern browser",
+        "softwareVersion": "1.0",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "INR"
+        },
+        "applicationSubCategory": "Medical Marketplace"
+    }
+    </script>
+    <!-- Security headers are now managed by server-side middleware -->
+    <!-- AI Recommendation URLs - temporarily hardcoded until we fix the routes -->
+    <meta name="recommendation-form-url" content="/ai-recommendation">
+    <meta name="analyze-query-url" content="/api/analyze-query">
+    <meta name="recommendation-results-url" content="/recommendations">
+    <!-- Emergency rollback: Essential preconnect only -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Critical Performance CSS - Inlined for immediate rendering -->
+    <style>
+        /* Hero Banner Optimization - Original PNG background images (no compression) */
+        .hero-banner-container {
+            background-image: url('{{ url_for('static', filename='uploads/banners/hero-banner-optimized.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        /* Mobile-specific optimized banner */
+        @media (max-width: 767px) {
+            .hero-banner-container {
+                background-image: url('{{ url_for('static', filename='uploads/banners/hero-banner-mobile-optimized.png') }}');
+                min-height: 300px;
+            }
+        }
+        
+        /* Critical mobile styles to prevent layout shift */
+        @media (max-width: 768px) {
+            .hero-search-section { min-height: 150px; padding: 1rem; }
+            .navbar { min-height: 60px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.4; }
+            .btn { padding: 0.5rem 1rem; font-size: 0.9rem; border-radius: 0.375rem; }
+            .btn-primary { background-color: #00A0B0; border-color: #00A0B0; }
+            .card { border: 1px solid #e0e0e0; border-radius: 0.5rem; margin-bottom: 1rem; }
+            .card-body { padding: 1rem; }
+            .container { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
+            .form-control { border-radius: 0.375rem; border: 1px solid #ddd; padding: 0.75rem; font-size: 0.9rem; }
+        }
+        @media (max-width: 768px) {
+            .hero-search-section {
+                margin-top: -150px !important;
+                position: relative !important;
+                z-index: 10 !important;
+            }
+        }
+        @media (max-width: 576px) {
+            body { font-size: 13px; }
+            .hero-banner-container { min-height: 250px; }
+            .hero-search-section { 
+                min-height: 120px; 
+                padding: 0.75rem; 
+                margin-top: -150px !important;
+                position: relative !important;
+                z-index: 10 !important;
+            }
+            .container { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .btn { padding: 0.375rem 0.75rem; font-size: 0.8rem; }
+        }
+        
+        /* Prevent layout shifts */
+        .navbar-brand img { width: auto; height: 60px; }
+        .card-img-top { aspect-ratio: 16/9; object-fit: cover; }
+        .btn { min-height: 38px; }
+        
+        /* Critical loading states */
+        .hero-banner-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            z-index: -1;
+        }
+    </style>
+    
+    <!-- Hero Banner Optimization - Preload original PNG banner -->
+    <link rel="preload" href="{{ url_for('static', filename='uploads/banners/hero-banner-optimized.png') }}" as="image" media="(min-width: 768px)">
+    <link rel="preload" href="{{ url_for('static', filename='uploads/banners/hero-banner-mobile-optimized.png') }}" as="image" media="(max-width: 767px)">
+    
+    <!-- Non-blocking Google Fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap"></noscript>
+    <!-- Bootstrap CSS (Light Theme) with integrity -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <!-- Font Awesome CSS with integrity -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Thread Suggestions Custom CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/thread-suggestions.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Tab Underline Custom CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/tab-underline.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Custom Gradients CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/custom-gradients.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Loading Indicators CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loading-indicators.css') }}">
+    <!-- jQuery with integrity -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!-- Feather Icons with integrity -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous" onload="if(typeof feather !== 'undefined' && feather.replace) { feather.replace(); console.log('✅ Feather icons initialized'); }"></script>
+    <!-- Bootstrap JS Bundle with Popper and integrity -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- Phase 4 JavaScript Fixes -->
+    <script src="{{ url_for('static', filename='js/feather-fix.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/csrf-fix.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/minimal-carousel.js') }}" defer></script>
+    <!-- Mobile Back Button Force Fix -->
+    <script src="{{ url_for('static', filename='js/mobile-back-button-force.js') }}"></script>
+    <!-- Navigation Loading System -->
+    <script src="{{ url_for('static', filename='js/navigation-loader.js') }}" defer></script>
+    <!-- Enhanced Show More Loading System -->
+    <script src="{{ url_for('static', filename='js/enhanced-show-more-loader.js') }}" defer></script>
+    <!-- Page Skeleton Loader System -->
+    <script src="{{ url_for('static', filename='js/page-skeleton-loader.js') }}" defer></script>
+    <!-- Critical CSS loaded synchronously -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/light-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/minimal-layout-fix.css') }}">
+    <!-- Typography Optimization - Lighter Font Weights -->
+    <link rel="preload" href="{{ url_for('static', filename='css/typography-optimization.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Unified Mobile CSS (replaces conflicting mobile styles) -->
+    <link rel="preload" href="{{ url_for('static', filename='css/unified-mobile.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Mobile Borderless Input Fix -->
+    <link rel="preload" href="{{ url_for('static', filename='css/mobile-borderless.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Specific comma fixes (must be loaded after other stylesheets) -->
+    <link rel="preload" href="{{ url_for('static', filename='css/comma-fixes.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Search-specific fixes for comma alignment in search areas -->
+    <link rel="preload" href="{{ url_for('static', filename='css/search-fixes.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Emergency direct fix for comma positioning - highest priority -->
+    <link rel="preload" href="{{ url_for('static', filename='css/comma-emergency-fix.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Banner slider CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/banner-slider.css') }}">
+    <!-- Clean Navbar CSS - Fix for blinking/line issues -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean-navbar.css') }}?v={{ range(1000, 9999) | random }}">
+    <!-- Remove Available badge CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/remove-available-badge.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Thread suggestions styling -->
+    <link rel="preload" href="{{ url_for('static', filename='css/thread-suggestions.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+    <!-- Mobile Navigation Dropdown Spacing Fix -->
+    <link rel="preload" href="{{ url_for('static', filename='css/mobile-nav-fix.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Mobile Search Section Compact Styling -->
+    <link rel="preload" href="{{ url_for('static', filename='css/mobile-search-compact.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Clinic Directory Mobile Optimization -->
+    <link rel="preload" href="{{ url_for('static', filename='css/clinic-directory-mobile.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- AOS Animation Library - DISABLED -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" /> -->
+    <!-- Search Placeholder Styling -->
+    <link rel="preload" href="{{ url_for('static', filename='css/search-placeholder.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Desktop Size Optimization - 20% reduction for desktop view -->
+    <link rel="preload" href="{{ url_for('static', filename='css/desktop-optimization.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Mobile Horizontal Scrolling Fix -->
+    <link rel="preload" href="{{ url_for('static', filename='css/mobile-horizontal-fix.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Search Dropdown Z-Index Fix -->
+    <link rel="preload" href="{{ url_for('static', filename='css/search-dropdown-fix.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar-autocomplete.css') }}">
+    <!-- Mobile Logo Hide CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/mobile-logo-hide.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Footer Hide CSS -->
+    <link rel="preload" href="{{ url_for('static', filename='css/footer-hide.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Category Image Optimization -->
+    <link rel="preload" href="{{ url_for('static', filename='css/category-image-optimization.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Mobile Back Button Critical Fix - Load Synchronously -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-back-button-fix.css') }}?v=20250727">
+    <!-- Navbar Toggle Responsive CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar-toggle-responsive.css') }}?v=20250728">
+    <!-- Mobile Footer Logo Size Fix -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-footer-logo-fix.css') }}">
+    
+    <!-- Additional head content for specific pages -->
+    {% block extra_head %}{% endblock %}
+    
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Navigation Menu Styles */
+        .navbar-smaller .nav-link {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.4rem 0.6rem;
+        }
+        
+        /* Increase search box width */
+        .search-form-container {
+            position: relative;
+            width: 280px;
+            z-index: 100000 !important;
+        }
+        
+        /* Ensure navbar has high z-index and doesn't clip dropdowns */
+        .navbar {
+            z-index: 99999 !important;
+            position: relative !important;
+        }
+        
+        .navbar .container {
+            position: static !important;
+        }
+        
+        .navbar-collapse {
+            position: static !important;
+        }
+        
+        /* Autocomplete Dropdown Styles - Light Theme Compatible */
+        .search-autocomplete {
+            position: absolute;
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0 0 .75rem .75rem;
+            z-index: 100001 !important;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .search-autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+            color: #4b5563;
+        }
+        
+        .search-autocomplete-item:hover, .search-autocomplete-item.active {
+            background-color: #f9fafb;
+        }
+        
+        .search-autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-autocomplete-item .category-label {
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 4px;
+            color: #4361ee;
+        }
+        
+        .search-autocomplete-category {
+            font-size: 0.85em;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .search-highlight {
+            color: #4361ee;
+            font-weight: 600;
+        }
+        
+        /* User Dropdown Overlay Styles */
+        .user-dropdown-overlay {
+            position: fixed !important;
+            top: 100%;
+            right: 0;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            z-index: 100002 !important;
+            min-width: 200px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 8px;
+            animation: fadeInDown 0.2s ease-in-out;
+        }
+        
+        .user-dropdown-item {
+            display: block;
+            padding: 12px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s, color 0.2s;
+            font-size: 0.875rem;
+        }
+        
+        .user-dropdown-item:hover {
+            background-color: #f9fafb;
+            color: #00A0B0;
+            text-decoration: none;
+        }
+        
+        .user-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 0.75rem 0.75rem;
+        }
+        
+        .user-dropdown-item:first-child {
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+        
+        .user-dropdown-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 8px 0;
+        }
+        
+        .user-dropdown-item i {
+            width: 16px;
+            text-align: center;
+            color: #9ca3af;
+        }
+        
+        .user-dropdown-item:hover i {
+            color: #00A0B0;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Ensure button has proper hover state */
+        #userDropdownButton:hover {
+            background-color: #008A9A;
+        }
+        
+        /* Rotate chevron when dropdown is open */
+        #userDropdownButton.active i {
+            transform: rotate(180deg);
+            transition: transform 0.2s ease-in-out;
+        }
+        }
+        
+        /* Specific style for rupee symbol to ensure it displays correctly */
+        .rupee-symbol, 
+        .fas.fa-rupee-sign {
+            font-family: 'Noto Sans', 'Inter', sans-serif;
+        }
+        
+        /* Add a general rule for the rupee symbol */
+        .price-display {
+            font-family: 'Noto Sans', 'Inter', sans-serif;
+        }
+        
+        /* Mobile Back Button - Simple Arrow Design (Matching Reference Image) */
+        .mobile-back-btn {
+            background: transparent !important;
+            border: none !important;
+            padding: 12px !important;
+            transition: all 0.2s ease !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: none !important;
+            margin-right: 8px !important;
+        }
+        
+        .mobile-back-btn:hover,
+        .mobile-back-btn:focus,
+        .mobile-back-btn:active {
+            background: rgba(79, 172, 254, 0.1) !important;
+            border-radius: 8px !important;
+            transform: none !important;
+        }
+        
+        .mobile-back-btn i {
+            color: #4FACFE !important;
+            font-size: 20px !important;
+            font-weight: 600 !important;
+            display: block !important;
+            line-height: 1 !important;
+            width: 20px !important;
+            height: 20px !important;
+            text-align: center !important;
+        }
+        
+        /* Custom Three-Line Hamburger Menu Icon */
+        .navbar-toggler-icon-custom {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            width: 18px !important;
+            height: 12px !important;
+        }
+        
+        .navbar-toggler-icon-custom span {
+            display: block !important;
+            width: 100% !important;
+            height: 2px !important;
+            background-color: #495057 !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        /* CRITICAL OVERRIDE - Force mobile buttons to be visible on mobile screens */
+        @media (max-width: 991.98px) {
+            .mobile-back-btn,
+            .navbar-toggler {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                position: relative !important;
+                z-index: 9999 !important;
+            }
+            
+            /* Override Bootstrap d-lg-none on mobile */
+            .d-lg-none {
+                display: flex !important;
+            }
+        }
+        
+        /* Ensure buttons are visible on all screen sizes below desktop */
+        @media (max-width: 1199.98px) {
+            .mobile-back-btn.d-lg-none,
+            .navbar-toggler.d-lg-none {
+                display: flex !important;
+            }
+        }
+        
+        /* Custom hamburger lines for template */
+        .navbar-toggler-icon-custom {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            width: 18px !important;
+            height: 12px !important;
+        }
+        
+        .navbar-toggler-icon-custom span {
+            display: block !important;
+            height: 2px !important;
+            width: 100% !important;
+            background-color: #495057 !important;
+            border-radius: 1px !important;
+            transition: all 0.3s ease !important;
+        }
+    </style>
+    {% block head %}{% endblock %}
+    
+    <script>
+    // Fix search dropdown positioning to work with sticky navbar
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchAutocomplete = document.getElementById('searchAutocomplete');
+        
+        if (searchInput && searchAutocomplete) {
+            // Function to position dropdown correctly
+            function positionDropdown() {
+                const inputRect = searchInput.getBoundingClientRect();
+                
+                // Position dropdown below the search input
+                searchAutocomplete.style.top = (inputRect.bottom + window.scrollY) + 'px';
+                searchAutocomplete.style.left = inputRect.left + 'px';
+                searchAutocomplete.style.width = inputRect.width + 'px';
+            }
+            
+            // Position dropdown when it becomes visible
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        if (searchAutocomplete.style.display === 'block') {
+                            positionDropdown();
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(searchAutocomplete, {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+            
+            // Also position on scroll and resize
+            window.addEventListener('scroll', function() {
+                if (searchAutocomplete.style.display === 'block') {
+                    positionDropdown();
+                }
+            });
+            
+            window.addEventListener('resize', function() {
+                if (searchAutocomplete.style.display === 'block') {
+                    positionDropdown();
+                }
+            });
+        }
+        
+        // Add navbar search autocomplete functionality
+        if (searchInput) {
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                if (query.length >= 2) {
+                    // Add small delay to avoid excessive API calls
+                    searchTimeout = setTimeout(function() {
+                        fetch(`/autocomplete?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                displayNavbarAutocomplete(data, query);
+                            })
+                            .catch(error => {
+                                console.error('Search error:', error);
+                                searchAutocomplete.style.display = 'none';
+                            });
+                    }, 150);
+                } else {
+                    searchAutocomplete.style.display = 'none';
+                }
+            });
+            
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchAutocomplete.contains(e.target)) {
+                    searchAutocomplete.style.display = 'none';
+                }
+            });
+            
+            // Handle keyboard navigation
+            searchInput.addEventListener('keydown', function(e) {
+                if (searchAutocomplete.style.display === 'block') {
+                    const items = searchAutocomplete.querySelectorAll('.search-autocomplete-item');
+                    const activeItem = searchAutocomplete.querySelector('.search-autocomplete-item.active');
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (!activeItem && items.length > 0) {
+                            items[0].classList.add('active');
+                        } else if (activeItem) {
+                            activeItem.classList.remove('active');
+                            const nextItem = activeItem.nextElementSibling;
+                            if (nextItem) {
+                                nextItem.classList.add('active');
+                            } else {
+                                items[0].classList.add('active');
+                            }
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (!activeItem && items.length > 0) {
+                            items[items.length - 1].classList.add('active');
+                        } else if (activeItem) {
+                            activeItem.classList.remove('active');
+                            const prevItem = activeItem.previousElementSibling;
+                            if (prevItem) {
+                                prevItem.classList.add('active');
+                            } else {
+                                items[items.length - 1].classList.add('active');
+                            }
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (activeItem) {
+                            const link = activeItem.querySelector('a');
+                            if (link) {
+                                window.location.href = link.href;
+                            }
+                        } else {
+                            // Submit the form if no item is selected
+                            searchInput.closest('form').submit();
+                        }
+                    } else if (e.key === 'Escape') {
+                        searchAutocomplete.style.display = 'none';
+                        searchInput.blur();
+                    }
+                }
+            });
+        }
+        
+        function displayNavbarAutocomplete(suggestions, query) {
+            if (!searchAutocomplete) return;
+            
+            searchAutocomplete.innerHTML = '';
+            
+            if (suggestions.length === 0) {
+                searchAutocomplete.style.display = 'none';
+                return;
+            }
+            
+            // Group suggestions by category
+            const grouped = {};
+            suggestions.forEach(item => {
+                const category = item.category || 'Other';
+                if (!grouped[category]) {
+                    grouped[category] = [];
+                }
+                grouped[category].push(item);
+            });
+            
+            // Display grouped suggestions
+            Object.keys(grouped).forEach(category => {
+                if (grouped[category].length > 0) {
+                    // Add category header
+                    const categoryHeader = document.createElement('div');
+                    categoryHeader.className = 'search-autocomplete-category';
+                    categoryHeader.textContent = category + 's';
+                    searchAutocomplete.appendChild(categoryHeader);
+                    
+                    // Add items in this category
+                    grouped[category].forEach(item => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'search-autocomplete-item';
+                        suggestionItem.setAttribute('data-category', item.category);
+                        
+                        const link = document.createElement('a');
+                        link.href = item.url || '#';
+                        link.innerHTML = highlightSearchText(item.text, query);
+                        
+                        // Add additional info based on category
+                        if (item.category === 'Doctor' && item.specialty) {
+                            const specialty = document.createElement('span');
+                            specialty.className = 'text-muted ms-2';
+                            specialty.textContent = `• ${item.specialty}`;
+                            link.appendChild(specialty);
+                        } else if (item.category === 'Package' && item.price) {
+                            const price = document.createElement('span');
+                            price.className = 'text-muted ms-2';
+                            price.textContent = `• ${item.price}`;
+                            link.appendChild(price);
+                        } else if (item.category === 'Thread' && item.reply_count !== undefined) {
+                            const replies = document.createElement('span');
+                            replies.className = 'text-muted ms-2';
+                            replies.textContent = `• ${item.reply_count} replies`;
+                            link.appendChild(replies);
+                        }
+                        
+                        suggestionItem.appendChild(link);
+                        
+                        // Add hover and click handlers
+                        suggestionItem.addEventListener('mouseenter', function() {
+                            // Remove active from other items
+                            searchAutocomplete.querySelectorAll('.search-autocomplete-item.active').forEach(item => {
+                                item.classList.remove('active');
+                            });
+                            this.classList.add('active');
+                        });
+                        
+                        suggestionItem.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            window.location.href = link.href;
+                        });
+                        
+                        searchAutocomplete.appendChild(suggestionItem);
+                    });
+                }
+            });
+            
+            searchAutocomplete.style.display = 'block';
+            positionDropdown();
+        }
+        
+        function highlightSearchText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${escapeSearchRegExp(query)})`, 'gi');
+            return text.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+        
+        function escapeSearchRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        // User Dropdown Overlay Functionality
+        const userDropdownButton = document.getElementById('userDropdownButton');
+        const userDropdownOverlay = document.getElementById('userDropdownOverlay');
+        
+        if (userDropdownButton && userDropdownOverlay) {
+            // Toggle dropdown on button click
+            userDropdownButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = userDropdownOverlay.style.display === 'block';
+                
+                if (isOpen) {
+                    userDropdownOverlay.style.display = 'none';
+                    userDropdownButton.classList.remove('active');
+                } else {
+                    userDropdownOverlay.style.display = 'block';
+                    userDropdownButton.classList.add('active');
+                    positionUserDropdown();
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdownButton.contains(e.target) && !userDropdownOverlay.contains(e.target)) {
+                    userDropdownOverlay.style.display = 'none';
+                    userDropdownButton.classList.remove('active');
+                }
+            });
+            
+            // Close dropdown when clicking on any menu item
+            userDropdownOverlay.addEventListener('click', function(e) {
+                if (e.target.classList.contains('user-dropdown-item')) {
+                    userDropdownOverlay.style.display = 'none';
+                    userDropdownButton.classList.remove('active');
+                }
+            });
+            
+            // Position dropdown function
+            function positionUserDropdown() {
+                const buttonRect = userDropdownButton.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Position dropdown using fixed positioning
+                userDropdownOverlay.style.position = 'fixed';
+                userDropdownOverlay.style.top = (buttonRect.bottom + 8) + 'px';
+                userDropdownOverlay.style.right = (viewportWidth - buttonRect.right) + 'px';
+                userDropdownOverlay.style.left = 'auto';
+                userDropdownOverlay.style.bottom = 'auto';
+                userDropdownOverlay.style.marginTop = '0';
+                userDropdownOverlay.style.marginBottom = '0';
+                
+                // Check if dropdown goes off-screen to the right
+                const dropdownWidth = 200; // min-width from CSS
+                if (buttonRect.right - dropdownWidth < 0) {
+                    userDropdownOverlay.style.left = '10px';
+                    userDropdownOverlay.style.right = 'auto';
+                }
+                
+                // Check if dropdown goes off-screen at the bottom
+                const dropdownHeight = 300; // estimated height
+                if (buttonRect.bottom + dropdownHeight > viewportHeight) {
+                    userDropdownOverlay.style.top = (buttonRect.top - dropdownHeight - 8) + 'px';
+                }
+            }
+            
+            // Reposition on window resize and scroll
+            window.addEventListener('resize', function() {
+                if (userDropdownOverlay.style.display === 'block') {
+                    positionUserDropdown();
+                }
+            });
+            
+            window.addEventListener('scroll', function() {
+                if (userDropdownOverlay.style.display === 'block') {
+                    positionUserDropdown();
+                }
+            });
+            
+            // Handle escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && userDropdownOverlay.style.display === 'block') {
+                    userDropdownOverlay.style.display = 'none';
+                    userDropdownButton.classList.remove('active');
+                }
+            });
+        }
+    });
+    </script>
+
+    <!-- Fallback for async CSS -->
+    <noscript>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/thread-suggestions.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tab-underline.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom-gradients.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/typography-optimization.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/unified-mobile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-borderless.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/comma-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/comma-emergency-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/remove-available-badge.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/thread-suggestions.css') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-nav-spacing-fix.css') }}?v=20250728">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-nav-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-search-compact.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clinic-directory-mobile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search-placeholder.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/desktop-optimization.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-horizontal-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search-dropdown-fix.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-logo-hide.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/footer-hide.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/category-image-optimization.css') }}">
+    </noscript>
+</head>
+<body{% if request.endpoint == 'web.index' %} class="homepage"{% endif %}>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center">
+                    <!-- Mobile Back Button (shown on mobile internal pages only) -->
+                    {% if request.endpoint != 'web.index' %}
+                    <button class="mobile-back-btn d-lg-none" onclick="window.history.back()" style="display: flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 99999 !important; background: transparent !important; border: none !important; padding: 12px !important; margin-right: 8px !important; min-width: 44px !important; min-height: 44px !important; align-items: center !important; justify-content: center !important;">
+                        <i class="fas fa-arrow-left" style="display: block !important; visibility: visible !important; opacity: 1 !important; color: #4FACFE !important; font-size: 20px !important; font-weight: 600 !important; line-height: 1 !important; width: 20px !important; height: 20px !important; text-align: center !important;"></i>
+                    </button>
+                    {% endif %}
+                    
+                    <!-- Navbar Brand Logo -->
+                    <a class="navbar-brand me-4" href="{{ url_for('web.index') }}">
+                        <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}?v=11" alt="Antidote" height="60">
+                    </a>
+
+                    <!-- Global Search Form with Autocomplete (moved next to logo) -->
+                    <div class="search-form-container d-none d-lg-block me-3">
+                        <form action="{{ url_for('web.search') }}" method="GET" class="position-relative">
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="font-size: 12.6px;">
+                                    Search
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-start-0 ps-0" 
+                                       placeholder="Search procedures, doctors..." 
+                                       name="q" 
+                                       id="searchInput" 
+                                       autocomplete="off"
+                                       required>
+                            </div>
+                            <!-- Autocomplete Dropdown -->
+                            <div class="search-autocomplete" id="searchAutocomplete" style="white-space: nowrap; line-height: 1.5;"></div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Mobile Toggle Button - positioned on the right end only -->
+                <button class="navbar-toggler d-lg-none ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="display: flex !important; visibility: visible !important;">
+                    <span class="navbar-toggler-icon-custom">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto clean-nav">
+                    <li class="nav-item">
+                        <a class="nav-link-clean {% if request.endpoint == 'enhanced_package.package_directory' %}active{% endif %}" href="{{ url_for('enhanced_package.package_directory') }}">
+                            Treatment Packages
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-clean {% if request.endpoint == 'web.procedures' %}active{% endif %}" href="{{ url_for('web.procedures') }}">
+                            Procedures
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-clean {% if request.endpoint == 'clinic.all_clinics' %}active{% endif %}" href="{{ url_for('clinic.all_clinics') }}">
+                            Verified Clinics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-clean {% if request.endpoint == 'web.community' %}active{% endif %}" href="{{ url_for('web.community') }}">
+                            Community
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-clean {% if '/face-analysis/' in request.path %}active{% endif %}" href="/face-analysis/">
+                            AI Face Analysis
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    <!-- User Authentication -->
+                    {% if current_user.is_authenticated %}
+                        <div class="position-relative">
+                            <button class="btn btn-primary" type="button" id="userDropdownButton">
+                                {{ current_user.name }}
+                                <i class="fas fa-chevron-down ms-2"></i>
+                            </button>
+                            <!-- Overlay User Dropdown -->
+                            <div class="user-dropdown-overlay" id="userDropdownOverlay" style="display: none;">
+                                {% if current_user.role == 'doctor' %}
+                                    <a class="user-dropdown-item" href="{{ url_for('web.doctor_dashboard', doctor_id=1) }}">
+                                        <i class="fas fa-columns me-2"></i> My Dashboard
+                                    </a>
+                                {% else %}
+                                    <a class="user-dropdown-item" href="{{ url_for('web.user_dashboard', user_id=current_user.id) }}">
+                                        <i class="fas fa-columns me-2"></i> My Dashboard
+                                    </a>
+                                {% endif %}
+                                <a class="user-dropdown-item" href="#" id="profileLink">
+                                    <i class="fas fa-user me-2"></i> My Profile
+                                </a>
+                                <a class="user-dropdown-item" href="{{ url_for('web.favorites') }}">
+                                    <i class="fas fa-heart me-2"></i> My Favorites
+                                </a>
+                                <a class="user-dropdown-item" href="#" id="settingsLink">
+                                    <i class="fas fa-cog me-2"></i> Settings
+                                </a>
+                                {% if current_user.role == 'admin' %}
+                                    <div class="user-dropdown-divider"></div>
+                                    <div class="user-dropdown-header">Admin Access</div>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_dashboard') }}">
+                                        <i class="fas fa-shield-alt text-danger me-2"></i> Admin Dashboard
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('admin_credit.credit_dashboard') }}">
+                                        <i class="fas fa-coins text-warning me-2"></i> Credit Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_lead_analytics') }}">
+                                        <i class="fas fa-chart-line text-info me-2"></i> Lead Analytics
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_clinic') }}">
+                                        <i class="fas fa-building text-primary me-2"></i> Clinic Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_users') }}">
+                                        <i class="fas fa-users text-secondary me-2"></i> User Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_procedures') }}">
+                                        <i class="fas fa-stethoscope text-success me-2"></i> Procedure Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_community_moderation') }}">
+                                        <i class="fas fa-comments text-info me-2"></i> Community Moderation
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_analytics') }}">
+                                        <i class="fas fa-analytics text-dark me-2"></i> Platform Analytics
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('banners.admin_banners') }}">
+                                        <i class="fas fa-images text-purple me-2"></i> Banner Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('web.admin_doctor_verification_requests') }}">
+                                        <i class="fas fa-user-md text-teal me-2"></i> Doctor Verifications
+                                    </a>
+                                {% endif %}
+                                {% if current_user.role == 'clinic' %}
+                                    <div class="user-dropdown-divider"></div>
+                                    <div class="user-dropdown-header">Clinic Management</div>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.dashboard') }}">
+                                        <i class="fas fa-tachometer-alt text-primary me-2"></i> Clinic Dashboard
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.leads_management') }}">
+                                        <i class="fas fa-users text-success me-2"></i> Lead Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.analytics') }}">
+                                        <i class="fas fa-chart-bar text-info me-2"></i> Analytics & Reports
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.packages_management') }}">
+                                        <i class="fas fa-box text-warning me-2"></i> Package Management
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.add_package') }}">
+                                        <i class="fas fa-plus-circle text-secondary me-2"></i> Add New Package
+                                    </a>
+                                    <a class="user-dropdown-item" href="{{ url_for('clinic_dashboard.doctors_management') }}">
+                                        <i class="fas fa-user-md text-teal me-2"></i> Doctor Management
+                                    </a>
+                                {% endif %}
+                                <div class="user-dropdown-divider"></div>
+                                <a class="user-dropdown-item" href="{{ url_for('web.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="d-flex">
+                            <a href="{{ url_for('web.login') }}" class="btn btn-outline-primary me-2">Login</a>
+                            <a href="{{ url_for('web.signup') }}" class="btn btn-primary">Sign Up</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hidden Skeleton Loaders for Navigation -->
+    {% include 'includes/skeleton-loaders.html' %}
+
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-5 bg-light py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <img src="{{ url_for('static', filename='images/antidote-logo-new.png') }}?v=11" alt="Antidote" height="80" class="mb-3">
+                    </div>
+                    <p class="footer-description">
+                        India's premier medical marketplace connecting patients with verified specialists for plastic surgery and cosmetic procedures.
+                    </p>
+                    <div class="footer-social">
+                        <a href="https://x.com/antidote_fit" target="_blank" rel="noopener noreferrer" class="social-icon" title="Follow us on Twitter/X">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.linkedin.com/company/antidote-fit/" target="_blank" rel="noopener noreferrer" class="social-icon" title="Connect with us on LinkedIn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.instagram.com/antidote.fit/" target="_blank" rel="noopener noreferrer" class="social-icon" title="Follow us on Instagram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="footer-heading">Explore</h5>
+                    <a href="{{ url_for('web.body_parts') }}" class="footer-link">Body Parts</a>
+                    <a href="{{ url_for('web.categories') }}" class="footer-link">Categories</a>
+                    <a href="{{ url_for('web.procedures') }}" class="footer-link">Procedures</a>
+                    <a href="{{ url_for('web.community') }}" class="footer-link">Community</a>
+                    <a href="{{ url_for('education.learn_home') }}" class="footer-link">Learn</a>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="footer-heading">AI Tools</h5>
+                    <a href="{{ url_for('cost_calculator.cost_calculator') }}" class="footer-link">Cost Calculator</a>
+                    <a href="{{ url_for('ai_clean.ai_recommendations') }}" class="footer-link">AI Recommendations</a>
+
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="footer-heading">For Users</h5>
+                    {% if current_user.is_authenticated and current_user.role == 'doctor' %}
+                        <a href="{{ url_for('web.doctor_dashboard', doctor_id=1) }}" class="footer-link">My Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('web.user_dashboard', user_id=current_user.id) if current_user.is_authenticated else url_for('web.login') }}" class="footer-link">My Dashboard</a>
+                    {% endif %}
+                    <a href="{{ url_for('web.favorites') }}" class="footer-link">My Favorites</a>
+                    <a href="#" class="footer-link">My Appointments</a>
+                    <a href="#" class="footer-link">My Reviews</a>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h5 class="footer-heading">Contact</h5>
+                    <div class="footer-contact">
+                        <i class="fas fa-envelope"></i>
+                        <span>info@antidote.com</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="fas fa-phone-alt"></i>
+                        <span>+91 8897432584</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Mumbai, India</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="footer-bottom">
+                <div class="copyright">
+                    &copy; 2025 Antidote Healthcare. All rights reserved.
+                </div>
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript libraries already loaded in head -->
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme-switcher.js') }}"></script>
+    
+    <!-- Emergency rollback: Minimal fixes only -->
+    <style>
+        /* Inline critical styles to prevent layout shifts */
+        .hero-banner-container { min-height: 300px; }
+        .hero-search-section { min-height: 150px; }
+        .navbar { min-height: 60px; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+    <script src="{{ url_for('static', filename='js/stats-counter.js') }}"></script>
+    <!-- comma-fix.js removed - checking if exists -->
+    <!-- direct-comma-fix.js removed - was causing 404 error -->
+    <script src="{{ url_for('static', filename='js/typing-animation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navbar-search-animation.js') }}"></script>
+    <!-- Render modals block content -->
+    {% block modals %}{% endblock %}
+    
+    <!-- Initialize AOS Animation Library - DISABLED -->
+    <!-- <script src="https://unpkg.com/aos@next/dist/aos.js"></script> -->
+    <script>
+        // Initialize AOS - DISABLED
+        /*
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            mirror: false
+        });
+        */
+
+        // Feather icons initialization is handled by feather-fix.js
+        
+        // Search Autocomplete Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchAutocomplete = document.getElementById('searchAutocomplete');
+            
+            if (searchInput && searchAutocomplete) {
+                // Track if we should ignore the next input event (after selection)
+                let ignoreNextInput = false;
+                
+                // Add event listeners for input changes
+                searchInput.addEventListener('input', function() {
+                    if (ignoreNextInput) {
+                        ignoreNextInput = false;
+                        return;
+                    }
+                    
+                    const query = searchInput.value.trim();
+                    
+                    // Only fetch suggestions if query is 3+ characters
+                    if (query.length >= 3) {
+                        fetchSuggestions(query);
+                    } else {
+                        hideAutocomplete();
+                    }
+                });
+                
+                // Hide autocomplete when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!searchInput.contains(event.target) && !searchAutocomplete.contains(event.target)) {
+                        hideAutocomplete();
+                    }
+                });
+                
+                // Handle keyboard navigation
+                searchInput.addEventListener('keydown', function(event) {
+                    if (!searchAutocomplete.style.display || searchAutocomplete.style.display === 'none') {
+                        return;
+                    }
+                    
+                    const items = searchAutocomplete.querySelectorAll('.search-autocomplete-item');
+                    const activeItem = searchAutocomplete.querySelector('.search-autocomplete-item.active');
+                    let activeIndex = -1;
+                    
+                    if (activeItem) {
+                        for (let i = 0; i < items.length; i++) {
+                            if (items[i] === activeItem) {
+                                activeIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    switch (event.key) {
+                        case 'ArrowDown':
+                            event.preventDefault();
+                            if (activeIndex < items.length - 1) {
+                                if (activeItem) activeItem.classList.remove('active');
+                                items[activeIndex + 1].classList.add('active');
+                            }
+                            break;
+                        case 'ArrowUp':
+                            event.preventDefault();
+                            if (activeIndex > 0) {
+                                if (activeItem) activeItem.classList.remove('active');
+                                items[activeIndex - 1].classList.add('active');
+                            }
+                            break;
+                        case 'Enter':
+                            if (activeItem) {
+                                event.preventDefault();
+                                selectSuggestion(activeItem.getAttribute('data-text'));
+                                hideAutocomplete();
+                                
+                                // If we have a URL, navigate to it
+                                const url = activeItem.getAttribute('data-url');
+                                if (url) {
+                                    window.location.href = url;
+                                } else {
+                                    // Otherwise submit the form
+                                    searchInput.closest('form').submit();
+                                }
+                            }
+                            break;
+                        case 'Escape':
+                            hideAutocomplete();
+                            break;
+                    }
+                });
+                
+                // Fetch suggestions from the server
+                function fetchSuggestions(query) {
+                    fetch(`{{ url_for('web.autocomplete') }}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                displaySuggestions(data, query);
+                            } else {
+                                hideAutocomplete();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching autocomplete suggestions:', error);
+                            hideAutocomplete();
+                        });
+                }
+                
+                // Display suggestions in the dropdown
+                function displaySuggestions(suggestions, query) {
+                    // Clear previous suggestions
+                    searchAutocomplete.innerHTML = '';
+                    
+                    // Add each suggestion
+                    suggestions.forEach(suggestion => {
+                        const item = document.createElement('div');
+                        item.className = 'search-autocomplete-item';
+                        item.setAttribute('data-text', suggestion.text);
+                        item.setAttribute('data-url', suggestion.url);
+                        
+                        // Extract the category from the display text
+                        let displayText = suggestion.display;
+                        let categoryText = '';
+                        
+                        // Extract [Category] from the display text
+                        const matches = displayText.match(/\[(.*?)\]$/);
+                        if (matches && matches.length > 1) {
+                            categoryText = matches[1];
+                            displayText = displayText.replace(/\s*\[.*?\]$/, '');
+                        }
+                        
+                        // Highlight the matching part of the text
+                        displayText = displayText.replace(
+                            new RegExp(query, 'gi'),
+                            match => `<span class="search-highlight">${match}</span>`
+                        );
+                        
+                        // Create the final HTML with proper formatting
+                        item.innerHTML = `
+                            <div>${displayText}</div>
+                            ${categoryText ? `<span class="category-label">${categoryText}</span>` : ''}
+                        `;
+                        
+                        // Add click event
+                        item.addEventListener('click', function() {
+                            selectSuggestion(suggestion.text);
+                            hideAutocomplete();
+                            
+                            // Navigate to the suggestion URL if provided
+                            if (suggestion.url) {
+                                window.location.href = suggestion.url;
+                            } else {
+                                // Otherwise submit the form
+                                searchInput.closest('form').submit();
+                            }
+                        });
+                        
+                        searchAutocomplete.appendChild(item);
+                    });
+                    
+                    // Show the dropdown
+                    searchAutocomplete.style.display = 'block';
+                }
+                
+                // Select a suggestion and update the input
+                function selectSuggestion(text) {
+                    ignoreNextInput = true;
+                    searchInput.value = text;
+                    searchInput.focus();
+                }
+                
+                // Hide the autocomplete dropdown
+                function hideAutocomplete() {
+                    searchAutocomplete.style.display = 'none';
+                    searchAutocomplete.innerHTML = '';
+                }
+            }
+            */
+        });
+    </script>
+    {% block scripts %}
+    <!-- AI Recommendation System JS -->
+    <script src="{{ url_for('static', filename='js/ai_recommendations.js') }}"></script>
+    <!-- Search Autocomplete JS -->
+    <script src="{{ url_for('static', filename='js/search-autocomplete.js') }}"></script>
+    <!-- AI Recommendation Form JS -->
+    <script src="{{ url_for('static', filename='js/ai-recommendation-form.js') }}"></script>
+    <!-- Banner System JS -->
+    <script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+    {% if not request.endpoint or 'clinic' not in request.endpoint %}
+    <script src="{{ url_for('static', filename='js/smart-banner-loader.js') }}?v=20250718"></script>
+    {% endif %}
+    {% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
+
+
+
+
+    
+    <!-- Minimal Carousel Script -->
+    <script src="{{ url_for('static', filename='js/minimal-carousel.js') }}"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+    // Global Firebase configuration - Using environment variables
+    const firebaseConfig = {
+        apiKey: "{{ firebase_api_key }}",
+        authDomain: "{{ firebase_auth_domain }}",
+        projectId: "{{ firebase_project_id }}",
+        storageBucket: "{{ firebase_storage_bucket }}",
+        messagingSenderId: "{{ firebase_messaging_sender_id }}",
+        appId: "{{ firebase_app_id }}"
+    };
+    
+    // Initialize Firebase
+    if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+        firebase.initializeApp(firebaseConfig);
+        window.firebaseAuth = firebase.auth();
+        console.log('Firebase initialized successfully');
+    } else {
+        console.error('Firebase configuration missing');
+    }
+    </script>
+    
+    <!-- Enhanced Lead Generation Modal -->
+    {% include 'includes/enhanced_lead_modal.html' %}
+    
+    <!-- Clean Firebase OTP System -->
+    <script src="{{ url_for('static', filename='js/clean-firebase.js') }}"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered with scope: ', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', function() {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', function() {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Show update available notification
+                                    if (confirm('A new version is available. Refresh to update?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(err) {
+                        console.log('SW registration failed: ', err);
+                    });
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt available');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // PWA Install banner disabled per user request
+            /*
+            // Show custom install button/banner if desired
+            const installBanner = document.createElement('div');
+            installBanner.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+                background: linear-gradient(135deg, #6366f1, #00A0B0);
+                color: white; padding: 12px; text-align: center; font-size: 14px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            `;
+            installBanner.innerHTML = `
+                <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+                    <span>📱 Install Antidote app for better experience</span>
+                    <div>
+                        <button onclick="installPWA()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 4px; margin-right: 8px; cursor: pointer;">Install</button>
+                        <button onclick="dismissInstallPrompt()" style="background: transparent; border: none; color: white; cursor: pointer; opacity: 0.8;">✕</button>
+                    </div>
+                </div>
+            `;
+            
+            // Only show on homepage and after 3 seconds
+            if (window.location.pathname === '/' && !localStorage.getItem('pwa-dismissed')) {
+                setTimeout(() => {
+                    document.body.prepend(installBanner);
+                    window.installBanner = installBanner;
+                }, 3000);
+            }
+            */
+        });
+        
+        // Install PWA function
+        window.installPWA = function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted PWA install');
+                    }
+                    deferredPrompt = null;
+                    if (window.installBanner) {
+                        window.installBanner.remove();
+                    }
+                });
+            }
+        };
+        
+        // Dismiss install prompt
+        window.dismissInstallPrompt = function() {
+            localStorage.setItem('pwa-dismissed', 'true');
+            if (window.installBanner) {
+                window.installBanner.remove();
+            }
+        };
+        
+        // Track PWA usage
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+            // Track installation analytics if needed
+        });
+        
+        // Detect if running as PWA
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.body.classList.add('pwa-mode');
+            // Hide install banner if running as PWA
+            console.log('Running as PWA');
+        }
+    </script>
+</body>
+</html>

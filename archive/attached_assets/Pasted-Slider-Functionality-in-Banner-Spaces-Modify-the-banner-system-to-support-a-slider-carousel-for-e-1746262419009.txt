@@ -1,0 +1,39 @@
+Slider Functionality in Banner Spaces:
+Modify the banner system to support a slider (carousel) for each banner space, allowing multiple images to cycle through automatically in a single banner.
+For this implementation, enable the slider functionality specifically for Banner 1 (between Hero and Stats sections). The other banners (Banner 2, Banner 3, Banner 4) will remain single-image banners for now.
+Each slide in the slider should include an image (900x300 pixels), a title, a subtitle, and a redirect URL (clicking the slide redirects to the specified URL).
+The slider should auto-cycle every 3 seconds with a smooth fade transition, and include navigation dots below the banner to indicate the number of slides and the current slide. Users can also click the dots to jump to a specific slide.
+Ensure the slider is responsive, maintaining the Practo-like UI (light blue-to-white gradient background, rounded corners, centered text with a CTA button).
+Database Updates:
+Update the SQLite database schema to support multiple slides per banner:
+Rename the existing banners table to banner_slides with columns: id (integer, primary key), banner_id (integer, foreign key linking to a banner), image_url (text), title (text), subtitle (text), redirect_url (text), click_count (integer, default 0).
+Create a new banners table with columns: id (integer, primary key), is_visible (boolean, default True), start_date (text, format YYYY-MM-DD), end_date (text, format YYYY-MM-DD).
+Initialize the database with 4 banners (Banner 1, Banner 2, Banner 3, Banner 4):
+Banner 1 should have 3 slides (e.g., Botox, Rhinoplasty, Facelift) with placeholder image URLs (https://via.placeholder.com/900x300), titles, subtitles, and redirect URLs.
+Banners 2, 3, and 4 should each have 1 slide (matching their current content: Dr. Doctor Test, Lip Fillers, Hair Transplant).
+Update the database logic to show only slides for banners that are visible (is_visible=True) and within their scheduled date range (compare with the current date, May 03, 2025).
+Admin Dashboard Updates:
+Update the admin dashboard (/admin/banners) to support managing sliders:
+Display each banner with a list of its slides (image URL, title, subtitle, redirect URL, click count).
+Add a form to add a new slide to a banner (inputs for image URL, title, subtitle, redirect URL).
+Allow editing and deleting existing slides (edit form similar to adding, with a 'Delete' button for each slide).
+Retain existing features: visibility toggle, scheduling (start/end dates), click tracking, preview feature, and 'Reset to Default' button for each banner.
+Ensure the dashboard reflects that Banner 1 has multiple slides, while Banners 2, 3, and 4 have single slides.
+Frontend Implementation:
+Use JavaScript and CSS to implement the slider for Banner 1:
+Auto-cycle slides every 3 seconds with a fade transition.
+Add navigation dots below the banner, styled as small circles (filled for the active slide, empty for others).
+Ensure clicking a slide redirects to its specified URL and increments its click_count in the database.
+For Banners 2, 3, and 4, render them as single-image banners (since they currently have only one slide).
+Style the slider and single-image banners consistently with the existing design: linear-gradient(to right, #e0f7fa, #b2ebf2) background, 8px rounded corners, centered text with a CTA button.
+Files to Update/Create:
+Update app.py to handle the new database schema, slider routes, and click tracking for individual slides.
+Update templates/index.html to dynamically render Banner 1 as a slider and Banners 2, 3, and 4 as single-image banners.
+Update templates/admin_banners.html to support managing multiple slides per banner.
+Update the database initialization script to create the new banners and banner_slides tables with default data.
+Update static/styles.css to include styles for the slider (fade transition, navigation dots).
+Create static/slider.js to handle the slider functionality (auto-cycling, navigation dots, click handling).
+Testing:
+Restart the application, navigate to the homepage (/), and verify that Banner 1 displays as a slider with 3 slides (Botox, Rhinoplasty, Facelift), auto-cycling every 3 seconds, with clickable navigation dots and redirect functionality.
+Confirm that Banners 2, 3, and 4 display as single-image banners with their respective content.
+Access the admin dashboard (/admin/banners), log in (username: admin, password: admin123), and test adding a new slide to Banner 1, editing a slide, deleting a slide, toggling visibility, setting a schedule, and checking the click counter after clicking a slide on the homepage."

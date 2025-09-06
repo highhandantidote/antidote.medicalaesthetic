@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}{{ clinic.name }} - Treatment Packages{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/clinic/">Clinic Marketplace</a></li>
+            <li class="breadcrumb-item"><a href="/clinic/view/{{ clinic.id }}">{{ clinic.name }}</a></li>
+            <li class="breadcrumb-item active">Treatment Packages</li>
+        </ol>
+    </nav>
+
+    <!-- Clinic Header -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h3 mb-2">{{ clinic.name }}</h1>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ clinic.city }}
+                        {% if clinic.area %}, {{ clinic.area }}{% endif %}
+                    </p>
+                    {% if clinic.rating %}
+                    <div class="d-flex align-items-center">
+                        <div class="rating-stars me-2">
+                            {% for i in range(5) %}
+                                {% if i < clinic.rating|int %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-muted"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-muted small">{{ clinic.rating }}/5 ({{ clinic.review_count or 0 }} reviews)</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if is_clinic_owner %}
+                    <a href="/clinic/dashboard" class="btn btn-primary mb-2">
+                        <i class="fas fa-cog me-1"></i>Manage Clinic
+                    </a>
+                    <a href="/clinic/packages/add" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Add Package
+                    </a>
+                    {% else %}
+                    <a href="/clinic/view/{{ clinic.id }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Packages Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">Treatment Packages ({{ packages|length }})</h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="toggleView('grid')">
+                        <i class="fas fa-th-large"></i> Grid
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('list')">
+                        <i class="fas fa-list"></i> List
+                    </button>
+                </div>
+            </div>
+
+            {% if packages %}
+            <div id="packages-grid" class="row">
+                {% for package in packages %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card package-card h-100">
+                        <div class="package-image-container" style="height: 200px; position: relative; overflow: hidden;">
+                            {% if package.results_gallery and package.results_gallery|length > 0 %}
+                            <!-- Horizontal Before/After Carousel -->
+                            <div class="results-carousel package-results-carousel" style="display: flex; gap: 12px; overflow-x: auto; padding: 10px; height: 100%; scroll-behavior: smooth; flex-wrap: nowrap;">
+                                {% for result in package.results_gallery %}
+                                <div class="result-item" style="min-width: 160px; max-width: 160px; background: #f8f9fa; border-radius: 8px; padding: 10px; border: 1px solid #e9ecef; flex-shrink: 0;">
+                                    {% if result.procedure_name %}
+                                    <div class="procedure-header" style="text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #dee2e6;">
+                                        <h6 class="procedure-name" style="font-size: 10px; font-weight: 600; color: #495057; margin: 0; line-height: 1.2;">{{ result.procedure_name }}</h6>
+                                    </div>
+                                    {% endif %}
+                                    <div class="result-pair" style="display: flex; flex-direction: row; gap: 4px; justify-content: center;">
+                                        {% if result.before_image %}
+                                        <div class="result-image position-relative">
+                                            <img src="{{ result.before_image }}" alt="Before" style="width: 65px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); display: block;">
+                                            <div class="image-label" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; text-align: center; font-size: 8px; line-height: 14px; border-radius: 0 0 6px 6px; font-weight: 600; text-transform: uppercase;">BEFORE</div>
+                                        </div>
+                                        {% endif %}
+                                        {% if result.after_image %}
+                                        <div class="result-image position-relative">
+                                            <img src="{{ result.after_image }}" alt="After" style="width: 65px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); display: block;">
+                                            <div class="image-label" style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: white; text-align: center; font-size: 8px; line-height: 14px; border-radius: 0 0 6px 6px; font-weight: 600; text-transform: uppercase;">AFTER</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% elif package.featured_image %}
+                            <img src="{{ package.featured_image }}" class="card-img-top" alt="{{ package.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{ package.title }}</h5>
+                            <p class="card-text text-muted small">{{ package.description[:100] }}{% if package.description|length > 100 %}...{% endif %}</p>
+                            
+                            <div class="pricing mb-3">
+                                {% if package.price_discounted and package.price_discounted < package.price_actual %}
+                                <div class="d-flex align-items-center">
+                                    <span class="h5 text-primary mb-0">₹{{ "{:,.0f}".format(package.price_discounted) }}</span>
+                                    <span class="text-muted text-decoration-line-through ms-2">₹{{ "{:,.0f}".format(package.price_actual) }}</span>
+                                    {% if package.discount_percentage %}
+                                    <span class="badge bg-success ms-2">{{ package.discount_percentage }}% OFF</span>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="h5 text-primary">₹{{ "{:,.0f}".format(package.price_actual) }}</span>
+                                {% endif %}
+                            </div>
+
+                            {% if package.duration %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>Duration: {{ package.duration }}
+                                </small>
+                            </div>
+                            {% endif %}
+
+                            {% if package.downtime %}
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-times me-1"></i>Downtime: {{ package.downtime }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid gap-2">
+                                <a href="/package/{{ package.id }}" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                                {% if not is_clinic_owner %}
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-success" onclick="contactClinic({{ package.id }}, 'chat')">
+                                        <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="contactClinic({{ package.id }}, 'call')">
+                                        <i class="fas fa-phone me-1"></i>Call
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="packages-list" class="d-none">
+                {% for package in packages %}
+                <div class="card mb-3">
+                    <div class="row g-0">
+                        <div class="col-md-3">
+                            {% if package.featured_image %}
+                            <img src="{{ package.featured_image }}" class="img-fluid rounded-start h-100" alt="{{ package.title }}" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light h-100 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-image fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="card-title">{{ package.title }}</h5>
+                                        <p class="card-text">{{ package.description }}</p>
+                                        <div class="d-flex gap-3">
+                                            {% if package.duration %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ package.duration }}
+                                            </small>
+                                            {% endif %}
+                                            {% if package.downtime %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-times me-1"></i>{{ package.downtime }}
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="pricing mb-3">
+                                            {% if package.price_discounted and package.price_discounted < package.price_actual %}
+                                            <div>
+                                                <div class="h5 text-primary mb-0">₹{{ "{:,.0f}".format(package.price_discounted) }}</div>
+                                                <div class="text-muted text-decoration-line-through small">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                                                {% if package.discount_percentage %}
+                                                <span class="badge bg-success">{{ package.discount_percentage }}% OFF</span>
+                                                {% endif %}
+                                            </div>
+                                            {% else %}
+                                            <div class="h5 text-primary">₹{{ "{:,.0f}".format(package.price_actual) }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <a href="/package/{{ package.id }}" class="btn btn-primary btn-sm">View Details</a>
+                                            {% if not is_clinic_owner %}
+                                            <div class="btn-group">
+                                                <button class="btn btn-outline-success btn-sm" onclick="contactClinic({{ package.id }}, 'chat')">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                </button>
+                                                <button class="btn btn-outline-primary btn-sm" onclick="contactClinic({{ package.id }}, 'call')">
+                                                    <i class="fas fa-phone"></i>
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Treatment Packages Available</h4>
+                <p class="text-muted">This clinic hasn't added any treatment packages yet.</p>
+                {% if is_clinic_owner %}
+                <a href="/clinic/packages/add" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Add Your First Package
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleView(view) {
+    const gridView = document.getElementById('packages-grid');
+    const listView = document.getElementById('packages-list');
+    const gridBtn = document.querySelector('button[onclick="toggleView(\'grid\')"]');
+    const listBtn = document.querySelector('button[onclick="toggleView(\'list\')"]');
+    
+    if (view === 'grid') {
+        gridView.classList.remove('d-none');
+        listView.classList.add('d-none');
+        gridBtn.classList.add('active');
+        listBtn.classList.remove('active');
+    } else {
+        gridView.classList.add('d-none');
+        listView.classList.remove('d-none');
+        listBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+    }
+}
+
+function contactClinic(packageId, actionType) {
+    // Implementation for contacting clinic via package
+    const contactModal = new bootstrap.Modal(document.getElementById('contactModal'));
+    // Set package ID and action type in the modal
+    document.getElementById('package_id').value = packageId;
+    document.getElementById('action_type').value = actionType;
+    contactModal.show();
+}
+
+// Before/After Slider functionality
+const sliders = {};
+
+function initializeSliders() {
+    document.querySelectorAll('.before-after-slider').forEach(slider => {
+        const sliderId = slider.id.replace('slider-', '');
+        sliders[sliderId] = {
+            currentSlide: 0,
+            totalSlides: slider.querySelectorAll('.slider-item').length
+        };
+    });
+}
+
+function showSlide(packageId, slideIndex) {
+    const slider = document.getElementById(`slider-${packageId}`);
+    const slides = slider.querySelectorAll('.slider-item');
+    const dots = slider.querySelectorAll('.nav-dot');
+    
+    // Hide all slides
+    slides.forEach((slide, index) => {
+        slide.style.opacity = index === slideIndex ? '1' : '0';
+    });
+    
+    // Update dots
+    dots.forEach((dot, index) => {
+        dot.style.background = index === slideIndex ? 'white' : 'rgba(255,255,255,0.5)';
+        dot.classList.toggle('active', index === slideIndex);
+    });
+    
+    sliders[packageId].currentSlide = slideIndex;
+}
+
+function nextSlide(packageId) {
+    const slider = sliders[packageId];
+    const nextIndex = (slider.currentSlide + 1) % slider.totalSlides;
+    showSlide(packageId, nextIndex);
+}
+
+function prevSlide(packageId) {
+    const slider = sliders[packageId];
+    const prevIndex = slider.currentSlide === 0 ? slider.totalSlides - 1 : slider.currentSlide - 1;
+    showSlide(packageId, prevIndex);
+}
+
+// Auto-slide functionality (optional)
+function startAutoSlide(packageId, interval = 4000) {
+    setInterval(() => {
+        nextSlide(packageId);
+    }, interval);
+}
+
+// Initialize sliders when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSliders();
+    
+    // Optional: Start auto-slide for all packages
+    Object.keys(sliders).forEach(packageId => {
+        if (sliders[packageId].totalSlides > 1) {
+            startAutoSlide(packageId, 5000); // Auto-slide every 5 seconds
+        }
+    });
+});
+</script>
+
+<!-- Contact Modal (same as in package detail page) -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contact Clinic</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="contactForm">
+                    <input type="hidden" id="package_id" name="package_id">
+                    <input type="hidden" id="action_type" name="action_type">
+                    <div class="mb-3">
+                        <label class="form-label">Your Name *</label>
+                        <input type="text" class="form-control" name="patient_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mobile Number *</label>
+                        <input type="tel" class="form-control" name="mobile_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">City *</label>
+                        <input type="text" class="form-control" name="city" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message (Optional)</label>
+                        <textarea class="form-control" name="message" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitContact()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitContact() {
+    const form = document.getElementById('contactForm');
+    const formData = new FormData(form);
+    
+    fetch('/clinic/contact', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Contact request submitted successfully!');
+            document.getElementById('contactModal').querySelector('.btn-close').click();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error submitting request. Please try again.');
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+In my Flask app Antidote, the Favorites/Saved Items feature shows a 'Save' button on doctor_detail.html, but clicking it has no action (console error: 'No parent row found for this button' and AJAX failure). Fix and test:
+1. Ensure logged in as testuser@antidote.com (password: Test@1234) at http://localhost:5000/login, confirm "Test User" in the navigation bar.
+2. Navigate to http://localhost:5000/doctors/detail/3 to test the "Save" button for Dr. John Smith (ID 3).
+3. Confirm doctor_detail.html has a form with class="save-form", method="POST", action="{{ url_for('web.save_item') }}", a hidden input name="doctor_id", and a button with class="save-btn".
+4. Update static/js/favorites.js to:
+   - Use fetch with 'Content-Type': 'application/x-www-form-urlencoded' and improved error handling.
+   - Log 'Save button parent:', saveButton.parentElement and remove any 'parentRow' checks causing "No parent row found" error.
+   - Example:
+     document.addEventListener('DOMContentLoaded', function () {
+         console.log('Favorites.js loaded');
+         const saveForms = document.querySelectorAll('form.save-form');
+         console.log('Found save forms:', saveForms.length);
+         saveForms.forEach(form => {
+             const saveButton = form.querySelector('button.save-btn');
+             if (saveButton) {
+                 console.log('Save button found in form for doctor_id:', form.querySelector('input[name="doctor_id"]').value);
+                 console.log('Save button parent:', saveButton.parentElement);
+                 saveButton.addEventListener('click', function (e) {
+                     e.preventDefault();
+                     console.log('Save button clicked for doctor_id:', form.querySelector('input[name="doctor_id"]').value);
+                     const formData = new FormData(form);
+                     fetch(form.action, {
+                         method: 'POST',
+                         body: formData,
+                         headers: {
+                             'X-Requested-With': 'XMLHttpRequest',
+                             'Content-Type': 'application/x-www-form-urlencoded'
+                         }
+                     })
+                     .then(response => {
+                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                         return response.json();
+                     })
+                     .then(data => {
+                         if (data.success) {
+                             console.log('Save successful:', data.message);
+                             saveButton.textContent = 'Saved';
+                             saveButton.disabled = true;
+                         } else {
+                             console.error('Save failed:', data.message);
+                         }
+                     })
+                     .catch(error => {
+                         console.error('AJAX error:', error.message);
+                         form.submit(); // Fallback
+                     });
+                 });
+             } else {
+                 console.error('No save button with class "save-btn" found in form');
+             }
+         });
+     });
+5. On /doctors/detail/3, click the "Save" button and check the browser console (F12 > Console) for logs ('Save button found', 'Save button clicked', 'AJAX error').
+6. Check the Network tab (F12 > Network) for a POST request to /save-item and its response status/code.
+7. Verify server logs: tail -n 50 /tmp/replit-nix-errors.log (look for 'Save item request received').
+8. Test the Favorites flow:
+   - From doctors.html, save Dr. John Smith (ID 3).
+   - From procedure_detail.html (for Rhinoplasty ID 2), save the procedure.
+   - Visit http://localhost:5000/favorites to verify items appear.
+   - Remove one item (e.g., Dr. John Smith) and confirm it’s gone.
+9. Verify the database: SELECT * FROM favorites WHERE user_id = (SELECT id FROM users WHERE email = 'testuser@antidote.com') LIMIT 5.
+10. Confirm UI: Provide screenshots of doctors.html, procedure_detail.html, and favorites.html.
+11. Update routes.py, templates, or models.py if issues arise.

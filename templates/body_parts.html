@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Body Parts - Antidote{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Body Parts</h1>
+            <p class="lead">Browse procedures by body part to find the perfect treatment for you.</p>
+        </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        {% if body_parts %}
+            {% for body_part in body_parts %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            {% if body_part.icon_url %}
+                                <img src="{{ body_part.icon_url }}" alt="{{ body_part.name }}" class="mb-3" style="height: 64px; width: 64px;">
+                            {% else %}
+                                <i data-feather="activity" class="mb-3" style="height: 64px; width: 64px;"></i>
+                            {% endif %}
+                            <h4 class="card-title">{{ body_part.name }}</h4>
+                            <p class="card-text">{{ body_part.description }}</p>
+                            <a href="{{ url_for('web.categories', body_part_id=body_part.id) }}" class="btn btn-primary">
+                                View Categories
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No body parts available yet.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

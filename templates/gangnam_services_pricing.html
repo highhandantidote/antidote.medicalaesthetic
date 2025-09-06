@@ -1,0 +1,636 @@
+{% extends "base.html" %}
+
+{% block title %}Services & Pricing - Gangnam Style{% endblock %}
+
+{% block content %}
+<style>
+/* Gangnam Unni authentic styling */
+.gangnam-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.gangnam-hero {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.gangnam-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.gangnam-hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.flash-deals-section {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin: -40px auto 40px;
+    position: relative;
+    z-index: 10;
+    padding: 40px;
+}
+
+.flash-deal-card {
+    background: linear-gradient(45deg, #ff4757, #ff6b9d);
+    color: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.flash-deal-card:hover {
+    transform: translateY(-5px);
+}
+
+.flash-deal-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #fff;
+    color: #ff4757;
+    padding: 8px 15px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.flash-deal-timer {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.timer-digits {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.timer-labels {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.pricing-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.pricing-card:hover {
+    transform: translateY(-8px);
+    border-color: #4ecdc4;
+}
+
+.pricing-card.featured {
+    border-color: #ff6b6b;
+    position: relative;
+}
+
+.pricing-card.featured::before {
+    content: "Most Popular";
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    background: #ff6b6b;
+    color: white;
+    padding: 8px 40px;
+    transform: rotate(45deg);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.pricing-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.pricing-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.pricing-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.pricing-period {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.pricing-features {
+    padding: 30px;
+}
+
+.pricing-feature {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+.pricing-feature i {
+    color: #4ecdc4;
+    margin-right: 10px;
+    width: 20px;
+}
+
+.event-calendar-section {
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 40px;
+    margin: 40px 0;
+}
+
+.event-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-left: 5px solid #ff6b6b;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.event-date {
+    background: #ff6b6b;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.trending-procedures {
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+    color: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin: 40px 0;
+}
+
+.trending-item {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.trending-rank {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.gangnam-btn {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gangnam-btn:hover {
+    background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.discount-badge {
+    background: #ff4757;
+    color: white;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+@media (max-width: 768px) {
+    .gangnam-hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .flash-deals-section {
+        margin: -20px 15px 20px;
+        padding: 20px;
+    }
+}
+</style>
+
+<div class="gangnam-container">
+    <!-- Hero Section -->
+    <div class="gangnam-hero">
+        <h1>Korean Beauty Excellence</h1>
+        <p>Experience authentic Korean cosmetic procedures with certified specialists</p>
+    </div>
+
+    <!-- Flash Deals Section -->
+    <div class="flash-deals-section">
+        <h2 class="text-center mb-4">🔥 Limited Time Flash Deals</h2>
+        <div class="row">
+            {% for deal in flash_deals %}
+            <div class="col-md-6 mb-4">
+                <div class="flash-deal-card" onclick="bookFlashDeal('{{ deal.id }}')">
+                    <div class="flash-deal-badge">{{ deal.discount_percentage }}% OFF</div>
+                    <h4>{{ deal.title }}</h4>
+                    <div class="price-comparison">
+                        <span class="original-price text-decoration-line-through">₹{{ "{:,}".format(deal.original_price) }}</span>
+                        <span class="discounted-price fs-3 fw-bold">₹{{ "{:,}".format(deal.discounted_price) }}</span>
+                    </div>
+                    <div class="flash-deal-timer">
+                        <div class="timer-digits" id="timer-{{ deal.id }}">00:00:00</div>
+                        <div class="timer-labels">Time Remaining</div>
+                    </div>
+                    <p class="mt-3">Only {{ deal.slots_available }} slots available!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Trending Procedures -->
+    <div class="trending-procedures">
+        <h2 class="text-center mb-4">📈 Trending This Week</h2>
+        <div id="trending-list">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Seasonal Events -->
+    <div class="event-calendar-section">
+        <h2 class="text-center mb-4">🌟 Seasonal Events & Packages</h2>
+        {% for event_name, event in seasonal_events.items() %}
+        <div class="event-card">
+            <div class="event-date">{{ event.event_dates.start }} - {{ event.event_dates.end }}</div>
+            <h4>{{ event.title }}</h4>
+            <p>{{ event.description }}</p>
+            
+            <div class="row mt-4">
+                {% for package_name, package in event.packages.items() %}
+                <div class="col-md-4">
+                    <div class="pricing-card {% if package_name == 'premium' %}featured{% endif %}">
+                        <div class="pricing-header">
+                            <div class="pricing-title">{{ package.name }}</div>
+                            <div class="pricing-amount">₹{{ "{:,}".format(package.event_price) }}</div>
+                            <div class="pricing-period">Save ₹{{ "{:,}".format(package.savings) }}</div>
+                        </div>
+                        <div class="pricing-features">
+                            {% for procedure in package.procedures %}
+                            <div class="pricing-feature">
+                                <i class="fas fa-check"></i>
+                                {{ procedure }}
+                            </div>
+                            {% endfor %}
+                            <button class="gangnam-btn w-100 mt-3" onclick="bookSeasonalPackage('{{ event_name }}', '{{ package_name }}')">
+                                Book Package
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Procedure of the Month -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px;">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">⭐ Procedure of the Month</h2>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3>{{ procedure_of_month.featured_procedure }}</h3>
+                            <p class="fs-5">Special pricing this month only!</p>
+                            <ul class="list-unstyled">
+                                {% for highlight in procedure_of_month.procedure_highlights %}
+                                <li class="mb-2"><i class="fas fa-star text-warning me-2"></i>{{ highlight }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="price-display">
+                                <div class="text-decoration-line-through opacity-75">
+                                    ₹{{ "{:,}".format(procedure_of_month.original_price_range.min) }} - ₹{{ "{:,}".format(procedure_of_month.original_price_range.max) }}
+                                </div>
+                                <div class="fs-2 fw-bold">
+                                    ₹{{ "{:,}".format(procedure_of_month.special_price_range.min) }} - ₹{{ "{:,}".format(procedure_of_month.special_price_range.max) }}
+                                </div>
+                                <button class="gangnam-btn mt-3" onclick="bookMonthlySpecial()">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Packages -->
+    <div class="mt-5">
+        <h2 class="text-center mb-4">👥 Group Event Packages</h2>
+        <div class="pricing-grid">
+            {% for package_name, package in group_packages.items() %}
+            {% for group_name, group in package.items() %}
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <div class="pricing-title">{{ group.name }}</div>
+                    <div class="pricing-amount">₹{{ "{:,}".format(group.price_per_person) }}</div>
+                    <div class="pricing-period">per person ({{ group.min_people }}-{{ group.max_people }} people)</div>
+                    <div class="discount-badge">{{ group.group_discount }}% Group Discount</div>
+                </div>
+                <div class="pricing-features">
+                    {% for service in group.services %}
+                    <div class="pricing-feature">
+                        <i class="fas fa-check"></i>
+                        {{ service }}
+                    </div>
+                    {% endfor %}
+                    <button class="gangnam-btn w-100 mt-3" onclick="bookGroupPackage('{{ group_name }}')">
+                        Book Group Package
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Real-time Pricing Calculator -->
+    <div class="mt-5 p-4" style="background: #f8f9fa; border-radius: 20px;">
+        <h3 class="text-center mb-4">💰 Real-time Pricing Calculator</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <select id="procedure-select" class="form-select mb-3">
+                    <option>Select Procedure</option>
+                    <option value="botox">Botox Treatment</option>
+                    <option value="rhinoplasty">Rhinoplasty</option>
+                    <option value="breast-augmentation">Breast Augmentation</option>
+                    <option value="liposuction">Liposuction</option>
+                </select>
+                <select id="time-select" class="form-select mb-3">
+                    <option>Preferred Time</option>
+                    <option value="09:00">9:00 AM (Off-peak -15%)</option>
+                    <option value="11:00">11:00 AM (Peak +20%)</option>
+                    <option value="15:00">3:00 PM (Peak +20%)</option>
+                    <option value="17:00">5:00 PM (Off-peak -15%)</option>
+                </select>
+                <input type="date" id="date-select" class="form-select mb-3">
+            </div>
+            <div class="col-md-6">
+                <div id="pricing-result" class="text-center p-4" style="background: white; border-radius: 15px;">
+                    <h4>Select procedure to see pricing</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Creation Modal (for clinic admins) -->
+<div class="modal fade" id="createEventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createEventForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Event Type</label>
+                            <select name="event_type" class="form-select" required>
+                                <option value="flash_sale">Flash Sale</option>
+                                <option value="seasonal_campaign">Seasonal Campaign</option>
+                                <option value="clinic_anniversary">Clinic Anniversary</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Event Title</label>
+                            <input type="text" name="event_title" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="event_description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Percentage</label>
+                            <input type="number" name="discount_percentage" class="form-control" min="5" max="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Limited Slots</label>
+                            <input type="number" name="limited_slots" class="form-control" min="1" max="100">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="gangnam-btn">Create Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Flash deal countdown timers
+function startCountdown(elementId, endTime) {
+    const timer = document.getElementById(elementId);
+    const endDate = new Date(endTime).getTime();
+    
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const distance = endDate - now;
+        
+        if (distance < 0) {
+            timer.innerHTML = "EXPIRED";
+            return;
+        }
+        
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        timer.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
+
+// Load trending procedures
+async function loadTrendingProcedures() {
+    try {
+        const response = await fetch('/services-pricing/api/trending-procedures');
+        const data = await response.json();
+        const container = document.getElementById('trending-list');
+        
+        data.trending_procedures.forEach((item, index) => {
+            const trendingItem = document.createElement('div');
+            trendingItem.className = 'trending-item';
+            trendingItem.innerHTML = `
+                <div class="trending-rank">${index + 1}</div>
+                <div class="flex-grow-1">
+                    <h5>${item.procedure}</h5>
+                    <p class="mb-1">${item.bookings_this_week} bookings this week</p>
+                    <small>${item.special_offer}</small>
+                </div>
+                <div class="text-end">
+                    <div class="fs-4 fw-bold">₹${item.average_price.toLocaleString()}</div>
+                    <button class="gangnam-btn" onclick="bookTrendingProcedure('${item.procedure}')">Book</button>
+                </div>
+            `;
+            container.appendChild(trendingItem);
+        });
+    } catch (error) {
+        console.error('Error loading trending procedures:', error);
+    }
+}
+
+// Real-time pricing calculator
+async function updatePricing() {
+    const procedure = document.getElementById('procedure-select').value;
+    const time = document.getElementById('time-select').value;
+    const date = document.getElementById('date-select').value;
+    const resultDiv = document.getElementById('pricing-result');
+    
+    if (!procedure) {
+        resultDiv.innerHTML = '<h4>Select procedure to see pricing</h4>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/services-pricing/api/real-time-pricing?procedure=${procedure}&time=${time}&date=${date}`);
+        const data = await response.json();
+        
+        const savings = data.savings > 0 ? `<div class="text-success">You save: ₹${data.savings.toLocaleString()}</div>` : '';
+        
+        resultDiv.innerHTML = `
+            <h4>₹${data.final_price.toLocaleString()}</h4>
+            <small class="text-muted">Base price: ₹${data.base_price.toLocaleString()}</small>
+            ${savings}
+            <div class="mt-2">
+                ${data.pricing_factors.map(factor => `<span class="badge bg-info me-1">${factor}</span>`).join('')}
+            </div>
+            <button class="gangnam-btn mt-2" onclick="bookWithCalculatedPrice('${procedure}', ${data.final_price})">Book Now</button>
+        `;
+    } catch (error) {
+        console.error('Error calculating pricing:', error);
+    }
+}
+
+// Event handlers
+function bookFlashDeal(dealId) {
+    // Implementation for flash deal booking
+    console.log('Booking flash deal:', dealId);
+    window.location.href = `/services-pricing/flash-deal/${dealId}`;
+}
+
+function bookSeasonalPackage(eventName, packageName) {
+    // Implementation for seasonal package booking
+    console.log('Booking seasonal package:', eventName, packageName);
+}
+
+function bookGroupPackage(groupName) {
+    // Implementation for group package booking
+    console.log('Booking group package:', groupName);
+}
+
+function bookMonthlySpecial() {
+    // Implementation for monthly special booking
+    console.log('Booking monthly special');
+}
+
+function bookTrendingProcedure(procedure) {
+    // Implementation for trending procedure booking
+    console.log('Booking trending procedure:', procedure);
+}
+
+function bookWithCalculatedPrice(procedure, price) {
+    // Implementation for calculated price booking
+    console.log('Booking with calculated price:', procedure, price);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Start countdown timers for flash deals
+    {% for deal in flash_deals %}
+    startCountdown('timer-{{ deal.id }}', '{{ deal.valid_until }}');
+    {% endfor %}
+    
+    // Load trending procedures
+    loadTrendingProcedures();
+    
+    // Setup pricing calculator
+    document.getElementById('procedure-select').addEventListener('change', updatePricing);
+    document.getElementById('time-select').addEventListener('change', updatePricing);
+    document.getElementById('date-select').addEventListener('change', updatePricing);
+});
+</script>
+{% endblock %}

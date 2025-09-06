@@ -1,0 +1,147 @@
+Validate and Test the Surgeon Verification Workflow Manually:
+
+1. Confirm Doctor Model and Database:
+   - Verify models.py includes all fields:
+     ```python
+     class Doctor(db.Model):
+         __tablename__ = 'doctors'
+         id = db.Column(db.Integer, primary_key=True)
+         user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+         medical_license_number = db.Column(db.String(50), unique=True, nullable=False)
+         qualification = db.Column(db.String(200), nullable=False)
+         practice_location = db.Column(db.String(200), nullable=False)
+         verification_status = db.Column(db.String(20), default='pending')
+         credentials_url = db.Column(db.String(200))
+         aadhaar_number = db.Column(db.String(20), nullable=True)
+         name = db.Column(db.String(100))  # Extra field
+         specialty = db.Column(db.String(100))  # Extra field
+         experience = db.Column(db.Integer)  # Extra field
+         user = db.relationship('User', backref='doctor_profile')
+Check the database schema: SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'doctors' AND column_name IN ('medical_license_number', 'qualification', 'practice_location', 'verification_status', 'credentials_url', 'aadhaar_number', 'name', 'specialty', 'experience'); to ensure all fields match with correct types (e.g., medical_license_number as VARCHAR(50), experience as INTEGER).
+Test Routes and API:
+Confirm routes.py has the verification routes and decorators (reverify):
+python
+
+Copy
+from flask_login import login_required, current_user
+from functools import wraps
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            return redirect(url_for('web.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+def doctor_required(f):  # Add if missing
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not hasattr(current_user, 'doctor_profile'):
+            return redirect(url_for('web.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@web.route('/dashboard/doctor/verify', methods=['GET', 'POST'])
+@login_required
+@doctor_required
+def doctor_verify():
+    if request.method == 'POST':
+        license_number = request.form['medical_license_number']
+        qualification = request.form['qualification']
+        location = request.form['practice_location']
+        aadhaar = request.form.get('aadhaar_number')
+        new_doctor = Doctor(user_id=current_user.id, medical_license_number=license_number,
+                          qualification=qualification, practice_location=location, aadhaar_number=aadhaar)
+        if 'credentials' in request.files:
+            file = request.files['credentials']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join('static/doctor_credentials', filename))
+                new_doctor.credentials_url = filename
+        db.session.add(new_doctor)
+        db.session.commit()
+        return redirect(url_for('web.doctor_verify'))
+    doctors = Doctor.query.all()
+    return render_template('doctor_verification.html', doctors=doctors)
+
+@web.route('/api/doctor/<int:doctor_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    doctor.verification_status = 'approved'
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+@web.route('/api/doctor/<int:doctor_id>/reject', methods=['POST'])  # Add if missing
+@login_required
+@admin_required
+def reject_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    doctor.verification_status = 'rejected'
+    db.session.commit()
+    return jsonify({'status': 'success'})
+Test: Submit a doctor application with MCI-12345-2025, "MBBS", "Delhi, India", a test PDF, then use Postman (or curl -X POST http://localhost:5000/api/doctor/<doctor_id>/approve -H "Authorization: Bearer <token>") with admin credentials to approve it.
+Validate Templates:
+Ensure doctor_verification.html has the form with validation:
+html
+
+Copy
+<form method="POST" enctype="multipart/form-data">
+    <input name="medical_license_number" placeholder="MCI-XXXXX-YYYY" required>
+    <input name="qualification" placeholder="e.g., MBBS, MS" required>
+    <input name="practice_location" placeholder="e.g., Mumbai, India" required>
+    <input name="aadhaar_number" placeholder="Optional Aadhaar (e.g., XXXX-XXXX-XXXX)">
+    <input type="file" name="credentials" accept="image/*,application/pdf" required>
+    <button type="submit">Submit</button>
+</form>
+<p>Aadhaar data is handled per DPDP Act, 2023, for identity verification only.</p>
+<script>
+    document.querySelector('form').onsubmit = function(e) {
+        const license = document.querySelector('[name=medical_license_number]').value;
+        if (!/MCI-\d{5}-\d{4}/.test(license)) {
+            alert('License must be in MCI-XXXXX-YYYY format');
+            e.preventDefault();
+        }
+    };
+</script>
+Confirm admin_doctor_verifications.html shows the table:
+html
+
+Copy
+<table>
+    <tr><th>Name</th><th>License</th><th>Status</th><th>Actions</th></tr>
+    {% for doctor in doctors %}
+        <tr>
+            <td>{{ doctor.user.username }}</td>
+            <td>{{ doctor.medical_license_number }}</td>
+            <td>{{ doctor.verification_status }}</td>
+            <td>
+                <a href="{{ url_for('static', filename='doctor_credentials/' + doctor.credentials_url) }}">View</a>
+                <form method="POST" action="{{ url_for('approve_doctor', doctor_id=doctor.id) }}"><button>Approve</button></form>
+                <form method="POST" action="{{ url_for('reject_doctor', doctor_id=doctor.id) }}"><button>Reject</button></form>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+Check dashboard_admin.html and dashboard_doctor.html for verification links.
+Manual Testing:
+Test Case 1: Valid Submission
+Action: Log in as a doctor, go to /dashboard/doctor/verify, submit MCI-12345-2025, "MBBS", "Delhi, India", a test PDF.
+Expected: Application saved, status "pending."
+Test Case 2: Invalid License Format
+Action: Submit MCI-123 (invalid format).
+Expected: Alert triggers, form submission blocked.
+Test Case 3: Admin Approval
+Action: Log in as admin, go to /dashboard/admin, click "Doctor Verification," approve the pending application.
+Expected: Status changes to "approved," table updates.
+Test Case 4: Credential View
+Action: View the uploaded PDF from the admin page.
+Expected: File displays correctly.
+Test Case 5: Reject Action
+Action: Reject another test application.
+Expected: Status changes to "rejected."
+Test and Validate:
+Restart the application.
+Run all manual test cases, noting results (pass/fail).
+Take screenshots of each test case (submission form, invalid alert, admin approval, credential view, rejection).
+Generate logs (e.g., DEBUG:routes:Doctor verification submitted, INFO:db:COMMIT).
