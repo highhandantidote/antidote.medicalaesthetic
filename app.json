@@ -1,0 +1,77 @@
+{
+  "name": "Antidote Medical Aesthetic Marketplace",
+  "description": "Medical aesthetic marketplace platform connecting patients with clinics",
+  "repository": "https://github.com/your-repo/antidote",
+  "keywords": ["flask", "medical", "aesthetic", "marketplace"],
+  "env": {
+    "SESSION_SECRET": {
+      "description": "Secret key for Flask sessions",
+      "required": true
+    },
+    "DATABASE_URL": {
+      "description": "PostgreSQL database connection URL",
+      "required": true
+    },
+    "GOOGLE_API_KEY": {
+      "description": "Google API key for AI services",
+      "required": true
+    },
+    "GEMINI_API_KEY": {
+      "description": "Gemini API key for AI analysis",
+      "required": true
+    },
+    "RAZORPAY_KEY_ID": {
+      "description": "Razorpay payment gateway key ID",
+      "required": true
+    },
+    "RAZORPAY_KEY_SECRET": {
+      "description": "Razorpay payment gateway secret key",
+      "required": true
+    },
+    "FIREBASE_API_KEY": {
+      "description": "Firebase API key for authentication",
+      "required": true
+    },
+    "FIREBASE_APP_ID": {
+      "description": "Firebase app ID",
+      "required": true
+    },
+    "FIREBASE_MESSAGING_SENDER_ID": {
+      "description": "Firebase messaging sender ID",
+      "required": true
+    },
+    "FIREBASE_PROJECT_ID": {
+      "description": "Firebase project ID",
+      "required": true
+    },
+    "FIREBASE_AUTH_DOMAIN": {
+      "description": "Firebase auth domain",
+      "required": true
+    },
+    "FIREBASE_STORAGE_BUCKET": {
+      "description": "Firebase storage bucket",
+      "required": true
+    },
+    "FLASK_ENV": {
+      "description": "Flask environment (production/development)",
+      "value": "production",
+      "required": false
+    },
+    "FLASK_DEBUG": {
+      "description": "Flask debug mode",
+      "value": "False", 
+      "required": false
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}
