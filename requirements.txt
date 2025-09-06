@@ -32,7 +32,6 @@ requests==2.32.3
 scikit-learn==1.5.1
 scipy==1.14.1
 sendgrid==6.11.0
-sift-stack-py==0.1.0
 sqlalchemy==2.0.32
 textblob==0.18.0.post0
 trafilatura==1.12.2
