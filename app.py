@@ -10,10 +10,9 @@ from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from dotenv import load_dotenv
 
-# Load environment variables from .env file if it exists
-load_dotenv()
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -40,6 +39,11 @@ csrf = CSRFProtect()
 def create_app():
     """Create and configure the Flask application."""
     app = Flask(__name__)
+
+    @app.route("/health")
+def health():
+    return {"status": "ok"}, 200
+
     
     # Load configuration from config.py
     app.config.from_object('config.Config')
